@@ -50,10 +50,11 @@ cd "$SCRIPTDIR/secp256k1/bitcoin-core-secp256k1"
 # delete old build dir, if exists
 rm -rf "$SCRIPTDIR/secp256k1/built" || true
 
+if [[ -e Makefile ]]; then
+  make clean
+fi
 
-
-make clean && \
-  ./autogen.sh && \
+./autogen.sh && \
   ./configure --prefix="$SCRIPTDIR/secp256k1/built" $SECP256K1_BUILD_OPTS && \
   make -j $CORE_COUNT && \
   make -j $CORE_COUNT install
