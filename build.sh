@@ -48,18 +48,21 @@ fi
 cd "$SCRIPTDIR/secp256k1/bitcoin-core-secp256k1"
 
 # delete old build dir, if exists
-rm -rf "$SCRIPTDIR/secp256k1/built" || true
+rm -rf "$SCRIPTDIR/secp256k1/build" || true
 
 if [[ -e Makefile ]]; then
   make clean
 fi
 
 ./autogen.sh && \
-  ./configure --prefix="$SCRIPTDIR/secp256k1/built" $SECP256K1_BUILD_OPTS && \
+  ./configure --prefix="$SCRIPTDIR/secp256k1/build" $SECP256K1_BUILD_OPTS && \
   make -j $CORE_COUNT && \
   make -j $CORE_COUNT install
 
-#TODO: kick off gradle steps here
+# kick off gradle build to package and deploy jars
+
+cd $SCRIPTDIR
+./gradlew build
 
 #############################
 #### end secp256k1 build ####

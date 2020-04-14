@@ -1,1 +1,7 @@
-secp256k1/built
+*/build
+
+.idea
+*/.idea
+
+.gradle
+*/.gradle
