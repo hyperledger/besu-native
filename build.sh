@@ -59,7 +59,7 @@ fi
   make -j $CORE_COUNT && \
   make -j $CORE_COUNT install
 
-#TODO: kick off gradle steps here
+# kick off gradle build to package and deploy jars
 
 cd $SCRIPTDIR
 ./gradlew build
