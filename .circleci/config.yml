@@ -1,45 +1,127 @@
 ---
 version: 2.1
 executors:
-  besu_executor_med: # 2cpu, 4G ram
+  besu_executor_med_linux: # 2cpu, 4G ram
     docker:
       - image: circleci/openjdk:11.0.4-jdk-stretch
     resource_class: medium
     working_directory: ~/project
     environment:
       GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
+  besu_executor_med_macos: # 2cpu, 4G ram
+    macos:
+      xcode: "11.4.0"
+    resource_class: medium
+    working_directory: ~/project
+    environment:
+      GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
+# besu_executor_med_windows: # 2cpu, 4G ram
+#   machine:
+#     image: "windows-server-2019-vs2019:stable"
+#     resource_class: medium
+#     shell: powershell.exe -ExecutionPolicy Bypass
+#   working_directory: ~/project
+#   environment:
+#     GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
 
 notify:
   webhooks:
     - url: https://hyperledger-rocket-chat-hubot.herokuapp.com/hubot/circleci
 
 commands:
-  prepare:
-    description: "Prepare"
+  checkout_code:
+    description: "Prepare - Checkout code"
     steps:
       - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update
+  prepare_linux:
+    description: "Prepare - Linux x86_64"
+    steps:
+      - run:
+          name: Install Packages - build tools
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y autoconf build-essential libtool
+  prepare_macos:
+    description: "Prepare - macOS"
+    steps:
+      - run:
+          name: Install Packages - build tools
+          command: |
+            brew install autoconf automake libtool
+  prepare_final_assembly:
+    description: "Prepare - Final Assembly"
+    steps:
+      - attach_workspace:
+          at: secp256k1/build
       - run:
           name: Install Packages - build tools
           command: |
             sudo apt-get update
             sudo apt-get install -y autoconf build-essential libtool
 jobs:
-  build:
-    executor: besu_executor_med
+  native-build-linux-x86-64:
+    executor: besu_executor_med_linux
     steps:
-      - prepare
+      - checkout_code
+      - prepare_linux
       - run:
           name: build
           command: |
             ./build.sh
+      - persist_to_workspace:
+          root: secp256k1/build
+          paths:
+            - lib/libsecp256k1.so
       - store_artifacts:
-          name: Native build artifacts
-          path:  secp256k1/built/lib
-          destination: secp256k1_native_artifacts
+          name: Linux native build artifacts
+          path:  secp256k1/build/lib
+          destination: secp256k1_linux_x86_64_native_artifacts
           when: always
-
+  native-build-macos:
+    executor: besu_executor_med_macos
+    steps:
+      - checkout_code
+      - prepare_macos
+      - run:
+          name: build
+          command: |
+            ./build.sh
+      - persist_to_workspace:
+          root: secp256k1/build
+          paths:
+            - lib/libsecp256k1.dylib
+      - store_artifacts:
+          name: macOS native build artifacts
+          path:  secp256k1/build/lib
+          destination: secp256k1_macOS_native_artifacts
+          when: always
+  final-assembly:
+    executor: besu_executor_med_linux
+    steps:
+      - checkout_code
+      - prepare_final_assembly
+      - run:
+          name: gradle
+          command: |
+            ./gradlew build
+      - store_artifacts:
+          name: Final build artifacts
+          path: secp256k1/build/libs
+          destination: secp256k1_jars
+          when: always
 workflows:
   version: 2
   default:
     jobs:
-      - build
+      - native-build-linux-x86-64
+      - native-build-macos
+      - final-assembly:
+          requires:
+            - native-build-linux-x86-64
+            - native-build-macos
+

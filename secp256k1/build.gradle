@@ -31,7 +31,7 @@ task macLibCopy(type: Copy) {
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from '//FIXME'
+  from 'build/lib/libsecp256k1.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
