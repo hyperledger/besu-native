@@ -61,8 +61,10 @@ fi
 
 # kick off gradle build to package and deploy jars
 
-cd $SCRIPTDIR
-./gradlew build
+if [[ "$SKIP_GRADLE" != "" ]]; then
+  cd $SCRIPTDIR
+  ./gradlew build
+fi
 
 #############################
 #### end secp256k1 build ####

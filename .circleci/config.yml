@@ -66,6 +66,8 @@ commands:
 jobs:
   native-build-linux-x86-64:
     executor: besu_executor_med_linux
+    environment:
+      SKIP_GRADLE: true
     steps:
       - checkout_code
       - prepare_linux
@@ -84,6 +86,8 @@ jobs:
           when: always
   native-build-macos:
     executor: besu_executor_med_macos
+    environment:
+      SKIP_GRADLE: true
     steps:
       - checkout_code
       - prepare_macos
@@ -102,6 +106,8 @@ jobs:
           when: always
   final-assembly:
     executor: besu_executor_med_linux
+    environment:
+      SKIP_GRADLE: true
     steps:
       - checkout_code
       - prepare_final_assembly
