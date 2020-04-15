@@ -15,6 +15,7 @@ executors:
     working_directory: ~/project
     environment:
       GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
+      HOMEBREW_NO_AUTO_UPDATE: true
 # besu_executor_med_windows: # 2cpu, 4G ram
 #   machine:
 #     image: "windows-server-2019-vs2019:stable"
@@ -56,13 +57,18 @@ commands:
   prepare_final_assembly:
     description: "Prepare - Final Assembly"
     steps:
-      - attach_workspace:
-          at: secp256k1/build
       - run:
           name: Install Packages - build tools
           command: |
             sudo apt-get update
             sudo apt-get install -y autoconf build-essential libtool
+      - attach_workspace:
+          at: ~/project/secp256k1/build/lib
+      - run:
+          name: "Check workspace"
+          command: |
+            ls ~/project/secp256k1/build
+            ls ~/project/secp256k1/build/lib
 jobs:
   native-build-linux-x86-64:
     executor: besu_executor_med_linux
@@ -76,9 +82,9 @@ jobs:
           command: |
             ./build.sh
       - persist_to_workspace:
-          root: secp256k1/build
+          root: secp256k1/build/lib
           paths:
-            - lib/libsecp256k1.so
+            - libsecp256k1.so*
       - store_artifacts:
           name: Linux native build artifacts
           path:  secp256k1/build/lib
@@ -96,9 +102,9 @@ jobs:
           command: |
             ./build.sh
       - persist_to_workspace:
-          root: secp256k1/build
+          root: secp256k1/build/lib
           paths:
-            - lib/libsecp256k1.dylib
+            - libsecp256k1.*dylib
       - store_artifacts:
           name: macOS native build artifacts
           path:  secp256k1/build/lib
@@ -106,8 +112,6 @@ jobs:
           when: always
   final-assembly:
     executor: besu_executor_med_linux
-    environment:
-      SKIP_GRADLE: true
     steps:
       - checkout_code
       - prepare_final_assembly
