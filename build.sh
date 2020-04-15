@@ -11,6 +11,9 @@ SECP256K1_BUILD_OPTS="--enable-module-recovery"
 ####### End Variables #######
 #############################
 
+# Initialize external vars - need this to get around unbound variable errors
+SKIP_GRADLE="$SKIP_GRADLE"
+
 # Exit script if you try to use an uninitialized variable.
 set -o nounset
 
@@ -61,8 +64,10 @@ fi
 
 # kick off gradle build to package and deploy jars
 
-cd $SCRIPTDIR
-./gradlew build
+if [[ "$SKIP_GRADLE" != "true" ]]; then
+  cd $SCRIPTDIR
+  ./gradlew build
+fi
 
 #############################
 #### end secp256k1 build ####

@@ -16,7 +16,7 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
-//  id 'com.jfrog.bintray'
+  id 'com.jfrog.bintray' version '1.8.4'
 }
 
 dependencies {
@@ -31,7 +31,7 @@ task macLibCopy(type: Copy) {
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from '//FIXME'
+  from 'build/lib/libsecp256k1.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
@@ -59,6 +59,29 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 
+apply plugin: 'com.jfrog.bintray'
+
+def bintrayUser = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+def bintrayKey = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_KEY')
+
+// These are made able to be overridden so that we can test publishing to a test repo
+def bintrayRepo = System.getenv('BINTRAY_REPO') != "" ? System.getenv('BINTRAY_REPO') : 'besu-repo'
+def bintrayOrg = System.getenv('BINTRAY_ORG') != "" ? System.getenv('BINTRAY_ORG') : 'hyperledger-org'
+
+def bintrayPackage = bintray.pkg {
+  repo = bintrayRepo
+  name = 'besu-native-secp256k1'
+  userOrg = bintrayOrg
+  licenses = ['Apache-2.0']
+  websiteUrl = 'https://github.com/hyperledger/besu-native'
+  vcsUrl = 'https://github.com/hyperledger/besu-native.git'
+
+  version {
+    name = project.version
+    released = new Date()
+  }
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
@@ -72,7 +95,7 @@ publishing {
       pom {
         name = "Besu Native - ${project.name}"
         description = 'Adapter for native secp256k1 library'
-        url = 'http://github.com/hyperledger/besu'
+        url = 'http://github.com/hyperledger/besu-native'
         licenses {
           license {
             name = 'The Apache License, Version 2.0'
@@ -80,24 +103,24 @@ publishing {
           }
         }
         scm {
-          connection = 'scm:git:git://github.com/hyperledger/besu.git'
-          developerConnection = 'scm:git:ssh://github.com/hyperledger/besu.git'
-          url = 'https://github.com/hyperledger/besu'
+          connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
+          developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
+          url = 'https://github.com/hyperledger/besu-native'
         }
       }
     }
   }
 }
 
-//bintray {
-//  user = bintrayUser
-//  key = bintrayKey
-//
-//  publications = ['mavenJava']
-//  override = version.endsWith('SNAPSHOT')
-//
-//  publish = true
-//
-//  pkg = bintrayPackage
-//}
-//
+bintray {
+  user = bintrayUser
+  key = bintrayKey
+
+  publications = ['mavenJava']
+  override = version.endsWith('SNAPSHOT')
+
+  publish = true
+
+  pkg = bintrayPackage
+}
+
