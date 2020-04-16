@@ -66,8 +66,8 @@ def bintrayUser = project.hasProperty('bintrayUser') ? project.property('bintray
 def bintrayKey = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_KEY')
 
 // These are made able to be overridden so that we can test publishing to a test repo
-def bintrayRepo = System.getenv('BINTRAY_REPO') != "" ? System.getenv('BINTRAY_REPO') : 'besu-repo'
-def bintrayOrg = System.getenv('BINTRAY_ORG') != "" ? System.getenv('BINTRAY_ORG') : 'hyperledger-org'
+def bintrayRepo = System.getenv('BINTRAY_REPO') ?: 'besu-repo'
+def bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'hyperledger-org'
 
 def bintrayPackage = bintray.pkg {
   repo = bintrayRepo
