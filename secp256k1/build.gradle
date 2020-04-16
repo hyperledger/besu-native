@@ -26,7 +26,6 @@ dependencies {
 task macLibCopy(type: Copy) {
   from 'build/lib/libsecp256k1.dylib'
   into 'build/resources/main/darwin'
-  rename(/(\w+)\.dylib/, '$1.jnilib')
 }
 jar.dependsOn macLibCopy
 
