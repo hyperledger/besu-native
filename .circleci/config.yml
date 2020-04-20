@@ -50,7 +50,7 @@ commands:
             sudo apt-get install -y autoconf build-essential libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
   prepare_macos:
     description: "Prepare - macOS"
     steps:
@@ -61,7 +61,7 @@ commands:
             brew install autoconf automake libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
   prepare_final_assembly:
     description: "Prepare - Final Assembly"
     steps:
