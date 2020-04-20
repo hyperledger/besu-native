@@ -62,7 +62,23 @@ fi
   make -j $CORE_COUNT && \
   make -j $CORE_COUNT install
 
-# kick off gradle build to package and deploy jars
+############################
+###### build altbn128 ######
+############################
+
+cd "$SCRIPTDIR/altbn128/sputnikvm_altbn128"
+
+# delete old build dir, if exists
+rm -rf "$SCRIPTDIR/altbn128/build" || true
+mkdir -p "$SCRIPTDIR/altbn128/build/lib"
+
+cargo clean
+cargo build --release
+cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
+
+########################
+###### build jars ######
+########################
 
 if [[ "$SKIP_GRADLE" != "true" ]]; then
   cd $SCRIPTDIR
