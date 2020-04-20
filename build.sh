@@ -44,6 +44,11 @@ if [[ "$OSTYPE" == "darwin"* ]];  then
   CORE_COUNT=$(sysctl -n hw.ncpu)
 fi
 
+# set cargo
+if `which cargo`; then
+  CARGO=$HOME/.cargo/bin/cargo
+fi
+
 #############################
 ###### build secp256k1 ######
 #############################
@@ -72,8 +77,8 @@ cd "$SCRIPTDIR/altbn128/sputnikvm_altbn128"
 rm -rf "$SCRIPTDIR/altbn128/build" || true
 mkdir -p "$SCRIPTDIR/altbn128/build/lib"
 
-cargo clean
-cargo build --release
+$CARGO clean
+$CARGO build --release
 cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
 
 ########################
