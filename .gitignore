@@ -1,7 +1,11 @@
-*/build
+**/build
+**/target
 
-.idea
-*/.idea
+**/Cargo.lock
 
-.gradle
-*/.gradle
+**/.idea
+**/.classpath
+**/.project
+**/.settings
+
+**/.gradle

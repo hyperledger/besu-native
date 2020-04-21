@@ -24,19 +24,19 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build/lib/libsecp256k1.dylib'
+  from 'build/lib/libeth_altbn128.dylib'
   into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from 'build/lib/libsecp256k1.so'
+  from 'build/lib/libeth_altbn128.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
 
 jar {
-  archiveBaseName = 'besu-native-secp256k1'
+  archiveBaseName = 'besu-native-altbn128'
   manifest {
     attributes(
         'Specification-Title': archiveBaseName,
@@ -48,13 +48,13 @@ jar {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-  archiveBaseName = 'besu-native-secp256k1'
+  archiveBaseName = 'besu-native-altbn128'
   classifier = 'sources'
   from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  archiveBaseName = 'besu-native-secp256k1'
+  archiveBaseName = 'besu-native-altbn128'
   classifier = 'javadoc'
   from javadoc.destinationDir
 }
@@ -66,12 +66,12 @@ def bintrayUser = project.hasProperty('bintrayUser') ? project.property('bintray
 def bintrayKey = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_KEY')
 
 // These are made able to be overridden so that we can test publishing to a test repo
-def bintrayRepo = System.getenv('BINTRAY_REPO') ?: 'besu-repo'
-def bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'hyperledger-org'
+def bintrayRepo = System.getenv('BINTRAY_REPO') != "" ? System.getenv('BINTRAY_REPO') : 'besu-repo'
+def bintrayOrg = System.getenv('BINTRAY_ORG') != "" ? System.getenv('BINTRAY_ORG') : 'hyperledger-org'
 
 def bintrayPackage = bintray.pkg {
   repo = bintrayRepo
-  name = 'besu-native-secp256k1'
+  name = 'besu-native-altbn128'
   userOrg = bintrayOrg
   licenses = ['Apache-2.0']
   websiteUrl = 'https://github.com/hyperledger/besu-native'
@@ -95,7 +95,7 @@ publishing {
 
       pom {
         name = "Besu Native - ${project.name}"
-        description = 'Adapter for native secp256k1 library'
+        description = 'Adapter for native alt_bn128'
         url = 'http://github.com/hyperledger/besu-native'
         licenses {
           license {

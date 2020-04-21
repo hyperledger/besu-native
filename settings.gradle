@@ -15,3 +15,4 @@
 
 rootProject.name='besu-native'
 include 'secp256k1'
+include 'altbn128'
