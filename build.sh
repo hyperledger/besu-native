@@ -45,9 +45,7 @@ if [[ "$OSTYPE" == "darwin"* ]];  then
 fi
 
 # add to path cargo
-if ! type cargo ; then
-  PATH+=:$HOME/.cargo/bin/cargo
-fi
+. $HOME/.cargo/env
 
 #############################
 ###### build secp256k1 ######
