@@ -76,8 +76,22 @@ rm -rf "$SCRIPTDIR/altbn128/build" || true
 mkdir -p "$SCRIPTDIR/altbn128/build/lib"
 
 cargo clean
-cargo build --release
+cargo build --lib --release
 cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
+
+#############################
+###### build BLS12-381 ######
+#############################
+
+cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
+
+# delete old build dir, if exists
+rm -rf "$SCRIPTDIR/bls12-381/build" || true
+mkdir -p "$SCRIPTDIR/bls12-381/build/lib"
+
+cargo clean
+cargo build --lib --features eip_2357_c_api --release
+cp target/release/libeth_pairings.* "$SCRIPTDIR/bls12-381/build/lib"
 
 ########################
 ###### build jars ######
