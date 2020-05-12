@@ -44,11 +44,14 @@ public class LibSecp256k1 implements Library {
       Native.register(LibSecp256k1.class, "secp256k1");
       final PointerByReference context =
           secp256k1_context_create(SECP256K1_CONTEXT_VERIFY | SECP256K1_CONTEXT_SIGN);
-      if (secp256k1_context_randomize(context, new SecureRandom().generateSeed(32)) == 1) {
-        return context;
-      } else {
-        return null;
+      if (Boolean.parseBoolean(System.getProperty("secp256k1.randomize", "true"))) {
+        // randomization requested or not explicitly disabled
+        if (secp256k1_context_randomize(context, new SecureRandom().generateSeed(32)) != 1) {
+          // there was an error, don't preserve the context
+          return null;
+        }
       }
+      return context;
     } catch (final Throwable t) {
       return null;
     }
