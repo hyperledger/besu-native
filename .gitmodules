@@ -1,3 +1,6 @@
 [submodule "secp256k1/bitcoin-core-secp256k1"]
 	path = secp256k1/bitcoin-core-secp256k1
 	url = https://github.com/bitcoin-core/secp256k1.git
+[submodule "bls12-381/matterlabs-eip1962"]
+	path = bls12-381/matterlabs-eip1962
+	url = https://github.com/matter-labs/eip1962.git
