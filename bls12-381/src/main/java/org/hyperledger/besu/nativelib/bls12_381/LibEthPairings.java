@@ -20,6 +20,7 @@ import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 
 public class LibEthPairings implements Library {
+  @SuppressWarnings("WeakerAccess")
   public static final boolean ENABLED;
 
   static {
@@ -55,4 +56,21 @@ public class LibEthPairings implements Library {
       IntByReference o_len,
       byte[] err,
       IntByReference err_len);
+
+  public static final int EIP196_PREALLOCATE_FOR_ERROR_BYTES = 256;
+
+  public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 64;
+
+  public static final byte EIP196_ADD_OPERATION_RAW_VALUE = 1;
+  public static final byte EIP196_MUL_OPERATION_RAW_VALUE = 2;
+  public static final byte EIP196_PAIR_OPERATION_RAW_VALUE = 3;
+
+  public static native int eip196_perform_operation(
+      byte op,
+      byte[] i,
+      int i_len,
+      byte[] o,
+      IntByReference o_len,
+      byte[] err,
+      IntByReference char_len);
 }
