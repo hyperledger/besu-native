@@ -19,6 +19,9 @@ plugins {
   id 'com.jfrog.bintray' version '1.8.4'
 }
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
 dependencies {
   implementation 'net.java.dev.jna:jna:5.5.0'
   testImplementation 'com.google.guava:guava:29.0-jre'
