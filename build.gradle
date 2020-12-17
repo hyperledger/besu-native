@@ -14,6 +14,11 @@
  */
 
 allprojects {
+  apply plugin: 'java-library'
+
+  sourceCompatibility = 11
+  targetCompatibility = 11
+
   repositories {
     jcenter()
     mavenCentral()
