@@ -16,6 +16,7 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
+  id 'com.jfrog.artifactory' version '4.20.0'
   id 'com.jfrog.bintray' version '1.8.4'
 }
 
@@ -84,9 +85,20 @@ def bintrayPackage = bintray.pkg {
 }
 
 publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/hyperledger/besu-native")
+      credentials {
+        username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+      }
+    }
+  }
   publications {
     mavenJava(MavenPublication) {
       groupId "org.hyperledger.besu"
+      artifactId "altbn128"
       version "${project.version}"
 
       from components.java
@@ -123,5 +135,28 @@ bintray {
   publish = true
 
   pkg = bintrayPackage
+}
+
+def artifactoryUser = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
+def artifactoryKey = project.hasProperty('artifactoryApiKey') ? project.property('artifactoryApiKey') : System.getenv('ARTIFACTORY_KEY')
+def artifactoryRepo = System.getenv('ARTIFACTORY_REPO') ?: 'besu-maven'
+def artifactoryOrg = System.getenv('ARTIFACTORY_ORG') ?: 'hyperledger'
+
+artifactory {
+  contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}/${artifactoryRepo}"
+  publish {
+    repository {
+      repoKey = "."
+      username = artifactoryUser
+      password = artifactoryKey
+      println artifactoryUser
+      println artifactoryKey
+    }
+    defaults {
+      publications('mavenJava')
+      publishArtifacts = true
+      publishPom = true
+    }
+  }
 }
 
