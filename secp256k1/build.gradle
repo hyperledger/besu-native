@@ -16,6 +16,7 @@
 plugins {
   id 'java-library'
   id 'maven-publish'
+  id 'com.jfrog.artifactory' version '4.20.0'
   id 'com.jfrog.bintray' version '1.8.4'
 }
 
@@ -97,7 +98,7 @@ publishing {
   publications {
     mavenJava(MavenPublication) {
       groupId "org.hyperledger.besu"
-      artifactId 'besu-native-secp256k1'
+      artifactId 'secp256k1'
       version "${project.version}"
 
       from components.java
@@ -136,3 +137,23 @@ bintray {
   pkg = bintrayPackage
 }
 
+def artifactoryUser = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
+def artifactoryKey = project.hasProperty('artifactoryApiKey') ? project.property('artifactoryApiKey') : System.getenv('ARTIFACTORY_KEY')
+def artifactoryRepo = System.getenv('ARTIFACTORY_REPO') ?: 'besu-maven'
+def artifactoryOrg = System.getenv('ARTIFACTORY_ORG') ?: 'hyperledger'
+
+artifactory {
+  contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}/${artifactoryRepo}"
+  publish {
+    repository {
+      repoKey = "."
+      username = artifactoryUser
+      password = artifactoryKey
+    }
+    defaults {
+      publications('mavenJava')
+      publishArtifacts = true
+      publishPom = true
+    }
+  }
+}
