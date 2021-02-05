@@ -84,9 +84,20 @@ def bintrayPackage = bintray.pkg {
 }
 
 publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/hyperledger/besu-native")
+      credentials {
+        username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+      }
+    }
+  }
   publications {
     mavenJava(MavenPublication) {
       groupId "org.hyperledger.besu"
+      artifactId 'besu-native-secp256k1'
       version "${project.version}"
 
       from components.java
