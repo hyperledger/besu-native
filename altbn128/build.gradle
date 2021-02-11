@@ -143,14 +143,12 @@ def artifactoryRepo = System.getenv('ARTIFACTORY_REPO') ?: 'besu-maven'
 def artifactoryOrg = System.getenv('ARTIFACTORY_ORG') ?: 'hyperledger'
 
 artifactory {
-  contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}/${artifactoryRepo}"
+  contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}"
   publish {
     repository {
-      repoKey = "."
+      repoKey = artifactoryRepo
       username = artifactoryUser
       password = artifactoryKey
-      println artifactoryUser
-      println artifactoryKey
     }
     defaults {
       publications('mavenJava')
