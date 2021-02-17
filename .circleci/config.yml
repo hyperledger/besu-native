@@ -167,7 +167,7 @@ jobs:
       - run:
           name: Publish
           command: |
-            ./gradlew --no-daemon --parallel publish artifactoryPublish bintrayUpload
+            ./gradlew --no-daemon --parallel publish artifactoryPublish
 workflows:
   version: 2
   default:

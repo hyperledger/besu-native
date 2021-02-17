@@ -17,7 +17,6 @@ plugins {
   id 'java-library'
   id 'maven-publish'
   id 'com.jfrog.artifactory' version '4.20.0'
-  id 'com.jfrog.bintray' version '1.8.4'
 }
 
 dependencies {
@@ -60,41 +59,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
-
-apply plugin: 'com.jfrog.bintray'
-
-def bintrayUser = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-def bintrayKey = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_KEY')
-
-// These are made able to be overridden so that we can test publishing to a test repo
-def bintrayRepo = System.getenv('BINTRAY_REPO') ?: 'besu-repo'
-def bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'hyperledger-org'
-
-def bintrayPackage = bintray.pkg {
-  repo = bintrayRepo
-  name = 'besu-native-secp256k1'
-  userOrg = bintrayOrg
-  licenses = ['Apache-2.0']
-  websiteUrl = 'https://github.com/hyperledger/besu-native'
-  vcsUrl = 'https://github.com/hyperledger/besu-native.git'
-
-  version {
-    name = project.version
-    released = new Date()
-  }
-}
-
 publishing {
-  repositories {
-    maven {
-      name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/hyperledger/besu-native")
-      credentials {
-        username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-      }
-    }
-  }
   publications {
     mavenJava(MavenPublication) {
       groupId "org.hyperledger.besu"
@@ -123,18 +88,6 @@ publishing {
       }
     }
   }
-}
-
-bintray {
-  user = bintrayUser
-  key = bintrayKey
-
-  publications = ['mavenJava']
-  override = version.endsWith('SNAPSHOT')
-
-  publish = true
-
-  pkg = bintrayPackage
 }
 
 def artifactoryUser = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
