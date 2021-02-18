@@ -20,10 +20,6 @@ allprojects {
   targetCompatibility = 11
 
   repositories {
-    jcenter()
     mavenCentral()
-    mavenLocal()
-    maven { url "https://consensys.bintray.com/pegasys-repo" }
-    maven { url "https://repository.apache.org/content/repositories/snapshots/" }
   }
 }
