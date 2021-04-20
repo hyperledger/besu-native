@@ -31,11 +31,21 @@ brew install autoconf automake libtool
 
 TBD
 
+### Rust
+
+Rust needs to be installed to compile the altbn128 library. The default way to install it on Linux or OS X is:
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+If you prefer another installation method please refer to the [Rust installation instructions](https://www.rust-lang.org/tools/install).
+
 ## Building
 
 1. This repository builds native libraries from source that is included as git submodules. To be
    sure that you have cloned those submodules into the appropriate locations,
-   run `git submodule update`
+   run `git submodule init && git submodule update`
 2. The build steps are entirely contained within the `build.sh` script at the repository root.
    Simply run this script, and all of the native modules contained herin will be configured with the
    correct build options for Hyperledger Besu, and built.
