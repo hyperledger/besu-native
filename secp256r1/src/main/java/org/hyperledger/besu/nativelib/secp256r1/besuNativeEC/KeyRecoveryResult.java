@@ -13,8 +13,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'bls12-381'
-include 'secp256k1'
-include 'secp256r1'
+package org.hyperledger.besu.nativelib.secp256r1.besuNativeEC;
+
+import com.sun.jna.Structure;
+import java.util.Arrays;
+import java.util.List;
+
+public class KeyRecoveryResult extends Structure {
+	public byte[] public_key = new byte[131];
+	public byte[] error_message = new byte[256];
+
+	public KeyRecoveryResult() {
+		super();
+	}
+
+	protected List<String> getFieldOrder() {
+		return Arrays.asList("public_key", "error_message");
+	}
+
+	public static class ByValue extends KeyRecoveryResult implements Structure.ByValue {}
+}

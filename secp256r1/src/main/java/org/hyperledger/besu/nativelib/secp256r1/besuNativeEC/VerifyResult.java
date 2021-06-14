@@ -13,8 +13,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'bls12-381'
-include 'secp256k1'
-include 'secp256r1'
+package org.hyperledger.besu.nativelib.secp256r1.besuNativeEC;
+
+import com.sun.jna.Structure;
+import java.util.Arrays;
+import java.util.List;
+
+public class VerifyResult extends Structure {
+	public int verified;
+	public byte[] error_message = new byte[256];
+
+	public VerifyResult() {
+		super();
+	}
+
+	protected List<String> getFieldOrder() {
+		return Arrays.asList("verified", "error_message");
+	}
+
+	public static class ByValue extends VerifyResult implements Structure.ByValue {}
+}
