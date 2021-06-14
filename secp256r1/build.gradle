@@ -30,14 +30,14 @@ dependencies {
 
 task macLibCopy(type: Copy) {
     from 'besu-native-ec/release/lib_besu_native_ec.dylib'
-    from 'besu-native-ec/release/libcrypto.dylib.3'
+    from 'besu-native-ec/release/libbesu_native_ec_crypto.dylib'
     into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
     from 'besu-native-ec/release/libbesu_native_ec.so'
-    from 'besu-native-ec/release/libcrypto.so.3'
+    from 'besu-native-ec/release/libbesu_native_ec_crypto.so'
     into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy

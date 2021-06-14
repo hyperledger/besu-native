@@ -19,7 +19,7 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 
 public interface BesuNativeEC extends Library {
-	Library OPEN_SSL_LIB_CRYPTO = Native.load("crypto", Library.class);
+	Library OPEN_SSL_LIB_CRYPTO = Native.load("besu_native_ec_crypto", Library.class);
 	BesuNativeEC INSTANCE = Native.load("besu_native_ec", BesuNativeEC.class);
 
 	/**
