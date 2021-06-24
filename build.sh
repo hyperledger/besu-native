@@ -41,6 +41,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]];  then
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]];  then
+  export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
 fi
 
