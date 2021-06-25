@@ -23,7 +23,7 @@ dependencies {
   implementation 'net.java.dev.jna:jna:5.8.0'
   testImplementation 'com.google.guava:guava:29.0-jre'
   testImplementation 'junit:junit:4.13'
-  testImplementation 'org.apache.tuweni:bytes:2.0.0'
+  testImplementation 'org.apache.tuweni:tuweni-bytes:2.0.0'
   testImplementation 'org.assertj:assertj-core:3.16.1'
 }
 
