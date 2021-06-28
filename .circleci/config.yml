@@ -61,7 +61,7 @@ commands:
             brew install autoconf automake libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
             # install both x86 and arm64 toolchains
             rustup target add x86_64-apple-darwin
             rustup target add aarch64-apple-darwin
