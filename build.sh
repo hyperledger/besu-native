@@ -138,9 +138,6 @@ lipo_lib() {
 EOF
   LIBNAME=$1
   SWITCHES=$2
-  # check pre-requisites
-  rustup target add x86_64-apple-darwin
-  rustup target add aarch64-apple-darwin
 
   # build both architectures
   cargo build --lib $SWITCHES --release --target=x86_64-apple-darwin

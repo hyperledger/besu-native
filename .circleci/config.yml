@@ -50,7 +50,7 @@ commands:
             sudo apt-get install -y autoconf build-essential libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
   prepare_macos:
     description: "Prepare - macOS"
     steps:
@@ -62,6 +62,10 @@ commands:
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
             curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
+            # install both x86 and arm64 toolchains
+            rustup target add x86_64-apple-darwin
+            rustup target add aarch64-apple-darwin
+
 jobs:
   native-build-linux-x86-64:
     executor: besu_executor_med_linux
