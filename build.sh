@@ -48,62 +48,112 @@ fi
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
 
-#############################
-###### build secp256k1 ######
-#############################
 
-cd "$SCRIPTDIR/secp256k1/bitcoin-core-secp256k1"
+build_secp256k1() {
 
-# delete old build dir, if exists
-rm -rf "$SCRIPTDIR/secp256k1/build" || true
+  cat <<EOF
+  #############################
+  ###### build secp256k1 ######
+  #############################
+EOF
 
-if [[ -e Makefile ]]; then
-  make clean
-fi
+  cd "$SCRIPTDIR/secp256k1/bitcoin-core-secp256k1"
 
-./autogen.sh && \
-  ./configure --prefix="$SCRIPTDIR/secp256k1/build" $SECP256K1_BUILD_OPTS && \
-  make -j $CORE_COUNT && \
-  make -j $CORE_COUNT install
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/secp256k1/build" || true
 
-############################
-###### build altbn128 ######
-############################
+  if [[ -e Makefile ]]; then
+    make clean
+  fi
 
-cd "$SCRIPTDIR/altbn128/sputnikvm_altbn128"
+  ./autogen.sh && \
+    ./configure --prefix="$SCRIPTDIR/secp256k1/build" $SECP256K1_BUILD_OPTS && \
+    make -j $CORE_COUNT && \
+    make -j $CORE_COUNT install
+}
 
-# delete old build dir, if exists
-rm -rf "$SCRIPTDIR/altbn128/build" || true
-mkdir -p "$SCRIPTDIR/altbn128/build/lib"
+build_altbn128() {
+  cat <<EOF
+  ############################
+  ###### build altbn128 ######
+  ############################
+EOF
 
-cargo clean
-cargo build --lib --release
-cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
+  cd "$SCRIPTDIR/altbn128/sputnikvm_altbn128"
 
-#############################
-###### build BLS12-381 ######
-#############################
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/altbn128/build" || true
+  mkdir -p "$SCRIPTDIR/altbn128/build/lib"
 
-cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
+  cargo clean
 
-# delete old build dir, if exists
-rm -rf "$SCRIPTDIR/bls12-381/build" || true
-mkdir -p "$SCRIPTDIR/bls12-381/build/lib"
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    lipo_lib "libeth_altbn128" ""
+  else
+    cargo build --lib --release
+  fi
 
-cargo clean
-cargo build --lib --features eip_2357_c_api --release
-cp target/release/libeth_pairings.* "$SCRIPTDIR/bls12-381/build/lib"
+  cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
+}
 
-########################
-###### build jars ######
-########################
+build_bls12_381() {
+  cat <<EOF
+  #############################
+  ###### build BLS12-381 ######
+  #############################
+EOF
 
-if [[ "$SKIP_GRADLE" != "true" ]]; then
-  cd $SCRIPTDIR
-  ./gradlew build
-fi
+  cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
 
-#############################
-#### end secp256k1 build ####
-#############################
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/bls12-381/build" || true
+  mkdir -p "$SCRIPTDIR/bls12-381/build/lib"
 
+  cargo clean
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    lipo_lib "libeth_pairings" "--features eip_2357_c_api"
+  else
+      cargo build --lib --features eip_2357_c_api --release
+  fi
+  cp target/release/libeth_pairings.* "$SCRIPTDIR/bls12-381/build/lib"
+}
+
+build_jars(){
+  ########################
+  ###### build jars ######
+  ########################
+
+  if [[ "$SKIP_GRADLE" != "true" ]]; then
+    cd $SCRIPTDIR
+    ./gradlew build
+  fi
+}
+
+
+lipo_lib() {
+  cat <<EOF
+  #################################################
+  # multi-arch OSX universal binary build wrapper #
+  #################################################
+EOF
+  LIBNAME=$1
+  SWITCHES=$2
+  # check pre-requisites
+  rustup target add x86_64-apple-darwin
+  rustup target add aarch64-apple-darwin
+
+  # build both architectures
+  cargo build --lib $SWITCHES --release --target=x86_64-apple-darwin
+  cargo build --lib $SWITCHES --release --target=aarch64-apple-darwin
+
+  lipo -create \
+    -output target/release/$1.dylib \
+    -arch x86_64 target/x86_64-apple-darwin/release/$1.dylib \
+    -arch arm64 target/aarch64-apple-darwin/release/$1.dylib
+}
+
+build_secp256k1
+build_altbn128
+build_bls12_381
+build_jars
+exit
