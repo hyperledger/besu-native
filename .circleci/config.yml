@@ -10,7 +10,7 @@ executors:
       GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
   besu_executor_med_macos: # 2cpu, 4G ram
     macos:
-      xcode: "11.4.0"
+      xcode: "12.5.0"
     resource_class: medium
     working_directory: ~/project
     environment:
@@ -50,7 +50,7 @@ commands:
             sudo apt-get install -y autoconf build-essential libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
   prepare_macos:
     description: "Prepare - macOS"
     steps:
@@ -61,7 +61,12 @@ commands:
             brew install autoconf automake libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
+            # install both x86 and arm64 toolchains
+            export PATH="$HOME/.cargo/bin:$PATH"
+            rustup target add x86_64-apple-darwin
+            rustup target add aarch64-apple-darwin
+
 jobs:
   native-build-linux-x86-64:
     executor: besu_executor_med_linux
