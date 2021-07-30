@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-  implementation 'net.java.dev.jna:jna:5.5.0'
+  implementation 'net.java.dev.jna:jna:5.8.0'
 }
 
 task macLibCopy(type: Copy) {
