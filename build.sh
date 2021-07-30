@@ -149,8 +149,25 @@ EOF
     -arch arm64 target/aarch64-apple-darwin/release/$1.dylib
 }
 
+build_secp256r1() {
+
+  cat <<EOF
+  #############################
+  ###### build secp256r1 ######
+  #############################
+EOF
+
+  cd "$SCRIPTDIR/secp256r1/besu-native-ec"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/secp256r1/build" || true
+
+  ./setup.sh && ./build.sh
+}
+
 build_secp256k1
 build_altbn128
 build_bls12_381
+build_secp256r1
 build_jars
 exit

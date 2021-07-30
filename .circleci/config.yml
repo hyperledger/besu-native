@@ -47,7 +47,7 @@ commands:
           command: |
             # secp256k1 dependencies
             sudo apt-get update
-            sudo apt-get install -y autoconf build-essential libtool
+            sudo apt-get install -y autoconf build-essential libtool automake patchelf
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
             curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
@@ -85,6 +85,7 @@ jobs:
             - altbn128/build/lib/*.so*
             - bls12-381/build/lib/*.so*
             - secp256k1/build/lib/*.so*
+            - secp256r1/besu-native-ec/release/*.so
       - store_artifacts:
           name: Linux altbn128 native build artifacts
           path:  altbn128/build/lib
@@ -99,6 +100,11 @@ jobs:
           name: Linux secp256k1 native build artifacts
           path:  secp256k1/build/lib
           destination: secp256k1_linux_x86_64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux secp256r1 native build artifacts
+          path:  secp256r1/besu-native-ec/release
+          destination: secp256r1_linux_x86_64_native_artifacts
           when: always
   native-build-macos:
     executor: besu_executor_med_macos
@@ -117,6 +123,7 @@ jobs:
             - altbn128/build/lib/*.*dylib*
             - bls12-381/build/lib/*.*dylib*
             - secp256k1/build/lib/*.*dylib*
+            - secp256r1/besu-native-ec/release/*.dylib
       - store_artifacts:
           name: macOS altbn128 native build artifacts
           path:  altbn128/build/lib
@@ -131,6 +138,11 @@ jobs:
           name: macOS secp256k1 native build artifacts
           path:  secp256k1/build/lib
           destination: secp256k1_macOS_native_artifacts
+          when: always
+      - store_artifacts:
+          name: macOS secp256r1 native build artifacts
+          path:  secp256r1/besu-native-ec/release
+          destination: secp256r1_macOS_native_artifacts
           when: always
   final-assembly:
     executor: besu_executor_med_linux
@@ -148,6 +160,7 @@ jobs:
             - altbn128/build/libs/*.jar
             - bls12-381/build/libs/*.jar
             - secp256k1/build/libs/*.jar
+            - secp256r1/build/libs/*.jar
       - store_artifacts:
           name: Final altbn128 build artifacts
           path: altbn128/build/libs
@@ -162,6 +175,11 @@ jobs:
           name: Final secp256k1 build artifacts
           path: secp256k1/build/libs
           destination: secp256k1_jars
+          when: always
+      - store_artifacts:
+          name: Final secp256r1 build artifacts
+          path: secp256r1/build/libs
+          destination: secp256r1_jars
           when: always
   publish:
     executor: besu_executor_med_linux

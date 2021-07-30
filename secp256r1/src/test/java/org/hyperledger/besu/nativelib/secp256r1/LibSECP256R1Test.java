@@ -27,13 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LibSECP256R1Test {
     final private LibSECP256R1 libSecp256r1 = new LibSECP256R1();
 
-    final private Bytes data = Bytes.fromHexString("5905238877c77421f73e43ee3da6f2d9e2ccad5fc942dcec0cbd25482935faaf416983fe165b1a045ee2bcd2e6dca3bdf46c4310a7461f9a37960ca672d3feb5473e253605fb1ddfd28065b53cb5858a8ad28175bf9bd386a5e471ea7a65c17cc934a9d791e91491eb3754d03799790fe2d308d16146d5c9b0d0debd97d79ce8");
-    final private Bytes privateKey = Bytes.fromHexString("519b423d715f8b581f4fa8ee59f4771a5b44c8130b4e3eacca54a56dda72b464");
-    final private Bytes publicKey = Bytes.fromHexString("1ccbe91c075fc7f4f033bfa248db8fccd3565de94bbfb12f3c59ff46c271bf83ce4014c68811f9a21a1fdb2c0e6113e06db7ca93b7404e78dc7ccd5ca89a4ca9");
-    final private Bytes invalidPublicKey = Bytes.fromHexString("2ccbe91c075fc7f4f033bfa248db8fccd3565de94bbfb12f3c59ff46c271bf83ce4014c68811f9a21a1fdb2c0e6113e06db7ca93b7404e78dc7ccd5ca89a4ca9");
-    final private Bytes signatureR = Bytes.fromHexString("f3ac8061b514795b8843e3d6629527ed2afd6b1f6a555a7acabb5e6f79c8c2ac");
-    final private Bytes invalidSignatureR = Bytes.fromHexString("e3ac8061b514795b8843e3d6629527ed2afd6b1f6a555a7acabb5e6f79c8c2ac");
-    final private Bytes signatureS = Bytes.fromHexString("8bf77819ca05a6b2786c76262bf7371cef97b218e96f175a3ccdda2acc058903");
+    final private Bytes data = Bytes.fromHexString("c35e2f092553c55772926bdbe87c9796827d17024dbb9233a545366e2e5987dd344deb72df987144b8c6c43bc41b654b94cc856e16b96d7a821c8ec039b503e3d86728c494a967d83011a0e090b5d54cd47f4e366c0912bc808fbb2ea96efac88fb3ebec9342738e225f7c7c2b011ce375b56621a20642b4d36e060db4524af1");
+    final private Bytes privateKey = Bytes.fromHexString("0f56db78ca460b055c500064824bed999a25aaf48ebb519ac201537b85479813");
+    final private Bytes publicKey = Bytes.fromHexString("e266ddfdc12668db30d4ca3e8f7749432c416044f2d2b8c10bf3d4012aeffa8abfa86404a2e9ffe67d47c587ef7a97a7f456b863b4d02cfc6928973ab5b1cb39");
+    final private Bytes invalidPublicKey = Bytes.fromHexString("f266ddfdc12668db30d4ca3e8f7749432c416044f2d2b8c10bf3d4012aeffa8abfa86404a2e9ffe67d47c587ef7a97a7f456b863b4d02cfc6928973ab5b1cb39");
+    final private Bytes signatureR = Bytes.fromHexString("976d3a4e9d23326dc0baa9fa560b7c4e53f42864f508483a6473b6a11079b2db");
+    final private Bytes invalidSignatureR = Bytes.fromHexString("a76d3a4e9d23326dc0baa9fa560b7c4e53f42864f508483a6473b6a11079b2db");
+    final private Bytes signatureS = Bytes.fromHexString("1b766e9ceb71ba6c01dcd46e0af462cd4cfa652ae5017d4555b8eeefe36e1932");
     final int signatureV = 0;
 
     private byte[] dataHash;
