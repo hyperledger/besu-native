@@ -168,9 +168,11 @@ EOF
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     LIBRARY_EXTENSION=so
     TARGET=linux-x86_64
+    ARCH="-march=x86-64"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
     TARGET=darwin64-x86_64
+    ARCH="-arch=x86_64"
   fi
 
   git submodule init
@@ -182,7 +184,7 @@ EOF
               no-cmp no-capieng no-ui-console no-tls no-ssl no-dtls no-aria no-bf \
               no-blake2 no-camellia no-cast no-chacha no-cmac no-des no-dh no-dsa \
               no-ecdh no-idea no-md4 no-mdc2 no-ocb no-poly1305 no-rc2 no-rc4 no-rmd160 \
-              no-scrypt no-seed no-siphash no-siv no-sm2 no-sm3 no-sm4 no-whirlpool $TARGET
+              no-scrypt no-seed no-siphash no-siv no-sm2 no-sm3 no-sm4 no-whirlpool $TARGET $ARCH
   make build_generated libcrypto.$LIBRARY_EXTENSION
 
   cd ../
@@ -190,9 +192,9 @@ EOF
    ./build.sh
 }
 
-#build_secp256k1
-#build_altbn128
-#build_bls12_381
+build_secp256k1
+build_altbn128
+build_bls12_381
 build_secp256r1
-#build_jars
+build_jars
 exit
