@@ -172,7 +172,7 @@ EOF
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
     TARGET=darwin64-x86_64
-    ARCH="-arch=x86_64"
+    ARCH="-arch x86_64"
   fi
 
   git submodule init
