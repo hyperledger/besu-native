@@ -3,7 +3,7 @@ version: 2.1
 executors:
   besu_executor_med_linux: # 2cpu, 4G ram
     docker:
-      - image: circleci/openjdk:11.0.4-jdk-stretch
+      - image: cimg/openjdk:11.0
     resource_class: medium
     working_directory: ~/project
     environment:
