@@ -24,7 +24,7 @@ following command. Note that installing Homebrew will automatically install the 
 tools.
 
 ```
-brew install autoconf automake libtool patchelf
+brew install autoconf automake libtool
 ```
 
 ### Windows

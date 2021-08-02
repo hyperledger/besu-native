@@ -190,9 +190,9 @@ EOF
    ./build.sh
 }
 
-#build_secp256k1
-#build_altbn128
-#build_bls12_381
+build_secp256k1
+build_altbn128
+build_bls12_381
 build_secp256r1
-#build_jars
+build_jars
 exit
