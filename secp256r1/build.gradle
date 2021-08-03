@@ -29,7 +29,7 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-    from 'besu-native-ec/release/lib_besu_native_ec.dylib'
+    from 'besu-native-ec/release/libbesu_native_ec.dylib'
     from 'besu-native-ec/release/libbesu_native_ec_crypto.dylib'
     into 'build/resources/main/darwin'
 }
