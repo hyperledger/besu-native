@@ -187,12 +187,12 @@ EOF
 
   cd ../
 
-   ./build.sh
+  ./build.sh
 
-   if [[ "$OSTYPE" == "darwin"* ]]; then
+  if [[ "$OSTYPE" == "darwin"* ]]; then
     lipo -info ./release/libbesu_native_ec.dylib
     lipo -info ./release/libbesu_native_ec_crypto.dylib
-   fi
+  fi
 }
 
 build_secp256k1
