@@ -190,6 +190,9 @@ EOF
    ./build.sh
 
    if [[ "$OSTYPE" == "darwin"* ]]; then
+    rm release/libbesu_native_ec.dylib
+    gcc -Lbuild/libs/ -Wl,-rpath build/libs/ build/release/objs/constants.o build/release/objs/ec_key.o build/release/objs/ec_key_recovery.o build/release/objs/ec_sign.o build/release/objs/ec_verify.o build/release/objs/utils.o -lbesu_native_ec_crypto -fPIC -shared $(CFLAGS)-o release/libbesu_native_ec.dylib
+
     lipo -info ./release/libbesu_native_ec.dylib
     lipo -info ./release/libbesu_native_ec_crypto.dylib
    fi
