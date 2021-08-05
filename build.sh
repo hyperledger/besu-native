@@ -149,8 +149,55 @@ EOF
     -arch arm64 target/aarch64-apple-darwin/release/$1.dylib
 }
 
+build_secp256r1() {
+
+  cat <<EOF
+  #############################
+  ###### build secp256r1 ######
+  #############################
+EOF
+
+  cd "$SCRIPTDIR/secp256r1/besu-native-ec"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/secp256r1/build" || true
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+  	LIBRARY_EXTENSION=dll
+  	EXTRA_FLAGS=""
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    LIBRARY_EXTENSION=so
+    EXTRA_FLAGS=""
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    LIBRARY_EXTENSION=dylib
+    EXTRA_FLAGS="no-asm" # avoid assembly because of pipeline error
+  fi
+
+  git submodule init
+  git submodule update
+
+  cd openssl
+  ./Configure enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
+              no-legacy no-gost no-engine no-dynamic-engine no-deprecated no-comp \
+              no-cmp no-capieng no-ui-console no-tls no-ssl no-dtls no-aria no-bf \
+              no-blake2 no-camellia no-cast no-chacha no-cmac no-des no-dh no-dsa \
+              no-ecdh no-idea no-md4 no-mdc2 no-ocb no-poly1305 no-rc2 no-rc4 no-rmd160 \
+              no-scrypt no-seed no-siphash no-siv no-sm2 no-sm3 no-sm4 no-whirlpool $EXTRA_FLAGS
+  make build_generated libcrypto.$LIBRARY_EXTENSION
+
+  cd ../
+
+  ./build.sh
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    lipo -info ./release/libbesu_native_ec.dylib
+    lipo -info ./release/libbesu_native_ec_crypto.dylib
+  fi
+}
+
 build_secp256k1
 build_altbn128
 build_bls12_381
+build_secp256r1
 build_jars
 exit
