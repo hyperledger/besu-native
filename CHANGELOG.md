@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+* Added support for secp256r1 via OpenSSL libraries.
+
 ## 0.3.0
 
 * Upgraded secp256k1 to commit ac05f61fcf639a15b5101131561620303e4bd808, which
