@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+* Fix native representation of native secp256r1 signatures [#45](https://github.com/hyperledger/besu-native/pull/45)
+
 ## 0.4.0
 
 * Added support for secp256r1 via OpenSSL libraries.
