@@ -98,20 +98,43 @@ public class LibSECP256R1 {
      * @return representation of the provided signature that the native library expects
      *
      * This function converts the big-endian byte array back to the representation which is expected by the native
-     * library. If will shift the array to the left if the number would be interpreted as negative. See
-     * function convertToNonNegativeRepresentation for more details.
+     * library. It will shift the array to the left if the number would be interpreted as negative. See
+     * function convertToNonNegativeRepresentation for more details. In case the first byte in the native representation
+     * was zero, it will shift it to the right.
      */
     private byte[] convertToNativeRepresentation(final byte[] signature) {
-        // if the first byte is 0 and the first bit of the second byte is 1, the signature was converted to a
-        // non negative representation and needs to be converted back to its native representation
-        if (signature[0] != 0 || (signature[1] & 0x80) != 0x80) {
-            return signature;
+        // signature was converted to non-native representation and needs to be shifted to the left
+        if (isConvertedSignature(signature)) {
+            byte[] nativeSignature = new byte[CURVE_BYTE_LENGTH];
+
+            // copy signature to nativeSignature, shifting it one to the left
+            System.arraycopy(signature, 1, nativeSignature, 0, signature.length - 1);
+
+            return nativeSignature;
         }
 
-        byte[] negativeSignature = new byte[signature.length - 1];
-        // copy signature to negativeSignature, shifting it one to the left
-        System.arraycopy(signature, 1, negativeSignature, 0, negativeSignature.length);
+        // the first byte in the native representation was 0, but in the Java representation this is ignored.
+        // the signature needs to be shifted to the right for the native representation
+        if (signature.length == CURVE_BYTE_LENGTH - 1) {
+            byte[] nativeSignature = new byte[CURVE_BYTE_LENGTH];
 
-        return negativeSignature;
+            // copy signature to nativeSignature, shifting it one to the right
+            System.arraycopy(signature, 0, nativeSignature, 1, signature.length);
+
+            return nativeSignature;
+        }
+
+        if (signature.length != CURVE_BYTE_LENGTH) {
+            throw new IllegalArgumentException("Signature must be " + CURVE_BYTE_LENGTH + " bytes long, but has " + signature.length + " bytes.");
+        }
+
+        // the signature is equal to its native representation and can be returned as it is.
+        return signature;
+    }
+
+    private boolean isConvertedSignature(byte[] signature) {
+        // if the first byte is 0 and the first bit of the second byte is 1, the signature was converted to a
+        // non-negative representation and needs to be converted back to its native representation
+        return (signature.length == CURVE_BYTE_LENGTH + 1) && (signature[0] == 0) && ((signature[1] & 0x80) == 0x80);
     }
 }
