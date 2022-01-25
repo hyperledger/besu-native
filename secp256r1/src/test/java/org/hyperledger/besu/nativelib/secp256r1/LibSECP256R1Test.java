@@ -96,7 +96,7 @@ public class LibSECP256R1Test {
     }
 
     @Test
-    public void keyRecovery_should_return_expected_public_key_if_r_is_not_32_bytes_long() {
+    public void keyRecovery_should_return_expected_public_key_if_r_is_less_than_32_bytes_long() {
         final BigInteger r = new BigInteger("607232317131644998607993399928086035368869502933999419429470745918733484");
         final BigInteger s = new BigInteger("909326537358980219114547956988636184748037502936154044628658501523731230682");
         final byte v = (byte) 1;
