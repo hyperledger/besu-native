@@ -110,8 +110,7 @@ public class LibSECP256R1Test {
                 v
         );
 
-        assertThat(Hexadecimals.toHexString(actualPublicKey)).isEqualTo("0x33f004f357282e13036385d3f52a90f5e62fa0d51c39dff99cb72fd06cb5fab72f2dc5e05786154dd7a349dc3fdd9be2f0b9665c4e08fa6cdc1fd447112acf3f");
-
+        assertThat(Hexadecimals.toHexString(actualPublicKey)).isEqualTo("33F004F357282E13036385D3F52A90F5E62FA0D51C39DFF99CB72FD06CB5FAB72F2DC5E05786154DD7A349DC3FDD9BE2F0B9665C4E08FA6CDC1FD447112ACF3F");
     }
 
     @Test(expected = IllegalArgumentException.class)
