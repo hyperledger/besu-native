@@ -113,13 +113,13 @@ public class LibSECP256R1 {
             return nativeSignature;
         }
 
-        // the first byte in the native representation was 0, but in the Java representation this is ignored.
+        // the first bytes in the native representation were 0, but in the Java representation this is ignored.
         // the signature needs to be shifted to the right for the native representation
-        if (signature.length == CURVE_BYTE_LENGTH - 1) {
+        if (signature.length < CURVE_BYTE_LENGTH) {
             byte[] nativeSignature = new byte[CURVE_BYTE_LENGTH];
 
-            // copy signature to nativeSignature, shifting it one to the right
-            System.arraycopy(signature, 0, nativeSignature, 1, signature.length);
+            // copy signature to nativeSignature, shifting it to the right
+            System.arraycopy(signature, 0, nativeSignature, CURVE_BYTE_LENGTH - signature.length, signature.length);
 
             return nativeSignature;
         }

@@ -16,9 +16,11 @@
 package org.hyperledger.besu.nativelib.secp256r1;
 
 import org.apache.tuweni.bytes.Bytes;
+import org.assertj.core.util.Hexadecimals;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -91,6 +93,24 @@ public class LibSECP256R1Test {
 
         assertThat(actualPublicKey).isEqualTo(publicKey.toArrayUnsafe());
 
+    }
+
+    @Test
+    public void keyRecovery_should_return_expected_public_key_if_r_is_less_than_32_bytes_long() {
+        final BigInteger r = new BigInteger("607232317131644998607993399928086035368869502933999419429470745918733484");
+        final BigInteger s = new BigInteger("909326537358980219114547956988636184748037502936154044628658501523731230682");
+        final byte v = (byte) 1;
+        final Bytes dataHash = Bytes.fromHexString("0x5d2a686cbe81873192db62f069cc1f0c10a1580c89d19c21407dcd1cde48ad06");
+
+
+        byte[] actualPublicKey = libSecp256r1.keyRecovery(
+                dataHash.toArrayUnsafe(),
+                r.toByteArray(),
+                s.toByteArray(),
+                v
+        );
+
+        assertThat(Hexadecimals.toHexString(actualPublicKey)).isEqualTo("33F004F357282E13036385D3F52A90F5E62FA0D51C39DFF99CB72FD06CB5FAB72F2DC5E05786154DD7A349DC3FDD9BE2F0B9665C4E08FA6CDC1FD447112ACF3F");
     }
 
     @Test(expected = IllegalArgumentException.class)
