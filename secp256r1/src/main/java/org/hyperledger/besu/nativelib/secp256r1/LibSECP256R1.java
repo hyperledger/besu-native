@@ -118,7 +118,7 @@ public class LibSECP256R1 {
         if (signature.length < CURVE_BYTE_LENGTH) {
             byte[] nativeSignature = new byte[CURVE_BYTE_LENGTH];
 
-            // copy signature to nativeSignature, shifting it one to the right
+            // copy signature to nativeSignature, shifting it to the right
             System.arraycopy(signature, 0, nativeSignature, CURVE_BYTE_LENGTH - signature.length, signature.length);
 
             return nativeSignature;
