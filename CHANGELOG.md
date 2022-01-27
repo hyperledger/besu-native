@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.3
+
+* Use non-blocking PRNG to generate secp256k1 context [#51](https://github.com/hyperledger/besu-native/pull/51)
+* Padding R and S components if smaller than 31 bytes in SECP256R1 keys [#52](https://github.com/hyperledger/besu-native/pull/52)
+
+## 0.4.2
+
+* Fix Besu integration on MacOS [#48](https://github.com/hyperledger/besu-native/pull/48)
+
 ## 0.4.1
 
 * Fix native representation of native secp256r1 signatures [#45](https://github.com/hyperledger/besu-native/pull/45)
