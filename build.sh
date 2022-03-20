@@ -96,6 +96,26 @@ EOF
   cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/lib"
 }
 
+build_ipa_multipoint() {
+  cat <<EOF
+  ############################
+  ###### build ipa_multipoint ######
+  ############################
+EOF
+
+  cd "$SCRIPTDIR/ipa-multipoint/ipa_multipoint_jni"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/ipa-multipoint/build" || true
+  mkdir -p "$SCRIPTDIR/ipa-multipoint/build/lib"
+
+  cargo clean
+
+  cargo build --lib --release
+
+  cp target/release/libipa_multipoint_jni.* "$SCRIPTDIR/ipa-multipoint/build/lib"
+}
+
 build_bls12_381() {
   cat <<EOF
   #############################
@@ -198,6 +218,7 @@ EOF
 build_secp256k1
 build_altbn128
 build_bls12_381
+build_ipa_multipoint
 build_secp256r1
 build_jars
 exit

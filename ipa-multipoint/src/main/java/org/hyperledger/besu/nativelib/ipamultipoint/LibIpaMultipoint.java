@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright The Machine Consultancy LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,11 +11,16 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
+package org.hyperledger.besu.nativelib.ipamultipoint;
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'bls12-381'
-include 'ipa-multipoint'
-include 'secp256k1'
-include 'secp256r1'
+/**
+ * Java interface to ipa-multipoint.
+ *
+ * Allows to compute commitments for Verkle tree nodes.
+ */
+public class LibIpaMultipoint {
+
+  public static native byte[] commit(byte[] input1, byte[] input2, byte[] input3, byte[] input4);
+}

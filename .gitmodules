@@ -7,3 +7,6 @@
 [submodule "secp256r1/besu-native-ec"]
 	path = secp256r1/besu-native-ec
 	url = git@github.com:ConsenSys/besu-native-ec.git
+[submodule "ipa-multipoint/ipa_multipoint"]
+	path = ipa-multipoint/ipa_multipoint
+	url = https://github.com/crate-crypto/ipa_multipoint.git
