@@ -20,7 +20,6 @@ plugins {
 }
 
 dependencies {
-  implementation 'net.java.dev.jna:jna:5.8.0'
   testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.assertj:assertj-core:3.22.0'
