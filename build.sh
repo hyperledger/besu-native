@@ -111,7 +111,11 @@ EOF
 
   cargo clean
 
-  cargo build --lib --release
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    lipo_lib "libipa_multipoint_jni" ""
+  else
+    cargo build --lib --release
+  fi
 
   cp target/release/libipa_multipoint_jni.* "$SCRIPTDIR/ipa-multipoint/build/lib"
 }
