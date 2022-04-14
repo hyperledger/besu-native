@@ -16,11 +16,21 @@
 package org.hyperledger.besu.nativelib.ipamultipoint;
 
 /**
- * Java interface to ipa-multipoint.
+ * Java interface to ipa-multipoint, a rust library that supports computing polynomial commitments.
  *
- * Allows to compute commitments for Verkle tree nodes.
+ * The library relies on the bandersnatch curve described at https://eprint.iacr.org/2021/1152.pdf.
+ *
  */
 public class LibIpaMultipoint {
 
-  public static native byte[] commit(byte[] input1, byte[] input2, byte[] input3, byte[] input4);
+  /**
+   * Evaluates a polynomial of degree 3 (uniquely defined by 4 values) at a specific point on the curve.
+
+   * @param y0 the first coordinate of the projection on the curve
+   * @param y1 the second coordinate of the projection on the curve
+   * @param y2 the third coordinate of the projection on the curve
+   * @param y3 the fourth coordinate of the projection on the curve
+   * @return the coordinates of the projection of the polynomial on the curve
+   */
+  public static native byte[] commit(byte[] y0, byte[] y1, byte[] y2, byte[] y3);
 }
