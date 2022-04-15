@@ -1,5 +1,10 @@
 # Changelog
 
+# 0.4.4 (not released yet)
+
+* Add ipa-multipoint library support [#56](https://github.com/hyperledger/besu-native/pull/56)
+
+
 ## 0.4.3
 
 * Use non-blocking PRNG to generate secp256k1 context [#51](https://github.com/hyperledger/besu-native/pull/51)
