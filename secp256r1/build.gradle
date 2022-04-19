@@ -20,12 +20,12 @@ plugins {
 }
 
 dependencies {
-    implementation 'net.java.dev.jna:jna:5.5.0'
+    implementation 'net.java.dev.jna:jna:5.11.0'
 
-    testImplementation 'com.google.guava:guava:29.0-jre'
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'org.apache.tuweni:tuweni-bytes:2.0.0'
-    testImplementation 'org.assertj:assertj-core:3.16.1'
+    testImplementation 'com.google.guava:guava:31.1-jre'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
+    testImplementation 'org.assertj:assertj-core:3.22.0'
 }
 
 task macLibCopy(type: Copy) {
