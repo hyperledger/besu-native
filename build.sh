@@ -219,10 +219,37 @@ EOF
   fi
 }
 
+
+build_keccak() {
+  cat <<EOF
+  ############################
+  ####### build keccak #######
+  ############################
+EOF
+
+  cd "$SCRIPTDIR/keccak/keccak-jni"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/keccak/build" || true
+  mkdir -p "$SCRIPTDIR/keccak/build/lib"
+
+  cargo clean
+
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    lipo_lib "libkeccak_jni" ""
+  else
+    cargo build --lib --release
+  fi
+
+  cp target/release/libkeccak_jni.* "$SCRIPTDIR/keccak/build/lib"
+}
+
+build_keccak
 build_secp256k1
 build_altbn128
 build_bls12_381
 build_ipa_multipoint
 build_secp256r1
+
 build_jars
 exit
