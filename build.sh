@@ -49,6 +49,40 @@ fi
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
 
 
+build_keccak2() {
+
+  cat <<EOF
+  #############################
+  ###### build keccak2 ######
+  #############################
+EOF
+
+  cd "$SCRIPTDIR/keccak-2/wrapper"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/keccak-2/build" || true
+  mkdir -p "$SCRIPTDIR/keccak-2/build/lib"
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+    LIBRARY_EXTENSION=dll
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    LIBRARY_EXTENSION=so
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    LIBRARY_EXTENSION=dylib
+  fi
+
+  rm -rf build
+  mkdir build
+  cd build
+  cmake ..
+  cmake --build .
+
+  g++ -fpic -shared -Wl,-force_load libkeccak.a -o libkeccak2.$LIBRARY_EXTENSION
+
+  cp libkeccak2.* "$SCRIPTDIR/keccak-2/build/lib"
+
+}
+
 build_secp256k1() {
 
   cat <<EOF
@@ -244,6 +278,7 @@ EOF
   cp target/release/libkeccak_jni.* "$SCRIPTDIR/keccak/build/lib"
 }
 
+build_keccak2
 build_keccak
 build_secp256k1
 build_altbn128

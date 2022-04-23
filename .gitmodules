@@ -7,3 +7,6 @@
 [submodule "secp256r1/besu-native-ec"]
 	path = secp256r1/besu-native-ec
 	url = git@github.com:ConsenSys/besu-native-ec.git
+[submodule "keccak-2/ethash"]
+	path = keccak-2/ethash
+	url = https://github.com/chfast/ethash

@@ -11,13 +11,15 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
+#include "./keccak256.h"
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'bls12-381'
-include 'ipa-multipoint'
-include 'secp256k1'
-include 'secp256r1'
-include 'keccak'
-include 'keccak-2'
+void keccak256(
+    const uint8_t* data, size_t size, uint64_t* out)
+{
+     uint64_t * res = ethash_keccak256(data, size).word64s;
+     for (int i = 0; i < 4; ++i)
+        out[i] = res[i];
+
+}

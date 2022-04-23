@@ -11,13 +11,32 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
+package org.hyperledger.besu.nativelib.keccak;
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'bls12-381'
-include 'ipa-multipoint'
-include 'secp256k1'
-include 'secp256r1'
-include 'keccak'
-include 'keccak-2'
+
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+
+public class LibKeccak2 implements Library {
+
+  public static boolean ENABLED;
+
+  static{
+    try {
+      Native.register(LibKeccak2.class, "keccak2");
+      ENABLED = true;
+    } catch (final Throwable t) {
+      ENABLED = false;
+    }
+  }
+
+  public static native void keccak256(byte[] input, int i_size, byte[] output);
+
+
+  public static void main(final String[] args) {
+
+  }
+
+}
