@@ -135,8 +135,15 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
+            - altbn128/build/lib/*.so*
             - secp256k1/build/lib/*.so*
+            - ipa-multipoint/build/lib/*.so
             - secp256r1/besu-native-ec/release/*.so
+      - store_artifacts:
+          name: Linux altbn128 native build artifacts
+          path:  altbn128/build/lib
+          destination: altbn128_linux_aarch64_native_artifacts
+          when: always
       - store_artifacts:
           name: Linux secp256k1 native build artifacts
           path:  secp256k1/build/lib
@@ -146,6 +153,11 @@ jobs:
           name: Linux secp256r1 native build artifacts
           path:  secp256r1/besu-native-ec/release
           destination: secp256r1_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/lib
+          destination: ipa_multipoint_linux_aarch64_native_artifacts
           when: always
   native-build-macos:
     executor: besu_executor_med_macos

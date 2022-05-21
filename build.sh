@@ -220,11 +220,13 @@ EOF
 }
 
 build_secp256k1
-if [[ "$ARCH" != "aarch64" ]]; then
-  build_altbn128
-  build_bls12_381
-  build_ipa_multipoint
-fi
+build_altbn128
+build_ipa_multipoint
 build_secp256r1
+
+if [[ "$ARCH" != "aarch64" ]]; then
+  build_bls12_381
+fi
+
 build_jars
 exit
