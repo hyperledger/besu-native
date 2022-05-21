@@ -16,6 +16,15 @@ executors:
     environment:
       GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
       HOMEBREW_NO_AUTO_UPDATE: true
+  besu_executor_med_linux_arm64: # 2cpu, 8G ram
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.medium
+    working_directory: ~/project
+    environment:
+      architecture: "arm64"
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
+
 # besu_executor_med_windows: # 2cpu, 4G ram
 #   machine:
 #     image: "windows-server-2019-vs2019:stable"
@@ -111,6 +120,32 @@ jobs:
           name: Linux ipa-multipoint native build artifacts
           path: ipa-multipoint/build/lib
           destination: ipa_multipoint_linux_x86_64_native_artifacts
+          when: always
+  native-build-linux-arm64:
+    executor: besu_executor_med_linux_arm64
+    environment:
+      SKIP_GRADLE: true
+    steps:
+      - checkout_code
+      - prepare_linux
+      - run:
+          name: build
+          command: |
+            ./build.sh
+      - persist_to_workspace:
+          root: .
+          paths:
+            - secp256k1/build/lib/*.so*
+            - secp256r1/besu-native-ec/release/*.so
+      - store_artifacts:
+          name: Linux secp256k1 native build artifacts
+          path:  secp256k1/build/lib
+          destination: secp256k1_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux secp256r1 native build artifacts
+          path:  secp256r1/besu-native-ec/release
+          destination: secp256r1_linux_aarch64_native_artifacts
           when: always
   native-build-macos:
     executor: besu_executor_med_macos
@@ -214,10 +249,12 @@ workflows:
   default:
     jobs:
       - native-build-linux-x86-64
+      - native-build-linux-arm64
       - native-build-macos
       - final-assembly:
           requires:
             - native-build-linux-x86-64
+            - native-build-linux-arm64
             - native-build-macos
       - publish:
           filters:

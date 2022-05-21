@@ -33,7 +33,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-
+ARCH=`arch`
 
 # Determine core count for parallel make
 if [[ "$OSTYPE" == "linux-gnu" ]];  then
@@ -220,9 +220,11 @@ EOF
 }
 
 build_secp256k1
-build_altbn128
-build_bls12_381
-build_ipa_multipoint
+if [[ "$ARCH" != "aarch64" ]]; then
+  build_altbn128
+  build_bls12_381
+  build_ipa_multipoint
+fi
 build_secp256r1
 build_jars
 exit

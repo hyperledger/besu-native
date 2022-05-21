@@ -42,6 +42,13 @@ task linuxLibCopy(type: Copy) {
 }
 jar.dependsOn linuxLibCopy
 
+task linuxArm64LibCopy(type: Copy) {
+    from 'besu-native-ec/release/libbesu_native_ec.so'
+    from 'besu-native-ec/release/libbesu_native_ec_crypto.so'
+    into 'build/resources/main/linux-arch6464'
+}
+jar.dependsOn linuxArm64LibCopy
+
 jar {
     archiveBaseName = 'besu-native-secp256r1'
     manifest {

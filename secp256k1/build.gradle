@@ -35,6 +35,12 @@ task linuxLibCopy(type: Copy) {
 }
 jar.dependsOn linuxLibCopy
 
+task linuxArm64LibCopy(type: Copy) {
+  from 'build/lib/libsecp256k1.so'
+  into 'build/resources/main/linux-aarch64'
+}
+jar.dependsOn linuxArm64LibCopy
+
 jar {
   archiveBaseName = 'besu-native-secp256k1'
   manifest {
