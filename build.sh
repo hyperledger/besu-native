@@ -236,6 +236,7 @@ build_secp256r1
 if [[ "${OSARCH}" == "linux-gnu-aarch64" ]]; then
   echo "skipping bls12-381 on ${OSARCH}"
 else
+  echo "building bls12-381 for ${OSARCH}"
   build_bls12_381
 fi
 
