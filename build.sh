@@ -233,7 +233,9 @@ build_altbn128
 build_ipa_multipoint
 build_secp256r1
 
-if [[ "OSARCH" != "linux-gnu-aarch64" ]]; then
+if [[ "${OSARCH}" == "linux-gnu-aarch64" ]]; then
+  echo "skipping bls12-381 on ${OSARCH}"
+else
   build_bls12_381
 fi
 
