@@ -24,22 +24,19 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build'
-  include '*/lib/libeth_altbn128.dylib'
+  from 'build/darwin/lib/libeth_altbn128.dylib'
   into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from 'build'
-  include '*/lib/libeth_altbn128.so'
+  from 'build/linux-gnu-x86_64/lib/libeth_altbn128.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-  from 'build'
-  include '*/lib/libeth_altbn128.so'
+  from 'build/linux-gnu-aarch64/lib/libeth_altbn128.so'
   into 'build/resources/main/linux-aarch64'
 }
 jar.dependsOn linuxArm64LibCopy

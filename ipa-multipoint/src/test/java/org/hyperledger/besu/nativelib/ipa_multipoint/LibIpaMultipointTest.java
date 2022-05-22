@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -29,13 +30,18 @@ public class LibIpaMultipointTest {
 
   @BeforeClass
   public static void setUp() {
-    File libFolder = Paths.get(LibIpaMultipointTest.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getParent().getParent().getParent().resolve("lib").toFile();
-    File macFile = new File(libFolder, "libipa_multipoint_jni.dylib");
-    File linuxFile = new File(libFolder, "libipa_multipoint_jni.so");
+    Path buildPath = Paths.get(LibIpaMultipointTest.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getParent().getParent().getParent();
+    File macFile = new File(buildPath.resolve("darwin/lib").toFile(), "libipa_multipoint_jni.dylib");
+    File linuxFile = new File(buildPath.resolve("linux-gnu-x86_64/lib").toFile(), "libipa_multipoint_jni.so");
+    File linuxArmFile = new File(buildPath.resolve("linux-gnu-aarch64/lib").toFile(), "libipa_multipoint_jni.so");
     if (linuxFile.exists()) {
       System.load(linuxFile.getAbsolutePath());
-    } else {
+    } else if (linuxArmFile.exists()) {
+        System.load(linuxFile.getAbsolutePath());
+    } else if (macFile.exists()) {
       System.load(macFile.getAbsolutePath());
+    } else {
+      throw new RuntimeException("could not setup jni path for test");
     }
   }
 

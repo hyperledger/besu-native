@@ -33,17 +33,17 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-ARCH=`arch`
-OSARCH="${OSTYPE}-${ARCH}"
 
 # Determine core count for parallel make
 if [[ "$OSTYPE" == "linux-gnu" ]];  then
   CORE_COUNT=$(nproc)
+  OSARCH=${OSTYPE%%[0-9.]*}-`arch`
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]];  then
   export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
+  OSARCH="darwin"
 fi
 
 # add to path cargo
@@ -233,7 +233,7 @@ build_altbn128
 build_ipa_multipoint
 build_secp256r1
 
-if [[ "$ARCH" != "aarch64" ]]; then
+if [[ "OSARCH" != "linux-gnu-aarch64" ]]; then
   build_bls12_381
 fi
 
