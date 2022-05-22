@@ -261,12 +261,12 @@ workflows:
   default:
     jobs:
       - native-build-linux-x86-64
-      - native-build-linux-arm64
+      - native-build-linux-aarch64
       - native-build-macos
       - final-assembly:
           requires:
             - native-build-linux-x86-64
-            - native-build-linux-arm64
+            - native-build-linux-aarch64
             - native-build-macos
       - publish:
           filters:
