@@ -24,25 +24,29 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build/lib/libsecp256k1.dylib'
+  from 'build'
+  include '*/lib/libsecp256k1.dylib'
   into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from 'build/lib/libsecp256k1.so'
+  from 'build'
+  include '*/lib/libsecp256k1.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-  from 'build/lib/libsecp256k1.so'
+  from 'build'
+  include '*/lib/libsecp256k1.so'
   into 'build/resources/main/linux-aarch64'
 }
 jar.dependsOn linuxArm64LibCopy
 
 jar {
   archiveBaseName = 'besu-native-secp256k1'
+  includeEmptyDirs = false
   manifest {
     attributes(
         'Specification-Title': archiveBaseName,
