@@ -91,11 +91,11 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - altbn128/build/*/lib/*.so*
-            - bls12-381/build/*/lib/*.so*
-            - secp256k1/build/*/lib/*.so*
-            - ipa-multipoint/build/*/lib/*.so
-            - secp256r1/besu-native-ec/release/*/*.so
+            - altbn128/build/linux-gnu-x86_64/lib/*.so*
+            - bls12-381/build/linux-gnu-x86_64/lib/*.so*
+            - secp256k1/build/linux-gnu-x86_64/lib/*.so*
+            - ipa-multipoint/build/linux-gnu-x86_64/lib/*.so
+            - secp256r1/besu-native-ec/release/linux-gnu-x86_64/*.so
       - store_artifacts:
           name: Linux altbn128 native build artifacts
           path:  altbn128/build/lib
@@ -135,10 +135,10 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - altbn128/build/*/lib/*.so*
-            - secp256k1/build/*/lib/*.so*
-            - ipa-multipoint/build/*/lib/*.so
-            - secp256r1/besu-native-ec/release/*/*.so
+            - altbn128/build/linux-gnu-aarch64/lib/*.so*
+            - secp256k1/build/linux-gnu-aarch64/lib/*.so*
+            - ipa-multipoint/build/linux-gnu-aarch64/lib/*.so
+            - secp256r1/besu-native-ec/release/linux-gnu-aarch64/*.so
       - store_artifacts:
           name: Linux altbn128 native build artifacts
           path:  altbn128/build/lib
@@ -173,11 +173,11 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - altbn128/build/*/lib/*.*dylib*
-            - bls12-381/build/*/lib/*.*dylib*
-            - secp256k1/build/*/lib/*.*dylib*
-            - ipa-multipoint/build/*/lib/*.dylib
-            - secp256r1/besu-native-ec/release/*/*.dylib
+            - altbn128/build/darwin/lib/*.*dylib*
+            - bls12-381/build/darwin/lib/*.*dylib*
+            - secp256k1/build/darwin/lib/*.*dylib*
+            - ipa-multipoint/build/darwin/lib/*.dylib
+            - secp256r1/besu-native-ec/release/darwin/*.dylib
       - store_artifacts:
           name: macOS altbn128 native build artifacts
           path:  altbn128/build/lib
