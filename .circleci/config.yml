@@ -212,7 +212,7 @@ jobs:
       - run:
           name: gradle
           command: |
-            ./gradlew --no-daemon --parallel build
+            ./gradlew --no-daemon build
       - persist_to_workspace:
           root: .
           paths:
