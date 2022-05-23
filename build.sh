@@ -130,20 +130,26 @@ build_bls12_381() {
   #############################
 EOF
 
-  cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
+  if [[ "${OSARCH}" != "linux-gnu-aarch64" ]]; then
+    echo "building bls12-381 for ${OSARCH}"
+    cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
 
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/bls12-381/build" || true
-  mkdir -p "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
+    # delete old build dir, if exists
+    rm -rf "$SCRIPTDIR/bls12-381/build" || true
+    mkdir -p "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
 
-  cargo clean
-  if [[ "$OSTYPE" == "darwin"* ]];  then
-    lipo_lib "libeth_pairings" "--features eip_2357_c_api"
+    cargo clean
+    if [[ "$OSTYPE" == "darwin"* ]];  then
+      lipo_lib "libeth_pairings" "--features eip_2357_c_api"
+    else
+        cargo build --lib --features eip_2357_c_api --release
+    fi
+    mkdir -p "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
+    cp target/release/libeth_pairings.* "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
   else
-      cargo build --lib --features eip_2357_c_api --release
+    echo "skipping bls12-381 on ${OSARCH}"
   fi
-  mkdir -p "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
-  cp target/release/libeth_pairings.* "$SCRIPTDIR/bls12-381/build/${OSARCH}/lib"
+
 }
 
 build_jars(){
@@ -230,15 +236,10 @@ EOF
 
 build_secp256k1
 build_altbn128
+build_bls12_381
 build_ipa_multipoint
 build_secp256r1
 
-if [[ "${OSARCH}" == "linux-gnu-aarch64" ]]; then
-  echo "skipping bls12-381 on ${OSARCH}"
-else
-  echo "building bls12-381 for ${OSARCH}"
-  build_bls12_381
-fi
 
 build_jars
 exit
