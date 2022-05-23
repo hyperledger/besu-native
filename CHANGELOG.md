@@ -1,7 +1,8 @@
 # Changelog
 
-# 0.4.4 (not released yet)
+# 0.5.0 (not released yet)
 
+* Add linux-arm64 native support [#61](https://github.com/hyperledger/besu-native/pull/61)
 * Add ipa-multipoint library support [#56](https://github.com/hyperledger/besu-native/pull/56)
 
 
