@@ -37,6 +37,7 @@ task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libeth_pairings.so'
   into 'build/resources/main/linux-x86-64'
 }
+jar.dependsOn linuxLibCopy
 
 jar {
   archiveBaseName = 'besu-native-bls12-381'
