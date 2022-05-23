@@ -37,7 +37,7 @@ public class LibIpaMultipointTest {
     if (linuxFile.exists()) {
       System.load(linuxFile.getAbsolutePath());
     } else if (linuxArmFile.exists()) {
-        System.load(linuxFile.getAbsolutePath());
+        System.load(linuxArmFile.getAbsolutePath());
     } else if (macFile.exists()) {
       System.load(macFile.getAbsolutePath());
     } else {
