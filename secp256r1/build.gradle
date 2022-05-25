@@ -29,21 +29,29 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-    from 'besu-native-ec/release/libbesu_native_ec.dylib'
-    from 'besu-native-ec/release/libbesu_native_ec_crypto.dylib'
+    from 'besu-native-ec/release/darwin/libbesu_native_ec.dylib'
+    from 'besu-native-ec/release/darwin/libbesu_native_ec_crypto.dylib'
     into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-    from 'besu-native-ec/release/libbesu_native_ec.so'
-    from 'besu-native-ec/release/libbesu_native_ec_crypto.so'
+    from 'besu-native-ec/release/linux-gnu-x86_64/libbesu_native_ec.so'
+    from 'besu-native-ec/release/linux-gnu-x86_64/libbesu_native_ec_crypto.so'
     into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
 
+task linuxArm64LibCopy(type: Copy) {
+    from 'besu-native-ec/release/linux-gnu-aarch64/libbesu_native_ec.so'
+    from 'besu-native-ec/release/linux-gnu-aarch64/libbesu_native_ec_crypto.so'
+    into 'build/resources/main/linux-aarch64'
+}
+jar.dependsOn linuxArm64LibCopy
+
 jar {
     archiveBaseName = 'besu-native-secp256r1'
+    includeEmptyDirs = false
     manifest {
         attributes(
                 'Specification-Title': archiveBaseName,

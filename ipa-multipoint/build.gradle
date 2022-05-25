@@ -27,19 +27,24 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build/lib/libipa_multipoint_jni.dylib'
+  from 'build/darwin/lib/libipa_multipoint_jni.dylib'
   into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from 'build/lib/libipa_multipoint_jni.so'
+  from 'build/linux-gnu-x86_64/lib/libipa_multipoint_jni.so'
   into 'build/resources/main/linux-x86-64'
 }
-jar.dependsOn linuxLibCopy
+task linuxArm64LibCopy(type: Copy) {
+  from 'build/linux-gnu-aarch64/lib/libipa_multipoint_jni.so'
+  into 'build/resources/main/linux-aarch64'
+}
+jar.dependsOn linuxArm64LibCopy
 
 jar {
   archiveBaseName = 'besu-native-ipa-multipoint'
+  includeEmptyDirs = false
   manifest {
     attributes(
         'Specification-Title': archiveBaseName,

@@ -16,6 +16,15 @@ executors:
     environment:
       GRADLE_OPTS: -Xmx2048m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
       HOMEBREW_NO_AUTO_UPDATE: true
+  besu_executor_med_linux_arm64: # 2cpu, 8G ram
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.medium
+    working_directory: ~/project
+    environment:
+      architecture: "arm64"
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
+
 # besu_executor_med_windows: # 2cpu, 4G ram
 #   machine:
 #     image: "windows-server-2019-vs2019:stable"
@@ -78,35 +87,74 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - altbn128/build/lib/*.so*
-            - bls12-381/build/lib/*.so*
-            - secp256k1/build/lib/*.so*
-            - ipa-multipoint/build/lib/*.so
-            - secp256r1/besu-native-ec/release/*.so
+            - altbn128/build/linux-gnu-x86_64/lib/*.so*
+            - bls12-381/build/linux-gnu-x86_64/lib/*.so*
+            - secp256k1/build/linux-gnu-x86_64/lib/*.so*
+            - ipa-multipoint/build/linux-gnu-x86_64/lib/*.so
+            - secp256r1/besu-native-ec/release/linux-gnu-x86_64/*.so
       - store_artifacts:
           name: Linux altbn128 native build artifacts
-          path:  altbn128/build/lib
+          path:  altbn128/build/linux-gnu-x86_64/lib
           destination: altbn128_linux_x86_64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux bls12-381 native build artifacts
-          path:  bls12-381/build/lib
+          path:  bls12-381/build/linux-gnu-x86_64/lib
           destination: bls12_381_linux_x86_64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux secp256k1 native build artifacts
-          path:  secp256k1/build/lib
+          path:  secp256k1/build/linux-gnu-x86_64/lib
           destination: secp256k1_linux_x86_64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux secp256r1 native build artifacts
-          path:  secp256r1/besu-native-ec/release
+          path:  secp256r1/besu-native-ec/release/linux-gnu-x86_64
           destination: secp256r1_linux_x86_64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux ipa-multipoint native build artifacts
-          path: ipa-multipoint/build/lib
+          path: ipa-multipoint/build/linux-gnu-x86_64/lib
           destination: ipa_multipoint_linux_x86_64_native_artifacts
+          when: always
+
+  native-build-linux-aarch64:
+    executor: besu_executor_med_linux_arm64
+    environment:
+      SKIP_GRADLE: true
+    steps:
+      - checkout_code
+      - prepare_linux
+      - run:
+          name: build
+          command: |
+            ./build.sh
+      - persist_to_workspace:
+          root: .
+          paths:
+            - altbn128/build/linux-gnu-aarch64/lib/*.so*
+            - secp256k1/build/linux-gnu-aarch64/lib/*.so*
+            - ipa-multipoint/build/linux-gnu-aarch64/lib/*.so
+            - secp256r1/besu-native-ec/release/linux-gnu-aarch64/*.so
+      - store_artifacts:
+          name: Linux altbn128 native build artifacts
+          path:  altbn128/build/linux-gnu-aarch64/lib
+          destination: altbn128_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux secp256k1 native build artifacts
+          path:  secp256k1/build/linux-gnu-aarch64/lib
+          destination: secp256k1_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux secp256r1 native build artifacts
+          path:  secp256r1/besu-native-ec/release/linux-gnu-aarch64
+          destination: secp256r1_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/linux-gnu-aarch64/lib
+          destination: ipa_multipoint_linux_aarch64_native_artifacts
           when: always
   native-build-macos:
     executor: besu_executor_med_macos
@@ -122,34 +170,34 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - altbn128/build/lib/*.*dylib*
-            - bls12-381/build/lib/*.*dylib*
-            - secp256k1/build/lib/*.*dylib*
-            - ipa-multipoint/build/lib/*.dylib
-            - secp256r1/besu-native-ec/release/*.dylib
+            - altbn128/build/darwin/lib/*.*dylib*
+            - bls12-381/build/darwin/lib/*.*dylib*
+            - secp256k1/build/darwin/lib/*.*dylib*
+            - ipa-multipoint/build/darwin/lib/*.dylib
+            - secp256r1/besu-native-ec/release/darwin/*.dylib
       - store_artifacts:
           name: macOS altbn128 native build artifacts
-          path:  altbn128/build/lib
+          path:  altbn128/build/darwin/lib
           destination: altbn128_macOS_native_artifacts
           when: always
       - store_artifacts:
           name: macOS bls12-381 native build artifacts
-          path:  bls12-381/build/lib
+          path:  bls12-381/build/darwin/lib
           destination: bls12_381_macOS_native_artifacts
           when: always
       - store_artifacts:
           name: macOS secp256k1 native build artifacts
-          path:  secp256k1/build/lib
+          path:  secp256k1/build/darwin/lib
           destination: secp256k1_macOS_native_artifacts
           when: always
       - store_artifacts:
           name: macOS secp256r1 native build artifacts
-          path:  secp256r1/besu-native-ec/release
+          path:  secp256r1/besu-native-ec/release/darwin
           destination: secp256r1_macOS_native_artifacts
           when: always
       - store_artifacts:
           name: macOS ipa-multipoint native build artifacts
-          path: ipa-multipoint/build/lib
+          path: ipa-multipoint/build/darwin/lib
           destination: ipa_multipoint_macOS_native_artifacts
           when: always
   final-assembly:
@@ -210,10 +258,12 @@ workflows:
   default:
     jobs:
       - native-build-linux-x86-64
+      - native-build-linux-aarch64
       - native-build-macos
       - final-assembly:
           requires:
             - native-build-linux-x86-64
+            - native-build-linux-aarch64
             - native-build-macos
       - publish:
           filters:

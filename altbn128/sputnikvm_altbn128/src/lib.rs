@@ -17,10 +17,10 @@ pub extern "C" fn altbn128_add_precompiled(
     o: *mut ::std::os::raw::c_char,
     o_len: *mut u32,
 ) -> u32 {
-    let input_i8: &[i8] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
+    let input_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
     let input: &[u8] = unsafe { std::mem::transmute(input_i8) };
 
-    let raw_out_i8: &mut [i8] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
+    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
 
     return match altbn128_add_precompiled_impl(input) {
@@ -88,10 +88,10 @@ pub extern "C" fn altbn128_mul_precompiled(
     o: *mut ::std::os::raw::c_char,
     o_len: *mut u32,
 ) -> u32 {
-    let input_i8: &[i8] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
+    let input_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
     let input: &[u8] = unsafe { std::mem::transmute(input_i8) };
 
-    let raw_out_i8: &mut [i8] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
+    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
 
     return match altbn128_mul_precompiled_impl(input) {
@@ -151,10 +151,10 @@ pub extern "C" fn altbn128_pairing_precompiled(
     o: *mut ::std::os::raw::c_char,
     o_len: *mut u32,
 ) -> u32 {
-    let input_i8: &[i8] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
+    let input_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
     let input: &[u8] = unsafe { std::mem::transmute(input_i8) };
 
-    let raw_out_i8: &mut [i8] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
+    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
 
     return match altbn128_pairing_precompiled_impl(input) {

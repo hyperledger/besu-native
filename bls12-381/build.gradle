@@ -28,19 +28,20 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build/lib/libeth_pairings.dylib'
+  from 'build/darwin/lib/libeth_pairings.dylib'
   into 'build/resources/main/darwin'
 }
 jar.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-  from 'build/lib/libeth_pairings.so'
+  from 'build/linux-gnu-x86_64/lib/libeth_pairings.so'
   into 'build/resources/main/linux-x86-64'
 }
 jar.dependsOn linuxLibCopy
 
 jar {
   archiveBaseName = 'besu-native-bls12-381'
+  includeEmptyDirs = false
   manifest {
     attributes(
         'Specification-Title': archiveBaseName,
