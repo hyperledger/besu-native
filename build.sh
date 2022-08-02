@@ -255,12 +255,12 @@ EOF
 
 }
 
+build_blake2bf
 build_secp256k1
 build_altbn128
 build_bls12_381
 build_ipa_multipoint
 build_secp256r1
-build_blake2bf
 
 
 build_jars
