@@ -49,6 +49,27 @@ fi
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
 
+build_blake2bf() {
+
+  cat <<EOF
+  #############################
+  ###### build blake2bf ######
+  #############################
+EOF
+
+  cd "$SCRIPTDIR/blake2bf/sse"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/blake2bf/build" || true
+
+  if [[ -e Makefile ]]; then
+    make clean
+  fi
+
+  make
+  mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+}
 
 build_secp256k1() {
 
@@ -239,6 +260,7 @@ build_altbn128
 build_bls12_381
 build_ipa_multipoint
 build_secp256r1
+build_blake2bf
 
 
 build_jars
