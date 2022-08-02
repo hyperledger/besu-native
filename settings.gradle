@@ -15,6 +15,7 @@
 
 rootProject.name='besu-native'
 include 'altbn128'
+include 'blake2bf'
 include 'bls12-381'
 include 'ipa-multipoint'
 include 'secp256k1'
