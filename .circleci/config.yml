@@ -55,7 +55,7 @@ commands:
             sudo apt-get install -y autoconf build-essential libtool automake patchelf
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
   prepare_macos:
     description: "Prepare - macOS"
     steps:
@@ -66,7 +66,7 @@ commands:
             brew install autoconf automake libtool
             # rust dependencies
             export CARGO_HOME="$HOME/.cargo"
-            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.53.0
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
             # install both x86 and arm64 toolchains
             export PATH="$HOME/.cargo/bin:$PATH"
             rustup target add x86_64-apple-darwin
