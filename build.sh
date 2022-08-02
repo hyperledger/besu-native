@@ -57,7 +57,7 @@ build_blake2bf() {
   #############################
 EOF
 
-  cd "$SCRIPTDIR/blake2bf/sse"
+  cd "$SCRIPTDIR/blake2bf/$( arch )"
 
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/blake2bf/build" || true
