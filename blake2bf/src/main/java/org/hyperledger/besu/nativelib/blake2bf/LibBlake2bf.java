@@ -15,25 +15,12 @@
  */
 package org.hyperledger.besu.nativelib.blake2bf;
 
-import static java.util.Arrays.copyOfRange;
-
 import com.sun.jna.Library;
 import com.sun.jna.Native;
-import com.sun.jna.ptr.IntByReference;
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.Pack;
 
 public class LibBlake2bf implements Library {
   @SuppressWarnings("WeakerAccess")
   public static final boolean ENABLED;
-  public static final int MESSAGE_LENGTH_BYTES = 213;
-
-    private final byte[] buffer;
-
-    private int bufferPos;
-
-    private long rounds; // unsigned integer represented as long
-
 
   static {
     boolean enabled;
@@ -46,12 +33,5 @@ public class LibBlake2bf implements Library {
     ENABLED = enabled;
   }
 
-    LibBlake2bf() {
-      buffer = new byte[MESSAGE_LENGTH_BYTES];
-      bufferPos = 0;
-      rounds = 12;
-
-    }
-
-    public static native void blake2bf_eip152(byte[] out, /*long rounds,*/ byte[] payload);
+    public static native void blake2bf_eip152(byte[] out, byte[] payload);
 }
