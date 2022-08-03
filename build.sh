@@ -57,18 +57,20 @@ build_blake2bf() {
   #############################
 EOF
 
-  cd "$SCRIPTDIR/blake2bf/$( arch )"
+  if [[ "$OSTYPE" == "linux-gnu" ]];  then
+    cd "$SCRIPTDIR/blake2bf/$( arch )"
 
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/blake2bf/build" || true
+    # delete old build dir, if exists
+    rm -rf "$SCRIPTDIR/blake2bf/build" || true
 
-  if [[ -e Makefile ]]; then
-    make clean
+    if [[ -e makefile ]]; then
+      make clean
+    fi
+
+    make
+    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+    mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
   fi
-
-  make
-  mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-  mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
 }
 
 build_secp256k1() {
