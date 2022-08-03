@@ -6,6 +6,8 @@ on:
 jobs:
   native-build-linux-x86-64:
     runs-on: ubuntu-latest
+    env:
+      SKIP_GRADLE: true
     steps:
       - name: Prepare
         run: |
@@ -24,25 +26,27 @@ jobs:
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: altbn128 native build artifacts
-          path: altbn128/build/linux-gnu-x86_64/lib
+          path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: bls12-381 native build artifacts
-          path: bls12-381/build/linux-gnu-x86_64/lib
+          path: bls12-381/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: secp256k1 native build artifacts
-          path: secp256k1/build/linux-gnu-x86_64/lib
+          path: secp256k1/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: secp256r1 native build artifacts
-          path: secp256r1/besu-native-ec/release/linux-gnu-x86_64
+          path: secp256r1/besu-native-ec/release/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: ipa-multipoint native build artifacts
-          path: ipa-multipoint/build/linux-gnu-x86_64/lib
+          path: ipa-multipoint/build/
   native-build-macos:
     runs-on: macos-latest
+    env:
+      SKIP_GRADLE: true
     steps:
       - name: Prepare
         run: |
@@ -64,23 +68,23 @@ jobs:
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: altbn128 native build artifacts
-          path: altbn128/build/darwin/lib
+          path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: bls12-381 native build artifacts
-          path: bls12-381/build/darwin/lib
+          path: bls12-381/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: secp256k1 native build artifacts
-          path: secp256k1/build/darwin/lib
+          path: secp256k1/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: secp256r1 native build artifacts
-          path: secp256r1/besu-native-ec/release/darwin
+          path: secp256r1/besu-native-ec/release/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: ipa-multipoint native build artifacts
-          path: ipa-multipoint/build/darwin/lib
+          path: ipa-multipoint/build/
   final-assembly:
     runs-on: ubuntu-latest
     needs:
@@ -93,22 +97,27 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: altbn128 native build artifacts
+          path: altbn128/build/
       - name: Download bls12-381
         uses: actions/download-artifact@v3
         with:
           name: bls12-381 native build artifacts
+          path: bls12-381/build/
       - name: Download secp256k1
         uses: actions/download-artifact@v3
         with:
           name: secp256k1 native build artifacts
+          path: secp256k1/build/
       - name: Download secp256r1
         uses: actions/download-artifact@v3
         with:
           name: secp256r1 native build artifacts
+          path: secp256r1/besu-native-ec/release/
       - name: Download ipa-multipoint
         uses: actions/download-artifact@v3
         with:
           name: ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
