@@ -1,0 +1,146 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  native-build-linux-x86-64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare
+        run: |
+          # secp256k1 dependencies
+          sudo apt-get update
+          sudo apt-get install -y autoconf build-essential libtool automake patchelf
+          # rust dependencies
+          export CARGO_HOME="$HOME/.cargo"
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build
+        run: ./build.sh
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: altbn128 native build artifacts
+          path: altbn128/build/linux-gnu-x86_64/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: bls12-381 native build artifacts
+          path: bls12-381/build/linux-gnu-x86_64/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256k1 native build artifacts
+          path: secp256k1/build/linux-gnu-x86_64/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256r1 native build artifacts
+          path: secp256r1/besu-native-ec/release/linux-gnu-x86_64
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/linux-gnu-x86_64/lib
+  native-build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Prepare
+        run: |
+          # secp256k1 dependencies
+          brew install autoconf automake libtool
+          # rust dependencies
+          export CARGO_HOME="$HOME/.cargo"
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+          # install both x86 and arm64 toolchains
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build
+        run: ./build.sh
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: altbn128 native build artifacts
+          path: altbn128/build/darwin/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: bls12-381 native build artifacts
+          path: bls12-381/build/darwin/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256k1 native build artifacts
+          path: secp256k1/build/darwin/lib
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256r1 native build artifacts
+          path: secp256r1/besu-native-ec/release/darwin
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/darwin/lib
+  final-assembly:
+    runs-on: ubuntu-latest
+    needs:
+      - native-build-macos
+      - native-build-linux-x86-64
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Download altbn128
+        uses: actions/download-artifact@v3
+        with:
+          name: altbn128 native build artifacts
+      - name: Download bls12-381
+        uses: actions/download-artifact@v3
+        with:
+          name: bls12-381 native build artifacts
+      - name: Download secp256k1
+        uses: actions/download-artifact@v3
+        with:
+          name: secp256k1 native build artifacts
+      - name: Download secp256r1
+        uses: actions/download-artifact@v3
+        with:
+          name: secp256r1 native build artifacts
+      - name: Download ipa-multipoint
+        uses: actions/download-artifact@v3
+        with:
+          name: ipa-multipoint native build artifacts
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
+          cache: gradle
+      - name: gradle build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: --no-daemon --parallel build --scan
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: altbn128/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: bls12-381/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: secp256k1/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: secp256r1/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: ipa-multipoint/build/libs
+      - name: gradle publish
+        uses: gradle/gradle-build-action@v2
+        if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
+        with:
+          arguments: --no-daemon --parallel publish artifactoryPublish --scan
