@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Hyperledger Besu Contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,12 +11,27 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
+package org.hyperledger.besu.nativelib.blake2bf;
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'blake2bf'
-include 'bls12-381'
-include 'ipa-multipoint'
-include 'secp256k1'
-include 'secp256r1'
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+
+public class LibBlake2bf implements Library {
+  @SuppressWarnings("WeakerAccess")
+  public static final boolean ENABLED;
+
+  static {
+    boolean enabled;
+    try {
+      Native.register(LibBlake2bf.class, "blake2bf");
+      enabled = true;
+    } catch (final Throwable t) {
+      enabled = false;
+    }
+    ENABLED = enabled;
+  }
+
+    public static native void blake2bf_eip152(byte[] out, byte[] payload);
+}

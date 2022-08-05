@@ -88,6 +88,7 @@ jobs:
           root: .
           paths:
             - altbn128/build/linux-gnu-x86_64/lib/*.so*
+            - blake2bf/build/linux-gnu-x86_64/lib/*.so*
             - bls12-381/build/linux-gnu-x86_64/lib/*.so*
             - secp256k1/build/linux-gnu-x86_64/lib/*.so*
             - ipa-multipoint/build/linux-gnu-x86_64/lib/*.so
@@ -96,6 +97,11 @@ jobs:
           name: Linux altbn128 native build artifacts
           path:  altbn128/build/linux-gnu-x86_64/lib
           destination: altbn128_linux_x86_64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux blake2bf native build artifacts
+          path:  blake2bf/build/linux-gnu-x86_64/lib
+          destination: blake2bf_linux_x86_64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux bls12-381 native build artifacts
@@ -133,6 +139,7 @@ jobs:
           root: .
           paths:
             - altbn128/build/linux-gnu-aarch64/lib/*.so*
+            - blake2bf/build/linux-gnu-aarch64/lib/*.so*
             - secp256k1/build/linux-gnu-aarch64/lib/*.so*
             - ipa-multipoint/build/linux-gnu-aarch64/lib/*.so
             - secp256r1/besu-native-ec/release/linux-gnu-aarch64/*.so
@@ -140,6 +147,11 @@ jobs:
           name: Linux altbn128 native build artifacts
           path:  altbn128/build/linux-gnu-aarch64/lib
           destination: altbn128_linux_aarch64_native_artifacts
+          when: always
+      - store_artifacts:
+          name: Linux blake2bf native build artifacts
+          path:  blake2bf/build/linux-gnu-aarch64/lib
+          destination: blake2bf_linux_aarch64_native_artifacts
           when: always
       - store_artifacts:
           name: Linux secp256k1 native build artifacts
@@ -214,6 +226,7 @@ jobs:
           root: .
           paths:
             - altbn128/build/libs/*.jar
+            - blake2bf/build/libs/*.jar
             - bls12-381/build/libs/*.jar
             - secp256k1/build/libs/*.jar
             - secp256r1/build/libs/*.jar
@@ -222,6 +235,11 @@ jobs:
           name: Final altbn128 build artifacts
           path: altbn128/build/libs
           destination: secp256k1_jars
+          when: always
+      - store_artifacts:
+          name: Final blake2bf build artifacts
+          path: blake2bf/build/libs
+          destination: blake2bf_jars
           when: always
       - store_artifacts:
           name: Final bls12-381 build artifacts
