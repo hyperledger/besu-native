@@ -85,10 +85,42 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+  native-build-m1:
+    runs-on: besu
+    env:
+      SKIP_GRADLE: true
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build
+        run: ./build.sh
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: altbn128 native build artifacts
+          path: altbn128/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: bls12-381 native build artifacts
+          path: bls12-381/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256k1 native build artifacts
+          path: secp256k1/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256r1 native build artifacts
+          path: secp256r1/besu-native-ec/release/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/
   final-assembly:
     runs-on: ubuntu-latest
     needs:
       - native-build-macos
+      - native-build-m1
       - native-build-linux-x86-64
     steps:
       - name: Checkout Repo
