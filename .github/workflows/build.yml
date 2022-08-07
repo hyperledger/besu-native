@@ -29,6 +29,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: blake2bf native build artifacts
+          path: blake2bf/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: bls12-381 native build artifacts
           path: bls12-381/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -71,6 +75,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: blake2bf native build artifacts
+          path: blake2bf/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: bls12-381 native build artifacts
           path: bls12-381/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -102,6 +110,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: blake2bf native build artifacts
+          path: blake2bf/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: bls12-381 native build artifacts
           path: bls12-381/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -130,6 +142,11 @@ jobs:
         with:
           name: altbn128 native build artifacts
           path: altbn128/build/
+      - name: Download blake2bf
+        uses: actions/download-artifact@v3
+        with:
+          name: blake2bf native build artifacts
+          path: blake2bf/build/
       - name: Download bls12-381
         uses: actions/download-artifact@v3
         with:
@@ -164,6 +181,10 @@ jobs:
         with:
           name: jars
           path: altbn128/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: blake2bf/build/libs
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: jars
