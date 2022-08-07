@@ -49,6 +49,9 @@ fi
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
 
+# add to path brew
+[ -f $HOME/.zprofile ] && . $HOME/.zprofile
+
 build_blake2bf() {
 
   cat <<EOF
