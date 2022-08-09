@@ -20,13 +20,16 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <endian.h>
+#include <machine/endian.h>
+#include <libkern/OSByteOrder.h>
 #include <arm_neon.h>
 
 #include "blake2.h"
 #include "blake2-impl.h"
 
 #include "blake2b-round.h"
+
+#define be32toh(x) OSSwapBigToHostInt32(x)
 
 static const uint64_t blake2b_IV[8] =
 {

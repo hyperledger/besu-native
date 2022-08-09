@@ -73,6 +73,18 @@ EOF
     make
     mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
     mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  else
+    cd "$SCRIPTDIR/blake2bf/aarch64"
+     # delete old build dir, if exists
+    rm -rf "$SCRIPTDIR/blake2bf/build" || true
+
+    if [[ -e makefile ]]; then
+      make clean
+    fi
+
+    make
+    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+    mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
   fi
 }
 
