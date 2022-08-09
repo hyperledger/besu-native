@@ -73,7 +73,8 @@ EOF
     make
     mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
     mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-  else
+  fi
+  if [[ $(uname -m) == 'arm64' ]]; then
     cd "$SCRIPTDIR/blake2bf/aarch64"
      # delete old build dir, if exists
     rm -rf "$SCRIPTDIR/blake2bf/build" || true
