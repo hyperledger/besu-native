@@ -47,6 +47,52 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+  native-build-linux-arm64:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_GRADLE: true
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: armv7
+          distro: ubuntu18.04
+          run: |
+            # secp256k1 dependencies
+            sudo apt-get update
+            sudo apt-get install -y autoconf build-essential libtool automake patchelf
+            # rust dependencies
+            export CARGO_HOME="$HOME/.cargo"
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+            ./build.sh
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: altbn128 native build artifacts
+          path: altbn128/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: blake2bf native build artifacts
+          path: blake2bf/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: bls12-381 native build artifacts
+          path: bls12-381/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256k1 native build artifacts
+          path: secp256k1/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: secp256r1 native build artifacts
+          path: secp256r1/besu-native-ec/release/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: ipa-multipoint native build artifacts
+          path: ipa-multipoint/build/
   native-build-macos:
     runs-on: macos-latest
     env:
@@ -134,6 +180,7 @@ jobs:
       - native-build-macos
       - native-build-m1
       - native-build-linux-x86-64
+      - native-build-linux-arm64
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
