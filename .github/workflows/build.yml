@@ -48,9 +48,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   native-build-linux-arm64:
-    runs-on: ubuntu-latest
-    container:
-      image: cake233/rust-armv7:2022-08-08
+    runs-on: besu
     env:
       SKIP_GRADLE: true
     steps:
@@ -59,14 +57,8 @@ jobs:
         with:
           submodules: recursive
       - name: Build
-        run: |
-          # secp256k1 dependencies
-          sudo apt-get update
-          sudo apt-get install -y autoconf build-essential libtool automake patchelf
-          # rust dependencies
-          export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
-          ./build.sh
+        run:
+          docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: altbn128 native build artifacts
