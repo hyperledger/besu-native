@@ -1,11 +1,19 @@
-**/build
-**/target
+build
+target
 
-**/Cargo.lock
+Cargo.lock
 
-**/.idea
-**/.classpath
-**/.project
-**/.settings
+.idea
+.classpath
+.project
+.settings
 
-**/.gradle
+.gradle
+
+## build files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
