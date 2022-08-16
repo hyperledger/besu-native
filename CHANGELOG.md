@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.6.1-SNAPSHOT
+
 # 0.6.0
 
 * Add native implementation of the Blake2bf compress function for EIP152 [#69](https://github.com/hyperledger/besu-native/pull/69)
