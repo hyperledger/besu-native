@@ -1,9 +1,10 @@
 # Changelog
 
-# 0.5.1-SNAPSHOT
+# 0.6.0
 
+* Add native implementation of the Blake2bf compress function for EIP152 [#69](https://github.com/hyperledger/besu-native/pull/69)
 
-# 0.5.0 
+# 0.5.0
 
 * Add linux-arm64 native support [#61](https://github.com/hyperledger/besu-native/pull/61)
 * Add ipa-multipoint library support [#56](https://github.com/hyperledger/besu-native/pull/56)
@@ -31,14 +32,14 @@
   improves performance by using efficiently-computable endomorphism.
 * Add support for MatterLab's EIP196/197 for ECPairings, which are faster than
   the sputnikvm code.
-  
+
 ## 0.2.0
 
 * Add support for EIP-2537 (BLS12-381 precompiles ) via MatterLabs library
-* Randomize secp256k1 context by default, with java property 
-  `secp256k1.randomize` escape hatch to disable. In tight testing loop this 
+* Randomize secp256k1 context by default, with java property
+  `secp256k1.randomize` escape hatch to disable. In tight testing loop this
   flag should be set to false.
-  
+
 ## 0.1.0
 
 * Add support for AltBN128 precompiles via sputnik VM
