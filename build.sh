@@ -49,6 +49,9 @@ fi
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
 
+# add to path brew
+[ -f $HOME/.zprofile ] && . $HOME/.zprofile
+
 build_blake2bf() {
 
   cat <<EOF
@@ -58,7 +61,11 @@ build_blake2bf() {
 EOF
 
   if [[ "$OSTYPE" == "linux-gnu" ]];  then
-    cd "$SCRIPTDIR/blake2bf/$( arch )"
+    if [[ $(uname -m) == 'aarch64' ]]; then
+      cd "$SCRIPTDIR/blake2bf/arm64"
+    else
+      cd "$SCRIPTDIR/blake2bf/$( arch )"
+    fi
 
     # delete old build dir, if exists
     rm -rf "$SCRIPTDIR/blake2bf/build" || true
@@ -70,6 +77,19 @@ EOF
     make
     mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
     mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  fi
+  if [[ $(uname -m) == 'arm64' ]]; then
+    cd "$SCRIPTDIR/blake2bf/aarch64"
+     # delete old build dir, if exists
+    rm -rf "$SCRIPTDIR/blake2bf/build" || true
+
+    if [[ -e makefile ]]; then
+      make clean
+    fi
+
+    make
+    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+    mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
   fi
 }
 
@@ -218,6 +238,7 @@ EOF
 
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/secp256r1/build" || true
+  find . -name *.o -exec rm -rf {} \;
 
   if [[ "$OSTYPE" == "msys" ]]; then
   	LIBRARY_EXTENSION=dll
@@ -230,11 +251,18 @@ EOF
     EXTRA_FLAGS="no-asm" # avoid assembly because of pipeline error
   fi
 
+  OPENSSL_PLATFORM=""
+  if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
+    OPENSSL_PLATFORM="linux-aarch64"
+  fi
+
+
   git submodule init
   git submodule update
 
   cd openssl
-  ./Configure enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
+
+  ./Configure $OPENSSL_PLATFORM enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
               no-legacy no-gost no-engine no-dynamic-engine no-deprecated no-comp \
               no-cmp no-capieng no-ui-console no-tls no-ssl no-dtls no-aria no-bf \
               no-blake2 no-camellia no-cast no-chacha no-cmac no-des no-dh no-dsa \
