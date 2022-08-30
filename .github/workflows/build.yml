@@ -1,8 +1,11 @@
+name: Build and publish
+
 on:
   pull_request:
   push:
     branches:
       - main
+
 jobs:
   native-build-linux-x86-64:
     runs-on: ubuntu-latest
@@ -48,7 +51,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   native-build-linux-arm64:
-    runs-on: besu
+    runs-on: [self-hosted, Linux, ARM64]
     env:
       SKIP_GRADLE: true
     steps:
@@ -130,7 +133,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   native-build-m1:
-    runs-on: besu
+    runs-on: [self-hosted, besu, macOS, ARM64]
     env:
       SKIP_GRADLE: true
     steps:
