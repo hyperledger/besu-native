@@ -133,7 +133,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   native-build-m1:
-    runs-on: [self-hosted, besu, macOS, ARM64]
+    runs-on: [self-hosted, macOS, ARM64, MacStadium]
     env:
       SKIP_GRADLE: true
     steps:
