@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'net.java.dev.jna:jna:5.11.0'
+    implementation 'net.java.dev.jna:jna:5.12.1'
 
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'junit:junit:4.13.2'

@@ -31,7 +31,8 @@ public class LibIpaMultipointTest {
   @BeforeClass
   public static void setUp() {
     Path buildPath = Paths.get(LibIpaMultipointTest.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getParent().getParent().getParent();
-    File macFile = new File(buildPath.resolve("darwin/lib").toFile(), "libipa_multipoint_jni.dylib");
+    File macFile = new File(buildPath.resolve("darwin-x86_64/lib").toFile(), "libipa_multipoint_jni.dylib");
+    File macArmFile = new File(buildPath.resolve("darwin-aarch64/lib").toFile(), "libipa_multipoint_jni.so");
     File linuxFile = new File(buildPath.resolve("linux-gnu-x86_64/lib").toFile(), "libipa_multipoint_jni.so");
     File linuxArmFile = new File(buildPath.resolve("linux-gnu-aarch64/lib").toFile(), "libipa_multipoint_jni.so");
     if (linuxFile.exists()) {
@@ -40,6 +41,8 @@ public class LibIpaMultipointTest {
         System.load(linuxArmFile.getAbsolutePath());
     } else if (macFile.exists()) {
       System.load(macFile.getAbsolutePath());
+    } else if (macArmFile.exists()) {
+      System.load(macArmFile.getAbsolutePath());
     } else {
       throw new RuntimeException("could not setup jni path for test");
     }

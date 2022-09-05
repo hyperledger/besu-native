@@ -43,7 +43,14 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]];  then
   export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
-  OSARCH="darwin"
+  arch_name=`arch`
+  if [[ "$arch_name" == "i386" ]]; then # if m1 runs in Rosetta
+    arch_name="aarch64"
+  fi
+  if [[ "$arch_name" == "arm64" ]]; then
+    arch_name="aarch64"
+  fi
+  OSARCH="darwin-$arch_name"
 fi
 
 # add to path cargo
@@ -60,36 +67,25 @@ build_blake2bf() {
   #############################
 EOF
 
-  if [[ "$OSTYPE" == "linux-gnu" ]];  then
-    if [[ $(uname -m) == 'aarch64' ]]; then
-      cd "$SCRIPTDIR/blake2bf/arm64"
-    else
-      cd "$SCRIPTDIR/blake2bf/$( arch )"
-    fi
-
-    # delete old build dir, if exists
-    rm -rf "$SCRIPTDIR/blake2bf/build" || true
-
-    if [[ -e makefile ]]; then
-      make clean
-    fi
-
-    make
-    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-    mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-  fi
-  if [[ $(uname -m) == 'arm64' ]]; then
+  echo $OSARCH
+  if [[ "$OSARCH" == "linux-arm64" ]];  then
+    cd "$SCRIPTDIR/blake2bf/arm64"
+  else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
     cd "$SCRIPTDIR/blake2bf/aarch64"
-     # delete old build dir, if exists
-    rm -rf "$SCRIPTDIR/blake2bf/build" || true
+  else
+    cd "$SCRIPTDIR/blake2bf/$( arch )"
+  fi
 
-    if [[ -e makefile ]]; then
-      make clean
-    fi
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/blake2bf/build" || true
 
-    make
-    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-    mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  if [[ -e makefile ]]; then
+    make clean
+  fi
+
+  make
+  mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
   fi
 }
 

@@ -17,6 +17,7 @@ package org.hyperledger.besu.nativelib.blake2bf;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
 
 public class LibBlake2bf implements Library {
   @SuppressWarnings("WeakerAccess")
