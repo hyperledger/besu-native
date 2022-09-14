@@ -28,26 +28,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class LibIpaMultipointTest {
 
-  @BeforeClass
-  public static void setUp() {
-    Path buildPath = Paths.get(LibIpaMultipointTest.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getParent().getParent().getParent();
-    File macFile = new File(buildPath.resolve("darwin-x86_64/lib").toFile(), "libipa_multipoint_jni.dylib");
-    File macArmFile = new File(buildPath.resolve("darwin-aarch64/lib").toFile(), "libipa_multipoint_jni.so");
-    File linuxFile = new File(buildPath.resolve("linux-gnu-x86_64/lib").toFile(), "libipa_multipoint_jni.so");
-    File linuxArmFile = new File(buildPath.resolve("linux-gnu-aarch64/lib").toFile(), "libipa_multipoint_jni.so");
-    if (linuxFile.exists()) {
-      System.load(linuxFile.getAbsolutePath());
-    } else if (linuxArmFile.exists()) {
-        System.load(linuxArmFile.getAbsolutePath());
-    } else if (macFile.exists()) {
-      System.load(macFile.getAbsolutePath());
-    } else if (macArmFile.exists()) {
-      System.load(macArmFile.getAbsolutePath());
-    } else {
-      throw new RuntimeException("could not setup jni path for test");
-    }
-  }
-
   @Test
   public void testCallLibrary() {
     Bytes input = Bytes.fromHexString("0x0cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec840cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec840cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec840cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec84");

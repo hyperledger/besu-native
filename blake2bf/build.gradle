@@ -26,7 +26,7 @@ dependencies {
 }
 
 task macAarch64LibCopy(type: Copy) {
-  from 'build/darwin-aarch64/lib/libblake2bf.*'
+  from 'build/darwin-aarch64/lib/libblake2bf.so'
   into 'build/resources/main/darwin-aarch64'
 }
 
