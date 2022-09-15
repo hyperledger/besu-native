@@ -43,11 +43,9 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]];  then
   export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
-  arch_name=`arch`
-  if [[ "$arch_name" == "i386" ]]; then # if m1 runs in Rosetta
-    arch_name="aarch64"
-  fi
-  if [[ "$arch_name" == "arm64" ]]; then
+  if [[ "`machine`" == "x86"* ]]; then
+    arch_name="x86-64"
+  else
     arch_name="aarch64"
   fi
   OSARCH="darwin-$arch_name"
@@ -67,13 +65,12 @@ build_blake2bf() {
   #############################
 EOF
 
-  echo $OSARCH
   if [[ "$OSARCH" == "linux-arm64" ]];  then
     cd "$SCRIPTDIR/blake2bf/arm64"
   else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
     cd "$SCRIPTDIR/blake2bf/aarch64"
   else
-    cd "$SCRIPTDIR/blake2bf/$( arch )"
+    cd "$SCRIPTDIR/blake2bf/x86_64"
   fi
 
   # delete old build dir, if exists
@@ -139,9 +136,9 @@ EOF
 
 build_ipa_multipoint() {
   cat <<EOF
-  ############################
+  ##################################
   ###### build ipa_multipoint ######
-  ############################
+  ##################################
 EOF
 
   cd "$SCRIPTDIR/ipa-multipoint/ipa_multipoint_jni"
@@ -152,8 +149,19 @@ EOF
 
   cargo clean
 
-  if [[ "$OSTYPE" == "darwin"* ]];  then
-    lipo_lib "libipa_multipoint_jni" ""
+  if [[ "$OSARCH" == "darwin-x86-64" ]];  then
+    echo "in here"
+    cargo build --lib --release --target=x86_64-apple-darwin
+    lipo -create \
+      -output target/release/libipa_multipoint_jni.dylib \
+      -arch x86_64 target/x86_64-apple-darwin/release/libipa_multipoint_jni.dylib
+    lipo -info ./target/release/libipa_multipoint_jni.dylib
+  elif [[ "$OSARCH" == "darwin-aarch64" ]]; then
+    cargo build --lib --release --target=aarch64-apple-darwin
+    lipo -create \
+      -output target/release/libipa_multipoint_jni.so \
+      -arch arm64 target/aarch64-apple-darwin/libipa_multipoint_jni.so
+    lipo -info ./target/release/libipa_multipoint_jni.so
   else
     cargo build --lib --release
   fi
@@ -281,11 +289,11 @@ EOF
 
 }
 
-build_blake2bf
+#build_blake2bf
 #build_secp256k1
 #build_altbn128
 #build_bls12_381
-#build_ipa_multipoint
+build_ipa_multipoint
 #build_secp256r1
 
 

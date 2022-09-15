@@ -30,26 +30,26 @@ task macAarch64LibCopy(type: Copy) {
   into 'build/resources/main/darwin-aarch64'
 }
 
-jar.dependsOn macAarch64LibCopy
+processResources.dependsOn macAarch64LibCopy
 
 task macLibCopy(type: Copy) {
-  from 'build/darwin-x86_64/lib/libblake2bf.dylib'
-  into 'build/resources/main/darwin-x86_64'
+  from 'build/darwin-x86-64/lib/libblake2bf.dylib'
+  into 'build/resources/main/darwin-x86-64'
 }
 
-jar.dependsOn macLibCopy
+processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libblake2bf.so'
   into 'build/resources/main/linux-x86-64'
 }
-jar.dependsOn linuxLibCopy
+processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libblake2bf.so'
   into 'build/resources/main/linux-aarch64'
 }
-jar.dependsOn linuxArm64LibCopy
+processResources.dependsOn linuxArm64LibCopy
 
 jar {
   archiveBaseName = 'besu-native-blake2bf'

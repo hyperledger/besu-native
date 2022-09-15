@@ -19,8 +19,6 @@ import com.sun.jna.Native;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Java interface to ipa-multipoint, a rust library that supports computing polynomial commitments.
@@ -34,10 +32,9 @@ public class LibIpaMultipoint {
   public static final boolean ENABLED;
 
   static {
-    System.setProperty("jna.prefix", "darwin-aarch64");
     boolean enabled;
     try {
-      File lib = Native.extractFromResourcePath("libipa_multipoint_jni");
+      File lib = Native.extractFromResourcePath("ipa_multipoint_jni");
       System.load(lib.getAbsolutePath());
       enabled = true;
     } catch (IOException e) {

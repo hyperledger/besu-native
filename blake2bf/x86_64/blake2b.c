@@ -20,7 +20,14 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef __APPLE__
+#include <machine/endian.h>
+#include <libkern/OSByteOrder.h>
+#define be32toh(x) OSSwapBigToHostInt32(x)
+#else
 #include <endian.h>
+#endif
 
 #include "blake2.h"
 #include "blake2-impl.h"
