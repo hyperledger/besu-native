@@ -50,8 +50,6 @@ if [[ "$OSTYPE" == "darwin"* ]];  then
   fi
   OSARCH="darwin-$arch_name"
 fi
-echo `machine`
-echo $OSARCH
 
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
@@ -67,7 +65,7 @@ build_blake2bf() {
   #############################
 EOF
 
-  if [[ "$OSARCH" == "linux-arm64" ]];  then
+  if [[ "$OSARCH" == "linux-gnu-aarch64" ]];  then
     cd "$SCRIPTDIR/blake2bf/arm64"
   else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
     cd "$SCRIPTDIR/blake2bf/aarch64"
