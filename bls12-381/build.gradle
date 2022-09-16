@@ -34,7 +34,7 @@ task macLibCopy(type: Copy) {
 processResources.dependsOn macLibCopy
 
 task macAarch64LibCopy(type: Copy) {
-  from 'build/darwin-aarch64/lib/libeth_pairings.so'
+  from 'build/darwin-aarch64/lib/libeth_pairings.dylib'
   into 'build/resources/main/darwin-aarch64'
 }
 processResources.dependsOn macAarch64LibCopy

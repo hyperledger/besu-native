@@ -150,7 +150,6 @@ EOF
   cargo clean
 
   if [[ "$OSARCH" == "darwin-x86-64" ]];  then
-    echo "in here"
     cargo build --lib --release --target=x86_64-apple-darwin
     lipo -create \
       -output target/release/libipa_multipoint_jni.dylib \
@@ -159,9 +158,9 @@ EOF
   elif [[ "$OSARCH" == "darwin-aarch64" ]]; then
     cargo build --lib --release --target=aarch64-apple-darwin
     lipo -create \
-      -output target/release/libipa_multipoint_jni.so \
-      -arch arm64 target/aarch64-apple-darwin/libipa_multipoint_jni.so
-    lipo -info ./target/release/libipa_multipoint_jni.so
+      -output target/release/libipa_multipoint_jni.dylib \
+      -arch arm64 target/aarch64-apple-darwin/release/libipa_multipoint_jni.dylib
+    lipo -info ./target/release/libipa_multipoint_jni.dylib
   else
     cargo build --lib --release
   fi
@@ -289,12 +288,12 @@ EOF
 
 }
 
-#build_blake2bf
-#build_secp256k1
-#build_altbn128
-#build_bls12_381
+build_blake2bf
+build_secp256k1
+build_altbn128
+build_bls12_381
 build_ipa_multipoint
-#build_secp256r1
+build_secp256r1
 
 
 build_jars
