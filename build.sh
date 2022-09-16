@@ -50,6 +50,8 @@ if [[ "$OSTYPE" == "darwin"* ]];  then
   fi
   OSARCH="darwin-$arch_name"
 fi
+echo `machine`
+echo $OSARCH
 
 # add to path cargo
 [ -f $HOME/.cargo/env ] && . $HOME/.cargo/env
