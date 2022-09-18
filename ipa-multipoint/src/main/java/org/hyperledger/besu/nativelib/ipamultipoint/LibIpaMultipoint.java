@@ -15,6 +15,11 @@
  */
 package org.hyperledger.besu.nativelib.ipamultipoint;
 
+import com.sun.jna.Native;
+
+import java.io.File;
+import java.io.IOException;
+
 /**
  * Java interface to ipa-multipoint, a rust library that supports computing polynomial commitments.
  *
@@ -22,6 +27,21 @@ package org.hyperledger.besu.nativelib.ipamultipoint;
  *
  */
 public class LibIpaMultipoint {
+
+  @SuppressWarnings("WeakerAccess")
+  public static final boolean ENABLED;
+
+  static {
+    boolean enabled;
+    try {
+      File lib = Native.extractFromResourcePath("ipa_multipoint_jni");
+      System.load(lib.getAbsolutePath());
+      enabled = true;
+    } catch (IOException e) {
+      enabled = false;
+    }
+    ENABLED = enabled;
+  }
 
   /**
    * Evaluates a polynomial of degree 3 (uniquely defined by 4 values) at a specific point on the curve.

@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-  implementation 'net.java.dev.jna:jna:5.11.0'
+  implementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'com.google.guava:guava:31.1-jre'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
@@ -28,16 +28,22 @@ dependencies {
 }
 
 task macLibCopy(type: Copy) {
-  from 'build/darwin/lib/libeth_pairings.dylib'
-  into 'build/resources/main/darwin'
+  from 'build/darwin-x86-64/lib/libeth_pairings.dylib'
+  into 'build/resources/main/darwin-x86-64'
 }
-jar.dependsOn macLibCopy
+processResources.dependsOn macLibCopy
+
+task macAarch64LibCopy(type: Copy) {
+  from 'build/darwin-aarch64/lib/libeth_pairings.dylib'
+  into 'build/resources/main/darwin-aarch64'
+}
+processResources.dependsOn macAarch64LibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libeth_pairings.so'
   into 'build/resources/main/linux-x86-64'
 }
-jar.dependsOn linuxLibCopy
+processResources.dependsOn linuxLibCopy
 
 jar {
   archiveBaseName = 'besu-native-bls12-381'

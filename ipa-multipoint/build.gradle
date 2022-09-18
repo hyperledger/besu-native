@@ -20,27 +20,36 @@ plugins {
 }
 
 dependencies {
+  implementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.assertj:assertj-core:3.22.0'
   testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
-task macLibCopy(type: Copy) {
-  from 'build/darwin/lib/libipa_multipoint_jni.dylib'
-  into 'build/resources/main/darwin'
+task macArmLibCopy(type: Copy) {
+  from 'build/darwin-aarch64/lib/libipa_multipoint_jni.dylib'
+  into 'build/resources/main/darwin-aarch64'
 }
-jar.dependsOn macLibCopy
+processResources.dependsOn macArmLibCopy
+
+task macLibCopy(type: Copy) {
+  from 'build/darwin-x86-64/lib/libipa_multipoint_jni.dylib'
+  into 'build/resources/main/darwin-x86-64'
+}
+processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libipa_multipoint_jni.so'
   into 'build/resources/main/linux-x86-64'
 }
+processResources.dependsOn linuxLibCopy
+
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libipa_multipoint_jni.so'
   into 'build/resources/main/linux-aarch64'
 }
-jar.dependsOn linuxArm64LibCopy
+processResources.dependsOn linuxArm64LibCopy
 
 jar {
   archiveBaseName = 'besu-native-ipa-multipoint'
@@ -81,7 +90,7 @@ publishing {
 
       pom {
         name = "Besu Native - ${project.name}"
-        description = 'Adapter for native alt_bn128'
+        description = 'IPA Multipoint Library'
         url = 'http://github.com/hyperledger/besu-native'
         licenses {
           license {

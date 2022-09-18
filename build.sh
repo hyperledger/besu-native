@@ -43,7 +43,12 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]];  then
   export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
-  OSARCH="darwin"
+  if [[ "`machine`" == "arm"* ]]; then
+    arch_name="aarch64"
+  else
+    arch_name="x86-64"
+  fi
+  OSARCH="darwin-$arch_name"
 fi
 
 # add to path cargo
@@ -60,36 +65,24 @@ build_blake2bf() {
   #############################
 EOF
 
-  if [[ "$OSTYPE" == "linux-gnu" ]];  then
-    if [[ $(uname -m) == 'aarch64' ]]; then
-      cd "$SCRIPTDIR/blake2bf/arm64"
-    else
-      cd "$SCRIPTDIR/blake2bf/$( arch )"
-    fi
-
-    # delete old build dir, if exists
-    rm -rf "$SCRIPTDIR/blake2bf/build" || true
-
-    if [[ -e makefile ]]; then
-      make clean
-    fi
-
-    make
-    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-    mv libblake2bf.so "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-  fi
-  if [[ $(uname -m) == 'arm64' ]]; then
+  if [[ "$OSARCH" == "linux-gnu-aarch64" ]];  then
+    cd "$SCRIPTDIR/blake2bf/arm64"
+  else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
     cd "$SCRIPTDIR/blake2bf/aarch64"
-     # delete old build dir, if exists
-    rm -rf "$SCRIPTDIR/blake2bf/build" || true
+  else
+    cd "$SCRIPTDIR/blake2bf/x86_64"
+  fi
 
-    if [[ -e makefile ]]; then
-      make clean
-    fi
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/blake2bf/build" || true
 
-    make
-    mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
-    mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  if [[ -e makefile ]]; then
+    make clean
+  fi
+
+  make
+  mkdir -p "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
+  mv libblake2bf.* "$SCRIPTDIR/blake2bf/build/${OSARCH}/lib"
   fi
 }
 
@@ -143,9 +136,9 @@ EOF
 
 build_ipa_multipoint() {
   cat <<EOF
-  ############################
+  ##################################
   ###### build ipa_multipoint ######
-  ############################
+  ##################################
 EOF
 
   cd "$SCRIPTDIR/ipa-multipoint/ipa_multipoint_jni"
@@ -156,8 +149,18 @@ EOF
 
   cargo clean
 
-  if [[ "$OSTYPE" == "darwin"* ]];  then
-    lipo_lib "libipa_multipoint_jni" ""
+  if [[ "$OSARCH" == "darwin-x86-64" ]];  then
+    cargo build --lib --release --target=x86_64-apple-darwin
+    lipo -create \
+      -output target/release/libipa_multipoint_jni.dylib \
+      -arch x86_64 target/x86_64-apple-darwin/release/libipa_multipoint_jni.dylib
+    lipo -info ./target/release/libipa_multipoint_jni.dylib
+  elif [[ "$OSARCH" == "darwin-aarch64" ]]; then
+    cargo build --lib --release --target=aarch64-apple-darwin
+    lipo -create \
+      -output target/release/libipa_multipoint_jni.dylib \
+      -arch arm64 target/aarch64-apple-darwin/release/libipa_multipoint_jni.dylib
+    lipo -info ./target/release/libipa_multipoint_jni.dylib
   else
     cargo build --lib --release
   fi
