@@ -177,7 +177,7 @@ build_bls12_381() {
 EOF
 
   echo "building bls12-381 for ${OSARCH}"
-  cd "$SCRIPTDIR/bls12-381/matterlabs-eip1962"
+  cd "$SCRIPTDIR/bls12-381/updated-eip1962"
 
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/bls12-381/build" || true
