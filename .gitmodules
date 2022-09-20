@@ -1,9 +1,9 @@
 [submodule "secp256k1/bitcoin-core-secp256k1"]
 	path = secp256k1/bitcoin-core-secp256k1
 	url = https://github.com/bitcoin-core/secp256k1.git
-[submodule "bls12-381/matterlabs-eip1962"]
-	path = bls12-381/matterlabs-eip1962
-	url = https://github.com/matter-labs/eip1962.git
+[submodule "bls12-381/updated-eip1962"]
+	path = bls12-381/updated-eip1962
+	url = https://github.com/garyschulte/eip1962.git
 [submodule "secp256r1/besu-native-ec"]
 	path = secp256r1/besu-native-ec
 	url = git@github.com:ConsenSys/besu-native-ec.git
