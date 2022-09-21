@@ -1,6 +1,10 @@
 # Changelog
 
-# 0.6.1-SNAPSHOT
+# 0.6.1
+
+* Update to latest jna, use separate build folders per os/arch [#79](https://github.com/hyperledger/besu-native/pull/79)
+* Add linux arm64 build of bls12-381 [#81](https://github.com/hyperledger/besu-native/pull/81), [#80](https://github.com/hyperledger/besu-native/pull/80)
+* Restrict builds of blake2f to x86-64 [#82](https://github.com/hyperledger/besu-native/pull/82) 
 
 # 0.6.0
 
