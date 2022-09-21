@@ -65,10 +65,13 @@ build_blake2bf() {
   #############################
 EOF
 
+  # This version of arm blake is actually slower than java blake on arm
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]];  then
-    cd "$SCRIPTDIR/blake2bf/arm64"
+    return
+    #cd "$SCRIPTDIR/blake2bf/arm64"
   else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
-    cd "$SCRIPTDIR/blake2bf/aarch64"
+    return
+    #cd "$SCRIPTDIR/blake2bf/aarch64"
   else
     cd "$SCRIPTDIR/blake2bf/x86_64"
   fi
