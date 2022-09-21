@@ -45,6 +45,12 @@ task linuxLibCopy(type: Copy) {
 }
 processResources.dependsOn linuxLibCopy
 
+task linuxArm64LibCopy(type: Copy) {
+  from 'build/linux-gnu-aarch64/lib/libeth_pairings.so'
+  into 'build/resources/main/linux-aarch64'
+}
+processResources.dependsOn linuxArm64LibCopy
+
 jar {
   archiveBaseName = 'besu-native-bls12-381'
   includeEmptyDirs = false
