@@ -28,10 +28,17 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.22.0'
 }
 
+task macArmLibCopy(type: Copy) {
+    from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec.dylib'
+    from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec_crypto.dylib'
+    into 'build/resources/main/darwin-aarch64'
+}
+jar.dependsOn macArmLibCopy
+
 task macLibCopy(type: Copy) {
-    from 'besu-native-ec/release/darwin/libbesu_native_ec.dylib'
-    from 'besu-native-ec/release/darwin/libbesu_native_ec_crypto.dylib'
-    into 'build/resources/main/darwin'
+    from 'besu-native-ec/release/darwin-x86-64/libbesu_native_ec.dylib'
+    from 'besu-native-ec/release/darwin-x86-64/libbesu_native_ec_crypto.dylib'
+    into 'build/resources/main/darwin-x86-64'
 }
 jar.dependsOn macLibCopy
 

@@ -23,9 +23,15 @@ dependencies {
   implementation 'net.java.dev.jna:jna:5.12.1'
 }
 
+task macArmLibCopy(type: Copy) {
+  from 'build/darwin-aarch64/lib/libeth_altbn128.dylib'
+  into 'build/resources/main/darwin-aarch64'
+}
+jar.dependsOn macArmLibCopy
+
 task macLibCopy(type: Copy) {
-  from 'build/darwin/lib/libeth_altbn128.dylib'
-  into 'build/resources/main/darwin'
+  from 'build/darwin-x86-64/lib/libeth_altbn128.dylib'
+  into 'build/resources/main/darwin-x86-64'
 }
 jar.dependsOn macLibCopy
 
