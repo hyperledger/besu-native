@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.6.2-SNAPSHOT
+
 # 0.6.1
 
 * Build and package altbn precompiles for linux-arm64 [#80] and [#81]
