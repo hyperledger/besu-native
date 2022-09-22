@@ -46,11 +46,8 @@ public class LibIpaMultipoint {
   /**
    * Evaluates a polynomial of degree 3 (uniquely defined by 4 values) at a specific point on the curve.
 
-   * @param y0 the first coordinate of the projection on the curve
-   * @param y1 the second coordinate of the projection on the curve
-   * @param y2 the third coordinate of the projection on the curve
-   * @param y3 the fourth coordinate of the projection on the curve
+   * @param input polynomial elements
    * @return the coordinates of the projection of the polynomial on the curve
    */
-  public static native byte[] commit(byte[] y0, byte[] y1, byte[] y2, byte[] y3);
+  public static native byte[] commit(byte[][] input);
 }
