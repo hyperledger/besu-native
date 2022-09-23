@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.6.2-SNAPSHOT
+
 # 0.6.1
 
 * Update to latest jna, use separate build folders per os/arch [#79](https://github.com/hyperledger/besu-native/pull/79)
