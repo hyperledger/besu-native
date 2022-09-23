@@ -12,13 +12,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+use std::convert::TryFrom;
 use ark_ff::bytes::{FromBytes, ToBytes};
 use bandersnatch::Fr;
 use ipa_multipoint::lagrange_basis::LagrangeBasis;
 use ipa_multipoint::multiproof::CRS;
 use jni::JNIEnv;
 use jni::objects::JClass;
-use jni::sys::jbyteArray;
+use jni::sys::{jbyteArray, jobjectArray, jsize};
 
 // Seed used to compute the 256 pedersen generators
 // using try-and-increment
@@ -29,23 +30,19 @@ const PEDERSEN_SEED: &'static [u8] = b"eth_verkle_oct_2021";
 #[no_mangle]
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(env: JNIEnv,
                                                                                                  _class: JClass<'_>,
-                                                                                                 input1: jbyteArray,
-                                                                                                 input2: jbyteArray,
-                                                                                                 input3: jbyteArray,
-                                                                                                 input4: jbyteArray)
+                                                                                                 input: jobjectArray)
                                                                                                  -> jbyteArray {
-    let lagrange_input1 = env.convert_byte_array(input1).expect("Couldn't read byte array input");
-    let lagrange_input2 = env.convert_byte_array(input2).expect("Couldn't read byte array input");
-    let lagrange_input3 = env.convert_byte_array(input3).expect("Couldn't read byte array input");
-    let lagrange_input4 = env.convert_byte_array(input4).expect("Couldn't read byte array input");
+    let length = env.get_array_length(input).unwrap();
+    let len = <usize as TryFrom<jsize>>::try_from(length)
+        .expect("invalid jsize, in jsize => usize conversation");
+    let mut vec = Vec::with_capacity(len);
+    for i in 0..length {
+        let jbarray: jbyteArray = env.get_object_array_element(input, i).unwrap().cast();
+        let barray = env.convert_byte_array(jbarray).expect("Couldn't read byte array input");
+        vec.push(Fr::read(barray.as_ref()).unwrap())
+    }
 
-
-    let poly = LagrangeBasis::new(vec![
-        Fr::read(lagrange_input1.as_ref()).unwrap(),
-        Fr::read(lagrange_input2.as_ref()).unwrap(),
-        Fr::read(lagrange_input3.as_ref()).unwrap(),
-        Fr::read(lagrange_input4.as_ref()).unwrap(),
-    ]);
+    let poly = LagrangeBasis::new(vec);
     let crs = CRS::new(256, PEDERSEN_SEED);
     let result = crs.commit_lagrange_poly(&poly);
     let mut result_bytes = [0u8; 128];
@@ -84,7 +81,11 @@ mod tests {
         let env = guard.deref();
         let class = env.find_class("java/lang/String").unwrap();
         let jarray = env.byte_array_from_slice(&f1_bytes).unwrap();
-        let result = Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(*env, class, jarray, jarray, jarray, jarray);
+        let objarray = env.new_object_array(4, "java/lang/byte[]", jarray).unwrap();
+        env.set_object_array_element(objarray, 1, jarray).expect("cannot set input");
+        env.set_object_array_element(objarray, 2, jarray).expect("cannot set input");
+        env.set_object_array_element(objarray, 3, jarray).expect("cannot set input");
+        let result = Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(*env, class, objarray);
         let result_u8 = env.convert_byte_array(result).unwrap();
         assert_eq!("0fc066481fb30a138938dc749fa3608fc840386671d3ee355d778ed4e1843117a73b5363f846b850a958dab228d6c181f6e2c1035dad9b3b47c4d4bbe4b8671adc36f4edb34ac17a093f1c183f00f6e4863a2b38a7470edd1739cc1fdbc6541bc3b7896389a3fe5f59cdefe3ac2f8ae89101c227395d6fc7bca05f138683e204", hex::encode(result_u8));
     }
