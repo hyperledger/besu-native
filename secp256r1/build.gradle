@@ -65,7 +65,7 @@ jar {
                 'Specification-Version': project.version,
                 'Implementation-Title': archiveBaseName,
                 'Implementation-Version': project.version,
-                'Automatic-Module-Name': 'org.hyperledger.besu.native.Secp256r1'
+                'Automatic-Module-Name': 'org.hyperledger.besu.native.secp256r1'
         )
     }
 }

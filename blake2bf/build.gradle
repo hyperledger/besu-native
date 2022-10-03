@@ -60,7 +60,7 @@ jar {
         'Specification-Version': project.version,
         'Implementation-Title': archiveBaseName,
         'Implementation-Version': project.version,
-        'Automatic-Module-Name': 'org.hyperledger.besu.native.Blake2bf'
+        'Automatic-Module-Name': 'org.hyperledger.besu.native.blake2bf'
     )
   }
 }
