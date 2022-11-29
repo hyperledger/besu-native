@@ -1,6 +1,8 @@
 # Changelog
 
-# 0.6.2-SNAPSHOT
+# unreleased
+
+# 0.6.2
 
 * support computing proof with n arguments [#89](https://github.com/hyperledger/besu-native/pull/89)
 * Java modules support [#90](https://github.com/hyperledger/besu-native/pull/90)
