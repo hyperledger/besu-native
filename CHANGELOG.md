@@ -1,6 +1,12 @@
 # Changelog
 
-# 0.6.2-SNAPSHOT
+# unreleased
+
+# 0.6.2
+
+* support computing proof with n arguments [#89](https://github.com/hyperledger/besu-native/pull/89)
+* Java modules support [#90](https://github.com/hyperledger/besu-native/pull/90)
+* Add CodeQL workflow for GitHub code scanning [#92](https://github.com/hyperledger/besu-native/pull/92)
 
 # 0.6.1
 

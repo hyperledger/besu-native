@@ -47,6 +47,6 @@ If you prefer another installation method please refer to the [Rust installation
    sure that you have cloned those submodules into the appropriate locations,
    run `git submodule init && git submodule update`
 2. The build steps are entirely contained within the `build.sh` script at the repository root.
-   Simply run this script, and all of the native modules contained herin will be configured with the
+   Simply run this script, and all the native modules contained herein will be configured with the
    correct build options for Hyperledger Besu, and built.
 
