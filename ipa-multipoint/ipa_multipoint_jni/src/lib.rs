@@ -89,4 +89,22 @@ mod tests {
         let result_u8 = env.convert_byte_array(result).unwrap();
         assert_eq!("0fc066481fb30a138938dc749fa3608fc840386671d3ee355d778ed4e1843117a73b5363f846b850a958dab228d6c181f6e2c1035dad9b3b47c4d4bbe4b8671adc36f4edb34ac17a093f1c183f00f6e4863a2b38a7470edd1739cc1fdbc6541bc3b7896389a3fe5f59cdefe3ac2f8ae89101c227395d6fc7bca05f138683e204", hex::encode(result_u8));
     }
+
+    #[test]
+    fn commit_multiproof_lagrange_known_input() {
+        let mut vec = Vec::with_capacity(len);
+        vec.insert(2, Fr::read(hex::decode("")).unwrap());
+        for i in 0..length {
+            let jbarray: jbyteArray = env.get_object_array_element(input, i).unwrap().cast();
+            let barray = env.convert_byte_array(jbarray).expect("Couldn't read byte array input");
+            vec.push(Fr::read(barray.as_ref()).unwrap())
+        }
+
+        let poly = LagrangeBasis::new(vec);
+        let crs = CRS::new(256, PEDERSEN_SEED);
+        let result = crs.commit_lagrange_poly(&poly);
+        let mut result_bytes = [0u8; 128];
+        result.write(result_bytes.as_mut()).unwrap();
+        assert_eq!("0fc066481fb30a138938dc749fa3608fc840386671d3ee355d778ed4e1843117a73b5363f846b850a958dab228d6c181f6e2c1035dad9b3b47c4d4bbe4b8671adc36f4edb34ac17a093f1c183f00f6e4863a2b38a7470edd1739cc1fdbc6541bc3b7896389a3fe5f59cdefe3ac2f8ae89101c227395d6fc7bca05f138683e204", hex::encode(result_u8));
+    }
 }
