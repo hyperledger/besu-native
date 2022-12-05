@@ -2,6 +2,8 @@
 
 # 0.7.0
 
+* Add new "arithmetic" library to support basic (but expensive) arithmetic [#98](https://github.com/hyperledger/besu-native/pull/98)
+
 # 0.6.2
 
 * support computing proof with n arguments [#89](https://github.com/hyperledger/besu-native/pull/89)
