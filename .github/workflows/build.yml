@@ -32,6 +32,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: arithmetic native build artifacts
+          path: arithmetic/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: blake2bf native build artifacts
           path: blake2bf/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -66,6 +70,10 @@ jobs:
         with:
           name: altbn128 native build artifacts
           path: altbn128/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: arithmetic native build artifacts
+          path: arithmetic/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: blake2bf native build artifacts
@@ -114,6 +122,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: arithmetic native build artifacts
+          path: arithmetic/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: blake2bf native build artifacts
           path: blake2bf/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -149,6 +161,10 @@ jobs:
           path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
+          name: arithmetic native build artifacts
+          path: arithmetic/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
           name: blake2bf native build artifacts
           path: blake2bf/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -182,6 +198,11 @@ jobs:
         with:
           name: altbn128 native build artifacts
           path: altbn128/build/
+      - name: Download arithmetic
+        uses: actions/download-artifact@v3
+        with:
+          name: arithmetic native build artifacts
+          path: arithmetic/build/
       - name: Download blake2bf
         uses: actions/download-artifact@v3
         with:
@@ -221,6 +242,10 @@ jobs:
         with:
           name: jars
           path: altbn128/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: arithmetic/build/libs
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: jars
