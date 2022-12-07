@@ -13,6 +13,9 @@ Communicate with Besu maintainers and announce your intention to conduct a relea
 Make a pull request changing [gradle.properties] version to the next best version.
 
 The repository abides loosely to [semver conventions](https://semver.org/).
+* Removing a library or API may require a major version increment (0.7.0 -> 1.0.0)
+* Adding a new JAR/Library has been done in minor versions increment (0.6.2 -> 0.7.0)
+* Adding a function or API to an existing library has been done in double-dot minor version (0.6.1 -> 0.6.2)
 
 # Create the github tag and release
 
