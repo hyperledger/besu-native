@@ -8,7 +8,7 @@ on:
 
 jobs:
   native-build-linux-x86-64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       SKIP_GRADLE: true
     steps:
@@ -95,7 +95,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   native-build-macos:
-    runs-on: macos-latest
+    runs-on: macos-11
     env:
       SKIP_GRADLE: true
     steps:
@@ -184,7 +184,7 @@ jobs:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
   final-assembly:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       - native-build-macos
       - native-build-m1
