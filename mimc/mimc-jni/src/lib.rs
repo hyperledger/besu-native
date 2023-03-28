@@ -6,7 +6,7 @@ use std::vec::Vec;
 use ff_ce::{Field, PrimeField, PrimeFieldRepr};
 
 lazy_static! {
-    static ref MIMC7_CONSTANT: Vec<Fr> = Mimc7::generate_constants();
+    static ref MIMC7_CONSTANT: Vec<Fr> = Mimc5::generate_constants();
 }
 
 /// MIMC7 is a hash function suited for BN256's scalar field.
@@ -17,23 +17,23 @@ lazy_static! {
 /// The MIMC paper (https://eprint.iacr.org/2016/492.pdf) states that monomial x^d is a permutation
 /// in Fp if gcd(d,p) == 1
 ///
-/// Exponent for MIMC7 is 7, which satisfies the above condition.
+/// Exponent for MIMC7 is 5, which satisfies the above condition.
 /// MIMC can't be implemented generically as different
 /// prime fields will require different MIMC implementations.
 ///
 /// ```code
 /// pseudo code:
-/// fn mimc7_hash(constants, x, k):
+/// fn mimc5_permutation(constants, x, k):
 ///    h := x;
 ///    for i = 0..constants.len() {
 ///        h := h + k + constants[i]
-///        h := h^7;
+///        h := h^5;
 ///    }
 ///    h = h + k;
 ///    return h;
 /// ```
 #[derive(Copy, Clone, Debug)]
-pub struct Mimc7 {
+pub struct Mimc5 {
     pub(crate) state: Fr,
 }
 
@@ -42,7 +42,7 @@ const BLOCK_SIZE: usize = 32;
 // User-friendly function to evaluate the MiMC hash of a string
 pub fn mimc_hash<T : AsRef<[u8]>>(bytes: T) -> Vec<u8> {
 
-    let mut hasher = Mimc7::initialize();
+    let mut hasher = Mimc5::initialize();
 	let slice = bytes.as_ref().to_vec();
 
 	slice
@@ -87,7 +87,7 @@ pub fn mimc_hash<T : AsRef<[u8]>>(bytes: T) -> Vec<u8> {
 	return res
 }
 
-impl Mimc7 {
+impl Mimc5 {
     fn generate_constants() -> Vec<Fr> {
         let constants_str = [
         "227063593160049201514509818732644766896230235191445544141110657236065169432",
@@ -236,7 +236,7 @@ impl Mimc7 {
     fn update_scalar(&mut self, block: &Fr) {
 		// The update function corresponds to
 		// new_state <- state + block + enc(block, key=state)
-        let encrypted = Mimc7::encrypt(block, &self.state);
+        let encrypted = Mimc5::encrypt(block, &self.state);
         self.state.add_assign(&encrypted);
         self.state.add_assign(block);
     }
@@ -257,7 +257,7 @@ impl Mimc7 {
 #[test]
 fn test_hasher_zero() {
 	// Hashing zero
-	let mut hasher = Mimc7::initialize();
+	let mut hasher = Mimc5::initialize();
 	hasher.update_scalar(&Fr::zero());
 	let digest = hasher.finalize();
 	assert_eq!(digest.into_repr().to_string(), "0x2c7298fd87d3039ffea208538f6b297b60b373a63792b4cd0654fdc88fd0d6ee");
@@ -266,7 +266,7 @@ fn test_hasher_zero() {
 #[test]
 fn test_hasher_one() {
 	// Hashing one
-	let mut hasher = Mimc7::initialize();
+	let mut hasher = Mimc5::initialize();
 	hasher.update_scalar(&Fr::one());
 	let digest = hasher.finalize();
 	assert_eq!(digest.into_repr().to_string(), "0x27e5458b666ef581475a9acddbc3524ca252185cae3936506e65cda9c358222b");
