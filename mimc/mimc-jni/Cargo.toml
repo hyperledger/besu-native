@@ -10,6 +10,7 @@ pairing_ce = "0.28.5"
 lazy_static = "1.4"
 ff_ce = "0.14.3"
 serde = "1.0.159"
+libc = "0.2"
 jni = { version = "0.19.0", features = ["invocation"] } # We use invocation in tests.
 
 [lib]

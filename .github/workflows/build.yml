@@ -54,6 +54,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-linux-arm64:
     runs-on: [self-hosted, Linux, ARM64]
     env:
@@ -94,6 +98,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-macos:
     runs-on: macos-11
     env:
@@ -144,11 +152,24 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-m1:
     runs-on: [self-hosted, macOS, ARM64, MacStadium]
     env:
       SKIP_GRADLE: true
     steps:
+      - name: Prepare
+        run: |
+          # rust dependencies
+          export CARGO_HOME="$HOME/.cargo"
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+          # install both x86 and arm64 toolchains
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -183,6 +204,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   final-assembly:
     runs-on: ubuntu-20.04
     needs:
@@ -228,6 +253,11 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - name: Download mimc
+        uses: actions/download-artifact@v3
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
@@ -266,6 +296,10 @@ jobs:
         with:
           name: jars
           path: ipa-multipoint/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: mimc/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
         if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'

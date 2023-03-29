@@ -5,6 +5,8 @@ use pairing_ce::{
 use std::vec::Vec;
 use ff_ce::{Field, PrimeField, PrimeFieldRepr};
 
+use libc::c_char;
+
 lazy_static! {
     static ref MIMC7_CONSTANT: Vec<Fr> = Mimc5::generate_constants();
 }
@@ -46,10 +48,10 @@ pub extern "C" fn compute(
     i_len: u32,
     o: *mut ::std::os::raw::c_char
 ){
-    let input_i8: &[i8] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
+    let input_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
     let input_slice: &[u8] = unsafe { std::mem::transmute(input_i8) };
 
-    let raw_out_i8: &mut [i8] = unsafe { std::slice::from_raw_parts_mut(o, 32 as usize) };
+    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, 32 as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
 
     let digest: Vec<u8> = mimc_hash(&input_slice);
