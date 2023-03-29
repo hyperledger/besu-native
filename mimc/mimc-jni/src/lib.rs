@@ -39,6 +39,23 @@ pub struct Mimc5 {
 
 const BLOCK_SIZE: usize = 32;
 
+
+#[no_mangle]
+pub extern "C" fn compute(
+    i: *const ::std::os::raw::c_char,
+    i_len: u32,
+    o: *mut ::std::os::raw::c_char
+){
+    let input_i8: &[i8] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
+    let input_slice: &[u8] = unsafe { std::mem::transmute(input_i8) };
+
+    let raw_out_i8: &mut [i8] = unsafe { std::slice::from_raw_parts_mut(o, 32 as usize) };
+    let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
+
+    let digest: Vec<u8> = mimc_hash(&input_slice);
+    raw_out.copy_from_slice(&digest);
+}
+
 // User-friendly function to evaluate the MiMC hash of a string
 pub fn mimc_hash<T : AsRef<[u8]>>(bytes: T) -> Vec<u8> {
 

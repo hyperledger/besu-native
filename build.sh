@@ -311,6 +311,32 @@ EOF
 
 }
 
+
+build_mimc() {
+  cat <<EOF
+  ############################
+  ####### build mimc #######
+  ############################
+EOF
+
+  cd "$SCRIPTDIR/mimc/mimc-jni"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/mimc/build" || true
+  mkdir -p "$SCRIPTDIR/mimc/build/lib"
+
+  cargo clean
+
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    lipo_lib "libmimc_jni" ""
+  else
+    cargo build --lib --release
+  fi
+
+  mkdir -p "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
+  cp target/release/libmimc_jni.* "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
+}
+
 build_blake2bf
 build_secp256k1
 build_altbn128
@@ -318,7 +344,7 @@ build_arithmetic
 build_bls12_381
 build_ipa_multipoint
 build_secp256r1
-
+build_mimc
 
 build_jars
 exit

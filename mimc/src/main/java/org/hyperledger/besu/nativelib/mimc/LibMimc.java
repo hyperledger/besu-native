@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Besu Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,14 +11,31 @@
  * specific language governing permissions and limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
+package org.hyperledger.besu.nativelib.mimc;
 
-rootProject.name='besu-native'
-include 'altbn128'
-include 'arithmetic'
-include 'blake2bf'
-include 'bls12-381'
-include 'ipa-multipoint'
-include 'secp256k1'
-include 'secp256r1'
-include 'mimc'
+import com.sun.jna.Native;
+
+/**
+ * Java interface to mimc
+ */
+public class LibMimc {
+
+  @SuppressWarnings("WeakerAccess")
+  public static final boolean ENABLED;
+
+  static {
+    boolean enabled;
+    try {
+      Native.register(LibMimc.class, "mimc_jni");
+      enabled = true;
+    } catch (final Throwable t) {
+      enabled = false;
+    }
+    ENABLED = enabled;
+  }
+
+  public static native void compute(
+          byte[] i, int i_len, byte[] o);
+}
