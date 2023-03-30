@@ -311,13 +311,34 @@ EOF
 
 }
 
-build_blake2bf
-build_secp256k1
-build_altbn128
-build_arithmetic
-build_bls12_381
-build_ipa_multipoint
-build_secp256r1
+build_mimc() {
+  cat <<EOF
+  ############################
+  ####### build mimc #######
+  ############################
+EOF
+
+  cd "$SCRIPTDIR/mimc/mimc-jni"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/mimc/build" || true
+  mkdir -p "$SCRIPTDIR/mimc/build/lib"
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+    	LIBRARY_EXTENSION=dll
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    LIBRARY_EXTENSION=so
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    LIBRARY_EXTENSION=dylib
+  fi
+
+  go build -buildmode=c-shared -o libmimc_jni.$LIBRARY_EXTENSION mimc-jni.go
+
+  mkdir -p "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
+  cp libmimc_jni.* "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
+}
+
+build_mimc
 
 
 build_jars
