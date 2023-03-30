@@ -62,11 +62,14 @@ jobs:
     runs-on: [self-hosted, Linux, ARM64]
     env:
       SKIP_GRADLE: true
+
+
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.19
+      - name: Prepare
+        run: |
+          sudo apt update
+          sudo apt upgrade
+          sudo apt install golang-go
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -174,10 +177,8 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.19
+          # install go
+          brew install go@1.20
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
