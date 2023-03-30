@@ -15,9 +15,7 @@
  */
 package org.hyperledger.besu.nativelib.mimc;
 
-import com.sun.jna.Memory;
 import com.sun.jna.Native;
-import com.sun.jna.Pointer;
 
 /**
  * Java interface to mimc
@@ -39,19 +37,6 @@ public class LibMimc {
         ENABLED = enabled;
     }
 
-    public static byte[] mimc(byte[] input){
-        Pointer inputPointer = new Memory(input.length);
-        inputPointer.write(0, input, 0, input.length);
-
-        Pointer output = compute(inputPointer, input.length);
-
-        byte[] hash = output.getByteArray(0, 32);
-
-        Native.free(Pointer.nativeValue(output));
-
-        return hash;
-    }
-
-    public static native Pointer compute(
-            Pointer input , int i_len);
+    public static native int compute(
+            byte[] i, int i_len, byte[] o);
 }

@@ -338,6 +338,13 @@ EOF
   cp libmimc_jni.* "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
 }
 
+build_blake2bf
+build_secp256k1
+build_altbn128
+build_arithmetic
+build_bls12_381
+build_ipa_multipoint
+build_secp256r1
 build_mimc
 
 

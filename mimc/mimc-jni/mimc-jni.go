@@ -1,5 +1,7 @@
 package main
 
+
+
 import "C"
 import "unsafe"
 import (
@@ -14,10 +16,12 @@ func MiMCHash(b []byte) []byte {
 
 
 //export compute
-func compute(input *C.char, inputLength C.int) *C.char {
+func compute(input *C.char, inputLength C.int, output *C.char) C.int {
        inputSlice := C.GoBytes(unsafe.Pointer(input), inputLength)
+       outputSlice := (*[32]byte)(unsafe.Pointer(output))[:]
        hash := MiMCHash(inputSlice)
-       return C.CString(string(hash))
+       copy(outputSlice, hash)
+       return C.int(len(hash))
 }
 
 func main() {}
