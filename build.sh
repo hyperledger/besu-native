@@ -41,12 +41,13 @@ if [[ "$OSTYPE" == "linux-gnu" ]];  then
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]];  then
-  export CFLAGS="-arch x86_64 -arch arm64"
   CORE_COUNT=$(sysctl -n hw.ncpu)
   if [[ "`machine`" == "arm"* ]]; then
     arch_name="aarch64"
+    export CFLAGS="-arch arm64"
   else
     arch_name="x86-64"
+    export CFLAGS="-arch x86_64"
   fi
   OSARCH="darwin-$arch_name"
 fi
