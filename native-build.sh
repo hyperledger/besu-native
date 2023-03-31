@@ -4,6 +4,8 @@ DEBIAN_FRONTEND=non-interactive apt-get install -y autoconf build-essential libt
 wget https://go.dev/dl/go1.20.2.linux-arm64.tar.gz
 echo "78d632915bb75e9a6356a47a42625fd1a785c83a64a643fedd8f61e31b1b3bef  go1.20.2.linux-arm64.tar.gz" | sha256sum -c || exit 1
 tar -xzf go1.20.2.linux-arm64.tar.gz -C $HOME
+export GOPATH=$HOME/.go
+mkdir -p $GOPATH
 export GOROOT="$HOME/go"
 export PATH="$GOROOT/bin":$PATH
 export CARGO_HOME="$HOME/.cargo"
