@@ -21,7 +21,7 @@ jobs:
           sudo apt autoremove -y
           # golang dependencies
           wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
-          echo "4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768  go1.20.2.linux-amd64.tar.gz" | sha256sum -c
+          echo "4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768  go1.20.2.linux-amd64.tar.gz" | sha256sum -c || exit 1
           tar -xzf go1.20.2.linux-amd64.tar.gz
           export GOROOT=$(pwd)/go
           export PATH=$GOROOT/bin:$PATH
