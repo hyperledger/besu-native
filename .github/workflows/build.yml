@@ -16,10 +16,18 @@ jobs:
         run: |
           # secp256k1 dependencies
           sudo apt-get update
+          sudo apt upgrade -y
           sudo apt-get install -y autoconf build-essential libtool automake patchelf
+          sudo apt autoremove -y
+          # golang dependencies
+          wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
+          echo "4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768  go1.20.2.linux-amd64.tar.gz" | sha256sum -c || exit 1
+          tar -xzf go1.20.2.linux-amd64.tar.gz
+          export GOROOT=$(pwd)/go
+          export PATH=$GOROOT/bin:$PATH
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.68.2
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -54,6 +62,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-linux-arm64:
     runs-on: [self-hosted, Linux, ARM64]
     env:
@@ -94,6 +106,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-macos:
     runs-on: macos-11
     env:
@@ -103,9 +119,12 @@ jobs:
         run: |
           # secp256k1 dependencies
           brew install autoconf automake libtool
+          # gnark dependencies
+          brew install go@1.20 || true
+          export PATH=/usr/local/Cellar/go/1.20.2/bin:$PATH
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.62.1
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.68.2
           # install both x86 and arm64 toolchains
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
@@ -144,11 +163,29 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   native-build-m1:
     runs-on: [self-hosted, macOS, ARM64, MacStadium]
     env:
       SKIP_GRADLE: true
     steps:
+      - name: Prepare
+        run: |
+          # secp256k1, gnark dependencies
+          brew install autoconf automake libtool 
+          # gnark dependencies
+          brew install go@1.20 || true 
+          export PATH=/usr/local/Cellar/go/1.20.2/bin:$PATH
+          # rust dependencies
+          export CARGO_HOME="$HOME/.cargo"
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.68.2
+          # install both x86 and arm64 toolchains
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -183,6 +220,10 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
   final-assembly:
     runs-on: ubuntu-20.04
     needs:
@@ -228,6 +269,11 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
+      - name: Download mimc
+        uses: actions/download-artifact@v3
+        with:
+          name: mimc native build artifacts
+          path: mimc/build/
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
@@ -266,6 +312,10 @@ jobs:
         with:
           name: jars
           path: ipa-multipoint/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: mimc/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
         if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
