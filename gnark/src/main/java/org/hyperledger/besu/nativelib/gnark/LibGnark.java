@@ -13,14 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.mimc;
+package org.hyperledger.besu.nativelib.gnark;
 
 import com.sun.jna.Native;
 
 /**
- * Java interface to mimc
+ * Java interface to gnark
  */
-public class LibMimc {
+public class LibGnark {
 
     @SuppressWarnings("WeakerAccess")
     public static final boolean ENABLED;
@@ -28,7 +28,7 @@ public class LibMimc {
     static {
         boolean enabled;
         try {
-            Native.register(LibMimc.class, "mimc_jni");
+            Native.register(LibGnark.class, "gnark_jni");
             enabled = true;
         } catch (final Throwable t) {
             t.printStackTrace();
@@ -37,6 +37,7 @@ public class LibMimc {
         ENABLED = enabled;
     }
 
-    public static native int compute(
+    public static native int computeMimc(
             byte[] i, int i_len, byte[] o);
+
 }

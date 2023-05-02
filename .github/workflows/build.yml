@@ -64,8 +64,8 @@ jobs:
           path: ipa-multipoint/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: mimc native build artifacts
-          path: mimc/build/
+          name: gnark native build artifacts
+          path: gnark/build/
   native-build-linux-arm64:
     runs-on: [self-hosted, Linux, ARM64]
     env:
@@ -108,8 +108,8 @@ jobs:
           path: ipa-multipoint/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: mimc native build artifacts
-          path: mimc/build/
+          name: gnark native build artifacts
+          path: gnark/build/
   native-build-macos:
     runs-on: macos-11
     env:
@@ -165,8 +165,8 @@ jobs:
           path: ipa-multipoint/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: mimc native build artifacts
-          path: mimc/build/
+          name: gnark native build artifacts
+          path: gnark/build/
   native-build-m1:
     runs-on: [self-hosted, macOS, ARM64, MacStadium]
     env:
@@ -222,8 +222,8 @@ jobs:
           path: ipa-multipoint/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: mimc native build artifacts
-          path: mimc/build/
+          name: gnark native build artifacts
+          path: gnark/build/
   final-assembly:
     runs-on: ubuntu-20.04
     needs:
@@ -269,11 +269,11 @@ jobs:
         with:
           name: ipa-multipoint native build artifacts
           path: ipa-multipoint/build/
-      - name: Download mimc
+      - name: Download gnark
         uses: actions/download-artifact@v3
         with:
-          name: mimc native build artifacts
-          path: mimc/build/
+          name: gnark native build artifacts
+          path: gnark/build/
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
@@ -315,7 +315,7 @@ jobs:
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: jars
-          path: mimc/build/libs
+          path: gnark/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
         if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
