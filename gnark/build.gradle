@@ -29,31 +29,31 @@ dependencies {
 }
 
 task macArmLibCopy(type: Copy) {
-    from 'build/darwin-aarch64/lib/libmimc_jni.dylib'
+    from 'build/darwin-aarch64/lib/libgnark_jni.dylib'
     into 'build/resources/main/darwin-aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
-    from 'build/darwin-x86-64/lib/libmimc_jni.dylib'
+    from 'build/darwin-x86-64/lib/libgnark_jni.dylib'
     into 'build/resources/main/darwin-x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-    from 'build/linux-gnu-x86_64/lib/libmimc_jni.so'
+    from 'build/linux-gnu-x86_64/lib/libgnark_jni.so'
     into 'build/resources/main/linux-x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-    from 'build/linux-gnu-aarch64/lib/libmimc_jni.so'
+    from 'build/linux-gnu-aarch64/lib/libgnark_jni.so'
     into 'build/resources/main/linux-aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 jar {
-    archiveBaseName = 'besu-native-mimc'
+    archiveBaseName = 'besu-native-gnark'
     includeEmptyDirs = false
     manifest {
         attributes(
@@ -61,19 +61,19 @@ jar {
                 'Specification-Version': project.version,
                 'Implementation-Title': archiveBaseName,
                 'Implementation-Version': project.version,
-                'Automatic-Module-Name': 'org.hyperledger.besu.native.mimc'
+                'Automatic-Module-Name': 'org.hyperledger.besu.native.gnark'
         )
     }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveBaseName = 'besu-native-mimc'
+    archiveBaseName = 'besu-native-gnark'
     classifier = 'sources'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveBaseName = 'besu-native-mimc'
+    archiveBaseName = 'besu-native-gnark'
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
@@ -83,7 +83,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId "org.hyperledger.besu"
-            artifactId "mimc"
+            artifactId "gnark"
             version "${project.version}"
 
             from components.java
@@ -92,7 +92,7 @@ publishing {
 
             pom {
                 name = "Besu Native - ${project.name}"
-                description = 'Mimc'
+                description = 'Gnark'
                 url = 'http://github.com/hyperledger/besu-native'
                 licenses {
                     license {

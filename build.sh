@@ -312,18 +312,18 @@ EOF
 
 }
 
-build_mimc() {
+build_gnark() {
   cat <<EOF
   ############################
-  ####### build mimc #######
+  ####### build gnark #######
   ############################
 EOF
 
-  cd "$SCRIPTDIR/mimc/mimc-jni"
+  cd "$SCRIPTDIR/gnark/gnark-jni"
 
   # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/mimc/build" || true
-  mkdir -p "$SCRIPTDIR/mimc/build/lib"
+  rm -rf "$SCRIPTDIR/gnark/build" || true
+  mkdir -p "$SCRIPTDIR/gnark/build/lib"
 
   if [[ "$OSTYPE" == "msys" ]]; then
     	LIBRARY_EXTENSION=dll
@@ -333,10 +333,10 @@ EOF
     LIBRARY_EXTENSION=dylib
   fi
 
-  go build -buildmode=c-shared -o libmimc_jni.$LIBRARY_EXTENSION mimc-jni.go
+  go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
 
-  mkdir -p "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
-  cp libmimc_jni.* "$SCRIPTDIR/mimc/build/${OSARCH}/lib"
+  mkdir -p "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
+  cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
 }
 
 build_blake2bf
@@ -346,7 +346,7 @@ build_arithmetic
 build_bls12_381
 build_ipa_multipoint
 build_secp256r1
-build_mimc
+build_gnark
 
 
 build_jars
