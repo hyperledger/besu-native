@@ -61,7 +61,7 @@ jar {
                 'Specification-Version': project.version,
                 'Implementation-Title': archiveBaseName,
                 'Implementation-Version': project.version,
-                'Automatic-Module-Name': 'org.hyperledger.besu.native.gnark'
+                'Automatic-Module-Name': 'org.hyperledger.besu.nativelib.gnark'
         )
     }
 }

@@ -60,7 +60,7 @@ jar {
         'Specification-Version': project.version,
         'Implementation-Title': archiveBaseName,
         'Implementation-Version': project.version,
-        'Automatic-Module-Name': 'org.hyperledger.besu.native.bls12_381'
+        'Automatic-Module-Name': 'org.hyperledger.besu.nativelib.bls12_381'
     )
   }
 }
