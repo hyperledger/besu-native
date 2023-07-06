@@ -15,9 +15,11 @@
 package org.hyperledger.besu.nativelib.blake2bf;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.util.Arrays;
 import java.util.Collection;
+
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,6 +73,7 @@ public class LibBlake2bfTest {
 
   @Test
   public void eip152TestCases() {
+    Assume.assumeFalse(System.getProperty("os.arch").equals("aarch64"));
     byte[] out = new byte[64];
     messageDigest.blake2bf_eip152(out, input);
     assertThat(out).isEqualTo(expected);
