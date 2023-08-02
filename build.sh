@@ -244,13 +244,14 @@ EOF
   SWITCHES=$2
 
   # build both architectures
-  cargo build --lib $SWITCHES --release --target=x86_64-apple-darwin
+#  cargo build --lib $SWITCHES --release --target=x86_64-apple-darwin
   cargo build --lib $SWITCHES --release --target=aarch64-apple-darwin
 
   lipo -create \
     -output target/release/$1.dylib \
-    -arch x86_64 target/x86_64-apple-darwin/release/$1.dylib \
     -arch arm64 target/aarch64-apple-darwin/release/$1.dylib
+#    -arch x86_64 target/x86_64-apple-darwin/release/$1.dylib \
+
 }
 
 build_secp256r1() {
