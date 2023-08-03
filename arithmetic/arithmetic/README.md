@@ -1,6 +1,6 @@
 # Besu native `modexp`
 
-Originally from Aurora `modexp` [implementation](https://github.com/aurora-is-near/aurora-engine/tree/d1af9f8c42ac37d22a770adf43e2b793dd20a345/engine-modexp)
+Originally from Aurora `modexp` [implementation](https://github.com/aurora-is-near/aurora-engine/tree/4ecee7ded1e6c78b69416e5b22388357316f7551/engine-modexp)
 
 ## What this crate is
 
