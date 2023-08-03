@@ -21,28 +21,20 @@ import com.sun.jna.ptr.IntByReference;
 
 public class LibArithmetic implements Library {
 
-    private LibArithmetic() {
+  private LibArithmetic() {}
 
+  public static final boolean ENABLED;
+
+  static {
+    boolean enabled;
+    try {
+      Native.register(LibArithmetic.class, "eth_arithmetic");
+      enabled = true;
+    } catch (final Exception t) {
+      enabled = false;
     }
+    ENABLED = enabled;
+  }
 
-    public static final boolean ENABLED;
-
-    static {
-        boolean enabled;
-        try {
-            Native.register(LibArithmetic.class, "eth_arithmetic");
-            enabled = true;
-        } catch (final Exception t) {
-            enabled = false;
-        }
-        ENABLED = enabled;
-    }
-
-    public static native int mul_operation(
-            byte[] a, int a_len, byte[] b, int b_len, byte[] o, IntByReference o_len);
-
-    public static native int modexp_precompiled(
-            byte[] i, int i_len, byte[] o, IntByReference o_len);
+  public static native int modexp_precompiled(byte[] i, int i_len, byte[] o, IntByReference o_len);
 }
-
-

@@ -1,15 +1,17 @@
 [package]
 name = "besu-native-arithmetic"
 version = "0.11.0"
-description = "Native arithemetic for EVM."
+description = """Native arithemetic for EVM.
+Derived from aurora - https://github.com/aurora-is-near/aurora-engine/tree/4ecee7ded1e6c78b69416e5b22388357316f7551/engine-modexp - originally CC0-1.0 license."""
 license = "Apache-2.0"
-authors = ["Danno Ferrin <danno.ferrin@shemnon.com>"]
+authors = ["Aurora Labs <hello@aurora.dev>", "Danno Ferrin <danno.ferrin@shemnon.com>"]
 repository = "https://github.com/hyperledger/besu-native"
 edition = "2021"
 
 [dependencies]
-num-bigint = "0.4.3"
-num-traits = "0.2.15"
+ibig = { version = "0.3.6", default-features = false, features = ["num-traits"], optional = true }
+num = { version = "0.4.0", default-features = false, features = ["alloc"] }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
 libc = "0.2"
 
 [lib]

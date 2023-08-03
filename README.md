@@ -33,7 +33,7 @@ TBD
 
 ### Rust
 
-Rust needs to be installed to compile the altbn128 library. The default way to install it on Linux or OS X is:
+Rust needs to be installed to compile the arithmetic and bls12-381 libraries. The default way to install it on Linux or OS X is:
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

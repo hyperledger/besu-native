@@ -1,6 +1,9 @@
 // Copyright contributors to Hyperledger Besu
 // SPDX-License-Identifier: Apache-2.0
 
+mod arith;
+mod mpnat;
+
 use std::rc::Rc;
 use std::io::Write;
 
@@ -8,9 +11,6 @@ use core::{
     cmp::{min, Ordering},
     mem::size_of,
 };
-
-use num_bigint::{BigUint};
-use num_traits::{Zero, One};
 
 #[derive(Debug, Clone)]
 pub enum RuntimeError {
@@ -31,21 +31,15 @@ pub extern "C" fn modexp_precompiled(
 
     let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
+    let answer = modexp_precompiled_impl(input);
 
-    return match modexp_precompiled_impl(input) {
-        Ok(result) => {
-            let written = raw_out.write(result.as_ref());
-            if let Ok(bytes_written) = written {
-                unsafe { *o_len = bytes_written as u32 };
-                0u32
-            } else {
-                1u32
-            }
-        }
-        Err(_error) => {
-            1u32
-        }
-    };
+    let written = raw_out.write(answer.as_slice());
+    if let Ok(bytes_written) = written {
+        unsafe { *o_len = bytes_written as u32 };
+        0u32
+    } else {
+        1u32
+    }
 }
 
 
@@ -68,93 +62,56 @@ macro_rules! read_u64_with_overflow {
 }
 
 /// from revm - https://github.com/bluealloy/revm/blob/main/crates/revm_precompiles/src/modexp.rs
-fn modexp_precompiled_impl(input: &[u8]) -> Result<Rc<Vec<u8>>, RuntimeError> {
-    let len = input.len();
+fn modexp_precompiled_impl(input: &[u8]) -> Rc<Vec<u8>> {
     let (base_len, base_overflow) = read_u64_with_overflow!(input, 0, 32, u32::MAX as usize);
     let (exp_len, exp_overflow) = read_u64_with_overflow!(input, 32, 64, u32::MAX as usize);
     let (mod_len, mod_overflow) = read_u64_with_overflow!(input, 64, 96, u32::MAX as usize);
 
     if base_overflow || mod_overflow {
-        return Ok(Rc::new(Vec::new()));
+        return Rc::new(Vec::new());
     }
 
-    let r = if base_len == 0 && mod_len == 0 {
-        BigUint::zero()
-    } else {
-        // set limit for exp overflow
-        if exp_overflow {
-            return Ok(Rc::new(Vec::new()));
-        }
-        let base_start = 96;
-        let base_end = base_start + base_len;
-        let exp_end = base_end + exp_len;
-        let mod_end = exp_end + mod_len;
+    if base_len == 0 && mod_len == 0 {
+        return Rc::new(Vec::new());
+    }
+    // set limit for exp overflow
+    if exp_overflow {
+        return Rc::new(Vec::new());
+    }
+    let base_start = 96;
+    let base_end = base_start + base_len;
+    let exp_end = base_end + exp_len;
+    let mod_end = exp_end + mod_len;
 
-        let read_big = |from: usize, to: usize| {
-            let mut out = vec![0; to - from];
-            let from = min(from, len);
-            let to = min(to, len);
-            out[..to - from].copy_from_slice(&input[from..to]);
-            BigUint::from_bytes_be(&out)
-        };
-
-        let base = read_big(base_start, base_end);
-        let exponent = read_big(base_end, exp_end);
-        let modulus = read_big(exp_end, mod_end);
-
-        if modulus.is_zero() || modulus.is_one() {
-            BigUint::zero()
-        } else {
-            base.modpow(&exponent, &modulus)
-        }
-    };
+    let base = &input[base_start..base_end];
+    let exponent = &input[base_end..exp_end];
+    let modulus = &input[exp_end..mod_end];
+    let bytes = modexp(base, exponent, modulus);
 
     // write output to given memory, left padded and same length as the modulus.
-    let bytes = r.to_bytes_be();
     // always true except in the case of zero-length modulus, which leads to
     // output of length and value 1.
     match bytes.len().cmp(&mod_len) {
-        Ordering::Equal => Ok(Rc::new(bytes.to_vec())),
+        Ordering::Equal => Rc::new(bytes.to_vec()),
         Ordering::Less => {
             let mut ret = Vec::with_capacity(mod_len);
             ret.extend(core::iter::repeat(0).take(mod_len - bytes.len()));
             ret.extend_from_slice(&bytes[..]);
-            Ok(Rc::new(ret.to_vec()))
+            Rc::new(ret.to_vec())
         }
-        Ordering::Greater => Ok(Rc::new(Vec::new())),
+        Ordering::Greater => Rc::new(Vec::new()),
     }
 }
 
-
-/// Big Integer multiplication only returning the lower 32 bytes of the result.
-#[no_mangle]
-pub extern "C" fn mul_operation(
-    term1: *const std::os::raw::c_char,
-    term1_len: u32,
-    term2: *const std::os::raw::c_char,
-    term2_len: u32,
-    o: *mut std::os::raw::c_char,
-    o_len: *mut u32,
-) -> u32 {
-    let a_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(term1, term1_len as usize) };
-    let a: &[u8] = unsafe { std::mem::transmute(a_i8) };
-    let b_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(term2, term2_len as usize) };
-    let b: &[u8] = unsafe { std::mem::transmute(b_i8) };
-
-    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
-    let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
-
-    let c = (BigUint::from_bytes_be(a) * BigUint::from_bytes_be(b)).to_bytes_be();
-    let result = if c.len() > 32 { c[(c.len() - 32)..].to_vec() } else { c };
-
-    let written = raw_out.write(result.as_ref());
-    if let Ok(bytes_written) = written {
-        unsafe { *o_len = bytes_written as u32 };
-        0u32
-    } else {
-        1u32
+// from aurora
+/// Computes `(base ^ exp) % modulus`, where all values are given as big-endian
+/// encoded bytes.
+pub fn modexp(base: &[u8], exp: &[u8], modulus: &[u8]) -> Vec<u8> {
+    let mut x = mpnat::MPNat::from_big_endian(base);
+    let m = mpnat::MPNat::from_big_endian(modulus);
+    if m.digits.len() == 1 && m.digits[0] == 0 {
+        return Vec::new();
     }
+    let result = x.modpow(exp, &m);
+    result.to_big_endian()
 }
-
-
-
