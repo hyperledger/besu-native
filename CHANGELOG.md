@@ -3,7 +3,7 @@
 # 0.8.0
 
 * Add mimc/gnark library [#106](https://github.com/hyperledger/besu-native/pull/106)
-* Change module names from `native` to `natielib` [#108](https://github.com/hyperledger/besu-native/pull/108)
+* Change module names from `native` to `nativelib` [#108](https://github.com/hyperledger/besu-native/pull/108)
 * Use Aurora's modexp implementation in arithmetic [#111](https://github.com/hyperledger/besu-native/pull/111)
 
 # 0.7.0
