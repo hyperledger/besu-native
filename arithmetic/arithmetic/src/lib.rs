@@ -63,6 +63,7 @@ macro_rules! read_u64_with_overflow {
 
 /// from revm - https://github.com/bluealloy/revm/blob/main/crates/revm_precompiles/src/modexp.rs
 fn modexp_precompiled_impl(input: &[u8]) -> Rc<Vec<u8>> {
+    let len = input.len();
     let (base_len, base_overflow) = read_u64_with_overflow!(input, 0, 32, u32::MAX as usize);
     let (exp_len, exp_overflow) = read_u64_with_overflow!(input, 32, 64, u32::MAX as usize);
     let (mod_len, mod_overflow) = read_u64_with_overflow!(input, 64, 96, u32::MAX as usize);
@@ -83,10 +84,18 @@ fn modexp_precompiled_impl(input: &[u8]) -> Rc<Vec<u8>> {
     let exp_end = base_end + exp_len;
     let mod_end = exp_end + mod_len;
 
-    let base = &input[base_start..base_end];
-    let exponent = &input[base_end..exp_end];
-    let modulus = &input[exp_end..mod_end];
-    let bytes = modexp(base, exponent, modulus);
+    let read_big = |from: usize, to: usize| {
+        let mut out = vec![0; to - from];
+        let from = min(from, len);
+        let to = min(to, len);
+        out[..to - from].copy_from_slice(&input[from..to]);
+        out
+    };
+
+    let base = read_big(base_start, base_end);
+    let exponent = read_big(base_end, exp_end);
+    let modulus = read_big(exp_end, mod_end);
+    let bytes = modexp(base.as_slice(), exponent.as_slice(), modulus.as_slice());
 
     // write output to given memory, left padded and same length as the modulus.
     // always true except in the case of zero-length modulus, which leads to
