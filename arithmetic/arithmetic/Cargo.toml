@@ -2,7 +2,7 @@
 name = "besu-native-arithmetic"
 version = "0.11.0"
 description = """Native arithemetic for EVM.
-Derived from aurora - https://github.com/aurora-is-near/aurora-engine/tree/4ecee7ded1e6c78b69416e5b22388357316f7551/engine-modexp - originally CC0-1.0 license."""
+Derived from aurora - https://github.com/aurora-is-near/aurora-engine/tree/0cfda4686dbdb7a57b2dc18dddc5106ec8e24a38/engine-modexp - originally CC0-1.0 license."""
 license = "Apache-2.0"
 authors = ["Aurora Labs <hello@aurora.dev>", "Danno Ferrin <danno.ferrin@shemnon.com>"]
 repository = "https://github.com/hyperledger/besu-native"
