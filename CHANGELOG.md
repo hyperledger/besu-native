@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.8.1
+
+* Handle incomplete input on modExp correctly [#114]](https://github.com/hyperledger/besu-native/pull/106)
+
 # 0.8.0
 
 * Add mimc/gnark library [#106](https://github.com/hyperledger/besu-native/pull/106)
