@@ -27,9 +27,10 @@ public class KeyRecoveryResult extends Structure {
 		super();
 	}
 
-	protected List<String> getFieldOrder() {
+  @Override
+  protected List<String> getFieldOrder() {
 		return Arrays.asList("public_key", "error_message");
 	}
 
-	public static class ByValue extends KeyRecoveryResult implements Structure.ByValue {}
+	public static class KeyRecoveryResultByValue extends KeyRecoveryResult implements Structure.ByValue {}
 }

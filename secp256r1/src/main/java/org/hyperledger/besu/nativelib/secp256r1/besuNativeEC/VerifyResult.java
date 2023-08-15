@@ -27,9 +27,10 @@ public class VerifyResult extends Structure {
 		super();
 	}
 
-	protected List<String> getFieldOrder() {
+  @Override
+  protected List<String> getFieldOrder() {
 		return Arrays.asList("verified", "error_message");
 	}
 
-	public static class ByValue extends VerifyResult implements Structure.ByValue {}
+	public static class VerifyResultByValue extends VerifyResult implements Structure.ByValue {}
 }

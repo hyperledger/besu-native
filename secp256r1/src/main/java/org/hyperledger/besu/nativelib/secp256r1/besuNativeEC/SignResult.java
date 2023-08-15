@@ -33,5 +33,5 @@ public class SignResult extends Structure {
 		return Arrays.asList("signature_r", "signature_s", "signature_v", "error_message");
 	}
 
-	public static class ByValue extends SignResult implements Structure.ByValue {}
+	public static class SignResultByValue extends SignResult implements Structure.ByValue {}
 }
