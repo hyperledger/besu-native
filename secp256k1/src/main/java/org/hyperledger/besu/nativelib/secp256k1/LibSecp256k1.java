@@ -16,7 +16,7 @@
 package org.hyperledger.besu.nativelib.secp256k1;
 
 import java.nio.ByteBuffer;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
@@ -59,7 +59,7 @@ public class LibSecp256k1 implements Library {
       if (Boolean.parseBoolean(System.getProperty("secp256k1.randomize", "true"))) {
         // randomization requested or not explicitly disabled
         byte[] seed = new byte[32];
-        (new Random()).nextBytes(seed);
+        SecureRandom.getInstanceStrong().nextBytes(seed);
         if (secp256k1_context_randomize(context, seed) != 1) {
           // there was an error, don't preserve the context
           return null;

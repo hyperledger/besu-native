@@ -15,6 +15,10 @@
 
 package org.hyperledger.besu.nativelib.secp256r1.besuNativeEC;
 
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.KeyRecoveryResult.KeyRecoveryResultByValue;
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.SignResult.SignResultByValue;
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.VerifyResult.VerifyResultByValue;
+
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 
@@ -25,15 +29,15 @@ public interface BesuNativeEC extends Library {
 	/**
 	 * Original signature : <code>key_recovery_result p256_key_recovery(const char[], const int, const char[], const char[], int)</code><br>
 	 */
-	KeyRecoveryResult.ByValue p256_key_recovery(byte[] data_hash, int data_hash_len, byte[] signature_r_hex, byte[] signature_s_hex, int signature_v);
+	KeyRecoveryResultByValue p256_key_recovery(byte[] data_hash, int data_hash_len, byte[] signature_r_hex, byte[] signature_s_hex, int signature_v);
 
 	/**
 	 * Original signature : <code>sign_result p256_sign(const char[], const int, const char[], const char[])</code><br>
 	 */
-	SignResult.ByValue p256_sign(byte[] data_hash, int data_hash_length, byte[] private_key_data, byte[] public_key_data);
+	SignResultByValue p256_sign(byte[] data_hash, int data_hash_length, byte[] private_key_data, byte[] public_key_data);
 
 	/**
 	 * Original signature : <code>verify_result p256_verify(const char[], const int, const char[], const char[], const char[])</code><br>
 	 */
-	VerifyResult.ByValue p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
+	VerifyResultByValue p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
 }

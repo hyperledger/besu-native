@@ -1,9 +1,9 @@
 package org.hyperledger.besu.nativelib.secp256r1;
 
 import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.BesuNativeEC;
-import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.KeyRecoveryResult;
-import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.SignResult;
-import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.VerifyResult;
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.KeyRecoveryResult.KeyRecoveryResultByValue;
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.SignResult.SignResultByValue;
+import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.VerifyResult.VerifyResultByValue;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ public class LibSECP256R1 {
 
     public byte[] keyRecovery(final byte[] dataHash, final byte[] signatureR, final byte[] signatureS,
                               final int signatureV) throws IllegalArgumentException {
-        final KeyRecoveryResult.ByValue result = BesuNativeEC.INSTANCE.p256_key_recovery(
+        final KeyRecoveryResultByValue result = BesuNativeEC.INSTANCE.p256_key_recovery(
                 dataHash,
                 dataHash.length,
                 convertToNativeRepresentation(signatureR),
@@ -32,7 +32,7 @@ public class LibSECP256R1 {
     }
 
     public Signature sign(byte[] dataHash, byte[] privateKey, byte[] publicKey) throws IllegalArgumentException {
-        final SignResult.ByValue result = BesuNativeEC.INSTANCE.p256_sign(
+        final SignResultByValue result = BesuNativeEC.INSTANCE.p256_sign(
                 dataHash, dataHash.length, privateKey, publicKey);
 
         String errorMessage = (new String(result.error_message)).trim();
@@ -50,7 +50,7 @@ public class LibSECP256R1 {
 
     public boolean verify(final byte[] dataHash, final byte[] signatureR, final byte[] signatureS,
                           final byte[] publicKey) throws IllegalArgumentException {
-        final VerifyResult.ByValue result = BesuNativeEC.INSTANCE.p256_verify(
+        final VerifyResultByValue result = BesuNativeEC.INSTANCE.p256_verify(
                 dataHash,
                 dataHash.length,
                 convertToNativeRepresentation(signatureR),
