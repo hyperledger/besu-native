@@ -298,7 +298,7 @@ jobs:
           java-version: 17
           cache: gradle
       - name: gradle build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: --no-daemon --parallel build --scan
       - uses: actions/upload-artifact@v3.1.0
