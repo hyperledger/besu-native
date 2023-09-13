@@ -103,8 +103,6 @@ EOF
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/secp256k1/build" || true
 
-  automake --add-missing
-
   if [[ -e Makefile ]]; then
     make clean
   fi
