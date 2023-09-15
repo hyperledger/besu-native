@@ -212,6 +212,51 @@ public class LibSecp256k1 implements Library {
       final PointerByReference ctx, final secp256k1_ecdsa_signature sig, final byte[] input64);
 
   /**
+   * Convert a signature to a normalized lower-S form.
+   *
+   * <p>With ECDSA a third-party can forge a second distinct signature of the same
+   * message, given a single initial signature, but without knowing the key. This
+   * is done by negating the S value modulo the order of the curve, 'flipping'
+   * the sign of the random point R which is not included in the signature.
+   *
+   * <p>Forgery of the same message isn't universally problematic, but in systems
+   * where message malleability or uniqueness of signatures is important this can
+   * cause issues. This forgery can be blocked by all verifiers forcing signers
+   * to use a normalized form.
+   *
+   * <p>The lower-S form reduces the size of signatures slightly on average when
+   * variable length encodings (such as DER) are used and is cheap to verify,
+   * making it a good choice. Security of always using lower-S is assured because
+   * anyone can trivially modify a signature after the fact to enforce this
+   * property anyway.
+   *
+   * <p>The lower S value is always between 0x1 and
+   * 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0,
+   * inclusive.
+   *
+   * <p>No other forms of ECDSA malleability are known and none seem likely, but
+   * there is no formal proof that ECDSA, even with this additional restriction,
+   * is free of other malleability. Commonly used serialization schemes will also
+   * accept various non-unique encodings, so care should be taken when this
+   * property is required for an application.
+   *
+   * <p>The secp256k1_ecdsa_sign function will by default create signatures in the
+   * lower-S form, and secp256k1_ecdsa_verify will not accept others. In case
+   * signatures come from a system that cannot enforce this property,
+   * secp256k1_ecdsa_signature_normalize must be called before verification.
+   *
+   * @param ctx a secp256k1 context object.
+   * @param sigout (output) a pointer to a signature to fill with the normalized form,
+   *                        or copy if the input was already normalized. (can be NULL if
+   *                        you're only interested in whether the input was already
+   *                        normalized).
+   * @param sigin (input) a pointer to a signature to check/normalize (cannot be NULL,
+   *                        can be identical to sigout)
+   * @return 1 if sigin was not normalized, 0 if it already was.
+   */
+  public static native int secp256k1_ecdsa_signature_normalize(final PointerByReference ctx, final secp256k1_ecdsa_signature sigout, final secp256k1_ecdsa_signature sigin);
+
+  /**
    * Verify an ECDSA signature.
    *
    * <p>To avoid accepting malleable signatures, only ECDSA signatures in lower-S form are accepted.
