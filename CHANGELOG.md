@@ -1,8 +1,12 @@
 # Changelog
 
+# 0.8.2
+
+* Add k1 normalize signature method to secp256k1 [#118]](https://github.com/hyperledger/besu-native/pull/118)
+
 # 0.8.1
 
-* Handle incomplete input on modExp correctly [#114]](https://github.com/hyperledger/besu-native/pull/106)
+* Handle incomplete input on modExp correctly [#114]](https://github.com/hyperledger/besu-native/pull/114)
 
 # 0.8.0
 
