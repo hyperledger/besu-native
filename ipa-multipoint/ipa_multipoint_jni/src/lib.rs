@@ -12,99 +12,163 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-use std::convert::TryFrom;
-use ark_ff::bytes::{FromBytes, ToBytes};
-use bandersnatch::Fr;
-use ipa_multipoint::lagrange_basis::LagrangeBasis;
-use ipa_multipoint::multiproof::CRS;
+use ark_ff::PrimeField;
+use banderwagon::{Fr, multi_scalar_mul};
+use ipa_multipoint::crs::CRS;
+use verkle_spec::*;
+// use crate::{vergroup_to_field};
+use ark_serialize::CanonicalSerialize;
+use verkle_trie::*;
+
+// use group_to_field;
+
 use jni::JNIEnv;
 use jni::objects::JClass;
-use jni::sys::{jbyteArray, jobjectArray, jsize};
+use jni::sys::jbyteArray;
 
-// Seed used to compute the 256 pedersen generators
-// using try-and-increment
+
 // Copied from rust-verkle: https://github.com/crate-crypto/rust-verkle/blob/581200474327f5d12629ac2e1691eff91f944cec/verkle-trie/src/constants.rs#L12
 const PEDERSEN_SEED: &'static [u8] = b"eth_verkle_oct_2021";
 
+/// Pedersen hash receives an address and a trie index and returns a hash calculated this way:
+/// H(constant || address_low || address_high || trie_index_low || trie_index_high)
+/// where constant = 2 + 256*64
+/// address_low = lower 16 bytes of the address interpreted as a little endian integer
+/// address_high = higher 16 bytes of the address interpreted as a little endian integer
+/// trie_index_low = lower 16 bytes of the trie index
+/// trie_index_high = higher 16 bytes of the trie index
+/// The result is a 256 bit hash
+/// This is ported from rust-verkle/verkle-specs
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
+    env: JNIEnv,
+    _class: JClass,
+    input: jbyteArray,
+) -> jbyteArray {
 
+    let input = env.convert_byte_array(input).unwrap();
+
+    let mut address32 = [0u8; 32];
+
+    address32.copy_from_slice(&input[0..32]);
+
+    let mut trie_index= [0u8; 32];
+
+    trie_index.copy_from_slice(&input[32..64]);
+    trie_index.reverse(); // reverse for little endian per specs
+
+    let base_hash = hash_addr_int(&address32, &trie_index);
+
+    let result = base_hash.as_fixed_bytes();
+    let output = env.byte_array_from_slice(result).unwrap();
+    output
+}
+
+// Helper function to hash an address and an integer taken from rust-verkle/verkle-specs.
+pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
+
+    let address_bytes = addr;
+
+    let integer_bytes = integer;
+    let mut hash_input = [0u8; 64];
+    let (first_half, second_half) = hash_input.split_at_mut(32);
+
+    // Copy address and index into slice, then hash it
+    first_half.copy_from_slice(address_bytes);
+    second_half.copy_from_slice(integer_bytes);
+
+    hash64(hash_input)
+}
+
+/// Commit receives a list of 32 byte scalars and returns a 32 byte scalar
+/// Scalar is actually the map_to_field(commitment) because we want to reuse the commitment in parent node.
+/// This is ported from rust-verkle.
 #[no_mangle]
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(env: JNIEnv,
                                                                                                  _class: JClass<'_>,
-                                                                                                 input: jobjectArray)
+                                                                                                 input: jbyteArray)
                                                                                                  -> jbyteArray {
-    let length = env.get_array_length(input).unwrap();
-    let len = <usize as TryFrom<jsize>>::try_from(length)
-        .expect("invalid jsize, in jsize => usize conversation");
-    let mut vec = Vec::with_capacity(len);
-    for i in 0..length {
-        let jbarray: jbyteArray = env.get_object_array_element(input, i).unwrap().cast();
-        let barray = env.convert_byte_array(jbarray).expect("Couldn't read byte array input");
-        vec.push(Fr::read(barray.as_ref()).unwrap())
-    }
+    // Input should be a multiple of 32-be-bytes.
+    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+    let len = inp.len();
+    if len % 32 != 0 {
+        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be a multiple of 32-bytes.")
+           .expect("Failed to throw exception");
+        return std::ptr::null_mut(); // Return null pointer to indicate an error
+    }    
+    let n_scalars = len / 32;
+    if n_scalars > 256 {
+        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be at most 256 elements of 32-bytes.")
+           .expect("Failed to throw exception");
+        return std::ptr::null_mut(); // Return null pointer to indicate an error
+    }    
 
-    let poly = LagrangeBasis::new(vec);
-    let crs = CRS::new(256, PEDERSEN_SEED);
-    let result = crs.commit_lagrange_poly(&poly);
-    let mut result_bytes = [0u8; 128];
-    result.write(result_bytes.as_mut()).unwrap();
-    let javaarray = env.byte_array_from_slice(&result_bytes).expect("Couldn't convert to byte array");
-    return javaarray;
+    // Each 32-be-bytes are interpreted as field elements.
+    let mut scalars: Vec<Fr> = Vec::with_capacity(n_scalars);
+    for b in inp.chunks(32) {
+        scalars.push(Fr::from_be_bytes_mod_order(b));
+    }
+    
+    // Committing all values at once.
+    let bases = CRS::new(n_scalars, PEDERSEN_SEED);
+    let commit = multi_scalar_mul(&bases.G, &scalars);
+
+    // Serializing via x/y in projective coordinates, to int and to scalars.
+    let scalar = group_to_field(&commit);
+    let mut scalar_bytes = [0u8; 32];
+    scalar.serialize(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
+    scalar_bytes.reverse();
+
+    return env.byte_array_from_slice(&scalar_bytes).expect("Couldn't convert to byte array");
 }
 
-#[cfg(test)]
-mod tests {
-    use std::ops::Deref;
 
-    use ark_ff::biginteger::BigInteger256;
-    use ark_ff::ToBytes;
-    use bandersnatch::Fr;
-    use hex;
-    use jni::{InitArgsBuilder, JavaVM};
+/// Commit_root receives a list of 32 byte scalars and returns a 32 byte commitment.to_bytes()
+/// This is ported from rust-verkle.
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit_root(env: JNIEnv,
+                                                                                                 _class: JClass<'_>,
+                                                                                                 input: jbyteArray)
+                                                                                                 -> jbyteArray {
+    // Input should be a multiple of 32-be-bytes.
+    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+    let len = inp.len();
+    if len % 32 != 0 {
+        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be a multiple of 32-bytes.")
+           .expect("Failed to throw exception");
+        return std::ptr::null_mut(); // Return null pointer to indicate an error
+    }    
+    let n_scalars = len / 32;
+    if n_scalars > 256 {
+        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be at most 256 elements of 32-bytes.")
+           .expect("Failed to throw exception");
+        return std::ptr::null_mut(); // Return null pointer to indicate an error
+    }    
 
-    use crate::Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit;
-
-    #[test]
-    fn commit_multiproof_lagrange() {
-        let f1_from_repr = Fr::from(BigInteger256([
-            0xc81265fb4130fe0c,
-            0xb308836c14e22279,
-            0x699e887f96bff372,
-            0x84ecc7e76c11ad,
-        ]));
-
-        let mut f1_bytes = [0u8; 32];
-        f1_from_repr.write(f1_bytes.as_mut()).unwrap();
-
-        let jvm_args = InitArgsBuilder::default().build().unwrap();
-        let jvm = JavaVM::new(jvm_args).unwrap();
-        let guard = jvm.attach_current_thread().unwrap();
-        let env = guard.deref();
-        let class = env.find_class("java/lang/String").unwrap();
-        let jarray = env.byte_array_from_slice(&f1_bytes).unwrap();
-        let objarray = env.new_object_array(4, "java/lang/byte[]", jarray).unwrap();
-        env.set_object_array_element(objarray, 1, jarray).expect("cannot set input");
-        env.set_object_array_element(objarray, 2, jarray).expect("cannot set input");
-        env.set_object_array_element(objarray, 3, jarray).expect("cannot set input");
-        let result = Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(*env, class, objarray);
-        let result_u8 = env.convert_byte_array(result).unwrap();
-        assert_eq!("0fc066481fb30a138938dc749fa3608fc840386671d3ee355d778ed4e1843117a73b5363f846b850a958dab228d6c181f6e2c1035dad9b3b47c4d4bbe4b8671adc36f4edb34ac17a093f1c183f00f6e4863a2b38a7470edd1739cc1fdbc6541bc3b7896389a3fe5f59cdefe3ac2f8ae89101c227395d6fc7bca05f138683e204", hex::encode(result_u8));
+    // Each 32-be-bytes are interpreted as field elements.
+    let mut scalars: Vec<Fr> = Vec::with_capacity(n_scalars);
+    for b in inp.chunks(32) {
+        scalars.push(Fr::from_be_bytes_mod_order(b));
     }
+    
+    // Committing all values at once.
+    let bases = CRS::new(n_scalars, PEDERSEN_SEED);
+    let commit = multi_scalar_mul(&bases.G, &scalars);
 
-    #[test]
-    fn commit_multiproof_lagrange_known_input() {
-        let mut vec = Vec::with_capacity(len);
-        vec.insert(2, Fr::read(hex::decode("")).unwrap());
-        for i in 0..length {
-            let jbarray: jbyteArray = env.get_object_array_element(input, i).unwrap().cast();
-            let barray = env.convert_byte_array(jbarray).expect("Couldn't read byte array input");
-            vec.push(Fr::read(barray.as_ref()).unwrap())
-        }
+    // Serializing using first affine coordinate
+    let commit_bytes = commit.to_bytes();
 
-        let poly = LagrangeBasis::new(vec);
-        let crs = CRS::new(256, PEDERSEN_SEED);
-        let result = crs.commit_lagrange_poly(&poly);
-        let mut result_bytes = [0u8; 128];
-        result.write(result_bytes.as_mut()).unwrap();
-        assert_eq!("0fc066481fb30a138938dc749fa3608fc840386671d3ee355d778ed4e1843117a73b5363f846b850a958dab228d6c181f6e2c1035dad9b3b47c4d4bbe4b8671adc36f4edb34ac17a093f1c183f00f6e4863a2b38a7470edd1739cc1fdbc6541bc3b7896389a3fe5f59cdefe3ac2f8ae89101c227395d6fc7bca05f138683e204", hex::encode(result_u8));
-    }
+    return env.byte_array_from_slice(&commit_bytes).expect("Couldn't convert to byte array");
+}
+
+
+// Note: This is a 2 to 1 map, but the two preimages are identified to be the same
+// TODO: Create a document showing that this poses no problems
+pub(crate)fn group_to_field(point: &Element) -> Fr {
+    let base_field = point.map_to_field();
+    let mut bytes = [0u8; 32];
+    base_field
+        .serialize(&mut bytes[..])
+        .expect("could not serialise point into a 32 byte array");
+    Fr::from_le_bytes_mod_order(&bytes)
 }
