@@ -20,11 +20,25 @@ plugins {
 }
 
 dependencies {
-  implementation 'net.java.dev.jna:jna:5.12.1'
-  testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
-  testImplementation 'junit:junit:4.13.2'
-  testImplementation 'org.assertj:assertj-core:3.22.0'
-  testImplementation 'org.mockito:mockito-core:4.4.0'
+    implementation 'net.java.dev.jna:jna:5.12.1'
+    testImplementation 'org.apache.tuweni:tuweni-bytes:2.3.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    testImplementation 'org.assertj:assertj-core:3.22.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+sourceSets {
+    test {
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+    }
 }
 
 task macArmLibCopy(type: Copy) {
