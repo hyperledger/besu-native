@@ -162,6 +162,41 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 }
 
 
+/// Expects 32 bytes for the serialized commitment, 32 bytes for the diff between new and old value and 1 byte for the index of the value.
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_update_commitment(env: JNIEnv,
+                                                                                                 _class: JClass<'_>,
+                                                                                                 input: jbyteArray)
+                                                                                                 -> jbyteArray {
+    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+
+    let total_input = inp.as_slice();
+    // Parse the commitment
+    let mut commitment_bytes = [0u8; 32];
+    commitment_bytes.copy_from_slice(&total_input[0..32]);
+
+    // Parse the new-old value
+    let mut new_value_minus_old = [0u8; 32];
+    new_value_minus_old.copy_from_slice(&total_input[32..64]);
+
+    // Parse the index of the value
+    let index = total_input[64] as usize;
+
+    let new_minus_old_ser = Fr::from_be_bytes_mod_order(&new_value_minus_old);
+
+    let bases = CRS::new(256, PEDERSEN_SEED);
+
+    let commitment = Element::from_bytes(&commitment_bytes).unwrap();
+
+    // Calculate new commitment
+    let new_commitment = commitment + bases.G[index] * new_minus_old_ser;
+
+    let result = new_commitment.to_bytes();
+
+    return env.byte_array_from_slice(&result).expect("Couldn't convert to byte array");
+}
+
+
 // Note: This is a 2 to 1 map, but the two preimages are identified to be the same
 // TODO: Create a document showing that this poses no problems
 pub(crate)fn group_to_field(point: &Element) -> Fr {
