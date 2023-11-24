@@ -44,19 +44,26 @@ public class LibIpaMultipoint {
   }
 
   /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
-
+   * Vector commitment(pedersen) expecting up to 256 values. Returns field element, so it can be reused in parent commitment.
    * @param input [Fr,Fr,Fr...]
    * @return group_to_field(commitment)
    */
   public static native byte[] commit(byte[] input);
 
   /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
+   * Vector commitment(pedersen) expecting up to 256 values. Returns serialized commitment.
    * @param input [Fr,Fr,Fr...]
    * @return commitment.to_bytes()
    */
   public static native byte[] commit_root(byte[] input);
+
+  /**
+   * Update commitment for 1 commitment, 1 value. Additively homomorphic.
+   * Expects commitment serialized as bytes (32), diff value (32bytes), and index (1byte).
+   * @param input Expects 65byte value as input encoded as byte[]
+   * @return 32bytes as byte[]
+   */
+  public static native byte[] update_commitment(byte[] input);
 
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
