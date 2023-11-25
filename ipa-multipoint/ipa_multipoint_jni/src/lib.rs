@@ -78,8 +78,7 @@ pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
     hash64(hash_input)
 }
 
-/// Commit receives a list of 32 byte scalars and returns a 32 byte scalar
-/// Scalar is actually the map_to_field(commitment) because we want to reuse the commitment in parent node.
+/// Commit receives a list of 32 byte scalars and returns a 32 byte Commitment(Banderwagon element) serialized as Fp*sign(y)
 /// This is ported from ipa_multipoint.
 #[no_mangle]
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(env: JNIEnv,

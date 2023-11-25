@@ -44,9 +44,9 @@ public class LibIpaMultipoint {
   }
 
   /**
-   * Vector commitment(pedersen) expecting up to 256 32bytes values. Returns field element, so it can be reused in parent commitment.
+   * Vector commitment(pedersen) expecting up to 256 32bytes values. Returns serialized commitment.
    * @param input [Fr,Fr,Fr...]
-   * @return group_to_field(commitment)
+   * @return commitment.as_bytes() which is a Fp * sign(y) as 32byte value
    */
   public static native byte[] commit(byte[] input);
 
