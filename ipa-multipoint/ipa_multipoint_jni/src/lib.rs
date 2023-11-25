@@ -178,13 +178,12 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     base_field
         .serialize(&mut bytes[..])
         .expect("could not serialise point into a 32 byte array");
-    let scalar = Fr::from_be_bytes_mod_order(&bytes);
+    // Here we do LE bytes because serialize works with LE.
+    let scalar = Fr::from_le_bytes_mod_order(&bytes);
 
-    // Serializing using first affine coordinate
-    // let commit_bytes = commit.to_bytes();
     let mut scalar_bytes = [0u8; 32];
     scalar.serialize(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
-    // Arkworks works with little endian, so we need to reverse
+    // Serialize works with little endian, so we need to reverse because we want to return BE
     scalar_bytes.reverse();
     return env.byte_array_from_slice(&scalar_bytes).expect("Couldn't convert to byte array");
 }

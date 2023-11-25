@@ -39,12 +39,10 @@ public class PedersenCommitmentTest {
             BigInteger decimalBigInt = new BigInteger(testData.frs.get(i));
             FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())));
         }
-        byte[] input = Bytes.concatenate(FrBytes).toArray();
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input));
-        byte [] commitment = result.toArray();
-        byte [] result2 = LibIpaMultipoint.groupToField(commitment);
-        BigInteger result3 = Bytes32.wrap(result2).toBigInteger();
+        byte [] input = Bytes.concatenate(FrBytes).toArray();
+        byte [] commitment = Bytes32.wrap(LibIpaMultipoint.commit(input)).toArray();
+        BigInteger result = Bytes32.wrap(LibIpaMultipoint.groupToField(commitment)).toBigInteger();
         BigInteger expected = new BigInteger(testData.commitment);
-        assertThat(result3).isEqualTo(expected);
+        assertThat(result).isEqualTo(expected);
     }
 }
