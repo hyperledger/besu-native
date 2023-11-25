@@ -85,7 +85,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
-    // Input should be a multiple of 32-le-bytes.
+    // Input should be a multiple of 32-be-bytes.
     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
     let len = inp.len();
     if len % 32 != 0 {
@@ -100,7 +100,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         return std::ptr::null_mut(); // Return null pointer to indicate an error
     }    
 
-    // Each 32-le-bytes are interpreted as field elements.
+    // Each 32-be-bytes are interpreted as field elements.
     let mut scalars: Vec<Fr> = Vec::with_capacity(n_scalars);
     for b in inp.chunks(32) {
         scalars.push(Fr::from_be_bytes_mod_order(b));
