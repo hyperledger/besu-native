@@ -67,4 +67,25 @@ public class LibIpaMultipointTest {
         Bytes result = Bytes.of(LibIpaMultipoint.pedersenHash(total));
         assertThat(result).isEqualTo(Bytes32.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43"));
     }
+
+    @Test
+    public void testUpdateCommitment() {
+        // Create a byte array of 65 bytes
+        byte[] byteArray = new byte[65];
+
+        // Fill the array some integers representing each byte
+        for (int i = 0; i < 65; ++i) {
+            byteArray[i] = (byte) i;
+        }
+
+        // Test call.
+        Bytes result2 = Bytes.of(LibIpaMultipoint.updateCommitment(byteArray));
+    }
+
+    @Test
+    public void testGroupToField() {
+        Bytes32 serPoint = Bytes32.fromHexString("0x06a307640f5cd8f0e4bcf664a0d66733abac80a825c50031b9958addf3ce1f04");
+        // Test call.
+        Bytes32 testGroupToField = Bytes32.wrap(LibIpaMultipoint.groupToField(serPoint.toArray()));
+    }
 }

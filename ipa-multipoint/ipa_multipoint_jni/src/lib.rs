@@ -13,14 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 use ark_ff::PrimeField;
-use banderwagon::{Fr, multi_scalar_mul};
+use banderwagon::{Fr, multi_scalar_mul, Element};
 use ipa_multipoint::crs::CRS;
 use verkle_spec::*;
-// use crate::{vergroup_to_field};
 use ark_serialize::CanonicalSerialize;
 use verkle_trie::*;
 
-// use group_to_field;
 
 use jni::JNIEnv;
 use jni::objects::JClass;
@@ -82,13 +80,13 @@ pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
 
 /// Commit receives a list of 32 byte scalars and returns a 32 byte scalar
 /// Scalar is actually the map_to_field(commitment) because we want to reuse the commitment in parent node.
-/// This is ported from rust-verkle.
+/// This is ported from ipa_multipoint.
 #[no_mangle]
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit(env: JNIEnv,
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
-    // Input should be a multiple of 32-be-bytes.
+    // Input should be a multiple of 32-le-bytes.
     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
     let len = inp.len();
     if len % 32 != 0 {
@@ -103,71 +101,35 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         return std::ptr::null_mut(); // Return null pointer to indicate an error
     }    
 
-    // Each 32-be-bytes are interpreted as field elements.
+    // Each 32-le-bytes are interpreted as field elements.
     let mut scalars: Vec<Fr> = Vec::with_capacity(n_scalars);
     for b in inp.chunks(32) {
-        scalars.push(Fr::from_be_bytes_mod_order(b));
+        scalars.push(Fr::from_le_bytes_mod_order(b));
     }
-    
+
     // Committing all values at once.
     let bases = CRS::new(n_scalars, PEDERSEN_SEED);
     let commit = multi_scalar_mul(&bases.G, &scalars);
 
-    // Serializing via x/y in projective coordinates, to int and to scalars.
-    let scalar = group_to_field(&commit);
-    let mut scalar_bytes = [0u8; 32];
-    scalar.serialize(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
-    scalar_bytes.reverse();
-
-    return env.byte_array_from_slice(&scalar_bytes).expect("Couldn't convert to byte array");
-}
-
-
-/// Commit_root receives a list of 32 byte scalars and returns a 32 byte commitment.to_bytes()
-/// This is ported from rust-verkle.
-#[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit_root(env: JNIEnv,
-                                                                                                 _class: JClass<'_>,
-                                                                                                 input: jbyteArray)
-                                                                                                 -> jbyteArray {
-    // Input should be a multiple of 32-be-bytes.
-    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
-    let len = inp.len();
-    if len % 32 != 0 {
-        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be a multiple of 32-bytes.")
-           .expect("Failed to throw exception");
-        return std::ptr::null_mut(); // Return null pointer to indicate an error
-    }    
-    let n_scalars = len / 32;
-    if n_scalars > 256 {
-        env.throw_new("java/lang/IllegalArgumentException", "Invalid input length. Should be at most 256 elements of 32-bytes.")
-           .expect("Failed to throw exception");
-        return std::ptr::null_mut(); // Return null pointer to indicate an error
-    }    
-
-    // Each 32-be-bytes are interpreted as field elements.
-    let mut scalars: Vec<Fr> = Vec::with_capacity(n_scalars);
-    for b in inp.chunks(32) {
-        scalars.push(Fr::from_be_bytes_mod_order(b));
-    }
-    
-    // Committing all values at once.
-    let bases = CRS::new(n_scalars, PEDERSEN_SEED);
-    let commit = multi_scalar_mul(&bases.G, &scalars);
 
     // Serializing using first affine coordinate
-    let commit_bytes = commit.to_bytes();
+    let mut commit_bytes = commit.to_bytes();
+
+    // reverse to little endian for Java
+    commit_bytes.reverse();
 
     return env.byte_array_from_slice(&commit_bytes).expect("Couldn't convert to byte array");
 }
 
 
+
 /// Expects 32 bytes for the serialized commitment, 32 bytes for the diff between new and old value and 1 byte for the index of the value.
 #[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_update_commitment(env: JNIEnv,
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_updateCommitment(env: JNIEnv,
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
+
     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
 
     let total_input = inp.as_slice();
@@ -182,23 +144,30 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     // Parse the index of the value
     let index = total_input[64] as usize;
 
-    let new_minus_old_ser = Fr::from_be_bytes_mod_order(&new_value_minus_old);
+    let new_minus_old_ser = Fr::from_le_bytes_mod_order(&new_value_minus_old);
 
     let bases = CRS::new(256, PEDERSEN_SEED);
 
+    // reverse to big endian because from_bytes expects big endian
+    commitment_bytes.reverse(); 
     let commitment = Element::from_bytes(&commitment_bytes).unwrap();
 
     // Calculate new commitment
     let new_commitment = commitment + bases.G[index] * new_minus_old_ser;
 
-    let result = new_commitment.to_bytes();
+    let mut result = new_commitment.to_bytes();
 
-    return env.byte_array_from_slice(&result).expect("Couldn't convert to byte array");
+    // reverse for little endian for Java calls
+    result.reverse();
+
+    let output = env.byte_array_from_slice(&result).expect("Couldn't convert to byte array");
+
+    output
 }
 
 
 // Note: This is a 2 to 1 map, but the two preimages are identified to be the same
-// TODO: Create a document showing that this poses no problems
+// Original authors (https://github.com/kevaundray) comment: TODO: Create a document showing that this poses no problems
 pub(crate)fn group_to_field(point: &Element) -> Fr {
     let base_field = point.map_to_field();
     let mut bytes = [0u8; 32];
@@ -206,4 +175,37 @@ pub(crate)fn group_to_field(point: &Element) -> Fr {
         .serialize(&mut bytes[..])
         .expect("could not serialise point into a 32 byte array");
     Fr::from_le_bytes_mod_order(&bytes)
+}
+
+
+/// GroupToField receives a 32 byte serialized point and returns a 32 byte scalar
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_groupToField(env: JNIEnv,
+                                                                                                 _class: JClass<'_>,
+                                                                                                 input: jbyteArray)
+                                                                                                 -> jbyteArray {
+    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+
+    let mut ser_point_bytes = [0u8; 32];
+
+    ser_point_bytes.copy_from_slice(&inp[0..32]);
+
+    // reverse for little endian for Java calls
+    ser_point_bytes.reverse();
+
+    let point = Element::from_bytes(&ser_point_bytes).unwrap();
+    let base_field = point.map_to_field();
+    let mut bytes = [0u8; 32];
+    base_field
+        .serialize(&mut bytes[..])
+        .expect("could not serialise point into a 32 byte array");
+    let scalar = Fr::from_le_bytes_mod_order(&bytes);
+
+    // Serializing using first affine coordinate
+    // let commit_bytes = commit.to_bytes();
+    let mut scalar_bytes = [0u8; 32];
+    // Arkworks works with little endian, so we don't need to reverse
+    scalar.serialize(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
+
+    return env.byte_array_from_slice(&scalar_bytes).expect("Couldn't convert to byte array");
 }

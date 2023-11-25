@@ -44,26 +44,20 @@ public class LibIpaMultipoint {
   }
 
   /**
-   * Vector commitment(pedersen) expecting up to 256 values. Returns field element, so it can be reused in parent commitment.
+   * Vector commitment(pedersen) expecting up to 256 32bytes values. Returns field element, so it can be reused in parent commitment.
    * @param input [Fr,Fr,Fr...]
    * @return group_to_field(commitment)
    */
   public static native byte[] commit(byte[] input);
 
   /**
-   * Vector commitment(pedersen) expecting up to 256 values. Returns serialized commitment.
-   * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes()
-   */
-  public static native byte[] commit_root(byte[] input);
-
-  /**
-   * Update commitment for 1 commitment, 1 value. Additively homomorphic.
-   * Expects commitment serialized as bytes (32), diff value (32bytes), and index (1byte).
+   * Update commitment for 1 commitment, for `diff value` at `index`. Additively homomorphic.
+   * Expects commitment serialized as bytes (32bytes - Fp x coordinate * sign(y coordinate)), diff value (32bytes) (Fr), and index (1byte)
+   * Returns commitment serialized as bytes(32bytes - Fp x coordinate * sign(y coordinate))
    * @param input Expects 65byte value as input encoded as byte[]
    * @return 32bytes as byte[]
    */
-  public static native byte[] update_commitment(byte[] input);
+  public static native byte[] updateCommitment(byte[] input);
 
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
@@ -71,4 +65,11 @@ public class LibIpaMultipoint {
    * @return 32bytes as byte[]
    */
   public static native byte[] pedersenHash(byte[] input);
+
+  /**
+   * Group to field. Maps serialized Banderwagon Element to Fr.
+   * @param input Expects 32byte serialized commitment(banderwagon Element) (32bytes Fp x coordinate * sign(y coordinate)) as input encoded as byte[]
+   * @return 32bytes as byte[] - Fr
+   */
+  public static native byte[] groupToField(byte[] input);
 }
