@@ -33,6 +33,14 @@ public class LibIpaMultipointTest {
     }
 
     @Test
+    public void testCallLibraryCommitRoot() {
+        Bytes32 input = Bytes32.fromHexString("0xf6e31f7a565a390b48fdd24569ac10d43562d19de37ea951c7f9f250a339d059");
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
+        Bytes32 expected = Bytes32.fromHexString("0x588f93e52b41d8d3abade94bf44a2ccd5d6ef9090a63164fba8d02c909168c53");
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
     public void testCallLibraryWithManyElements() {
         Bytes32 element = Bytes32.fromHexString("0x0cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec00");
         Bytes32[] arr = new Bytes32[128];
