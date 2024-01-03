@@ -37,7 +37,10 @@ public class LibGnark {
         ENABLED = enabled;
     }
 
-    public static native int computeMimc(
+    public static native int computeMimcBn254(
             byte[] i, int i_len, byte[] o);
+
+    public static native int computeMimcBls12377(
+        byte[] i, int i_len, byte[] o);
 
 }
