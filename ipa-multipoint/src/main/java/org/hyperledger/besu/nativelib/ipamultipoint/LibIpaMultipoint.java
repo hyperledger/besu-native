@@ -72,4 +72,16 @@ public class LibIpaMultipoint {
    * @return 32bytes as byte[] - Fr
    */
   public static native byte[] groupToField(byte[] input);
+
+  /**
+   * Prove call per specs: https://hackmd.io/@6iQDuIePQjyYBqDChYw_jg/H1xXvMatq
+   * @param input Expects:
+   * Receives a tuple (C_i, f_i(X), z_i, y_i)
+   * Where C_i is a commitment to f_i(X) serialized as 32 bytes
+   * f_i(X) is the polynomial serialized as 8192 bytes since we have 256 Fr elements each serialized as 32 bytes
+   * z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+   * y_i is the evaluation of the polynomial at z_i i.e. value we are opening: 32 bytes
+   * Returns a proof serialized as bytes
+   */
+  public static native byte[] createProof(byte[] input);
 }
