@@ -126,7 +126,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 /// Commit_root receives a list of 32 byte scalars and returns a 32 byte commitment.to_bytes()
 /// This is ported from rust-verkle.
 #[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commit_root(env: JNIEnv,
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_commitRoot(env: JNIEnv,
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
