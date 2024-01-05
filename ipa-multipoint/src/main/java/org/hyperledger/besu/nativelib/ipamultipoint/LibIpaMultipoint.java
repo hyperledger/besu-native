@@ -56,7 +56,7 @@ public class LibIpaMultipoint {
    * @param input [Fr,Fr,Fr...]
    * @return commitment.to_bytes()
    */
-  public static native byte[] commit_root(byte[] input);
+  public static native byte[] commitRoot(byte[] input);
 
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
