@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.8.4-SNAPSHOT
+
 # 0.8.3
 
 * add support for Mimc on bls12-377 [#132](https://github.com/hyperledger/besu-native/pull/132)
