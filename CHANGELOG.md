@@ -1,5 +1,13 @@
 # Changelog
 
+# 0.8.3
+
+* add support for Mimc on bls12-377 [#132](https://github.com/hyperledger/besu-native/pull/132)
+* FIX: javadoc issues [#125](https://github.com/hyperledger/besu-native/pull/125)
+* ENH: adds ipa-multipoint library with Pedersen primitives [#123](https://github.com/hyperledger/besu-native/pull/123)
+* Bump github.com/consensys/gnark-crypto in /gnark/gnark-jni [#122](https://github.com/hyperledger/besu-native/pull/122)
+
+
 # 0.8.2
 
 * Add k1 normalize signature method to secp256k1 [#118]](https://github.com/hyperledger/besu-native/pull/118)
