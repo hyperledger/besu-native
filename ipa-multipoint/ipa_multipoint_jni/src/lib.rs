@@ -12,76 +12,102 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-use ark_ff::PrimeField;
-use banderwagon::{Fr, multi_scalar_mul, Element};
+use banderwagon::multi_scalar_mul;
 use ipa_multipoint::crs::CRS;
-use verkle_spec::*;
-use ark_serialize::CanonicalSerialize;
-use verkle_trie::*;
-use ipa_multipoint::multiproof::ProverQuery;
-use ipa_multipoint::lagrange_basis::PrecomputedWeights;
-use ipa_multipoint::multiproof::MultiPoint;
-use ipa_multipoint::transcript::Transcript;
+use ipa_multipoint::committer::DefaultCommitter;
 
-use ipa_multipoint::lagrange_basis::LagrangeBasis;
-
+use banderwagon::*;
+use ipa_multipoint::committer::Committer;
+use jni::sys::jarray;
+use std::error::Error;
+use std::fs::OpenOptions;
+use std::fs::File;
+use std::ops::Deref;
+use ark_ff::*;
+use ark_serialize::*;
+use ark_ff::One;
 use jni::JNIEnv;
 use jni::objects::JClass;
 use jni::sys::jbyteArray;
+
+// These objects are what you should use as arguments to your native
+// function. They carry extra lifetime information to prevent them escaping
+// this context and getting used after being GC'd.
+use jni::objects::JString;
+
+// This is just a pointer. We'll be returning it from our function. We
+// can't return one of the objects with lifetime information because the
+// lifetime checker won't let us.
+use jni::sys::jstring;
+use ark_ff::PrimeField;
+use once_cell::sync::Lazy;
+
+
+use std::env;
+
+use ark_serialize::CanonicalSerialize;
 
 
 // Copied from rust-verkle: https://github.com/crate-crypto/rust-verkle/blob/581200474327f5d12629ac2e1691eff91f944cec/verkle-trie/src/constants.rs#L12
 const PEDERSEN_SEED: &'static [u8] = b"eth_verkle_oct_2021";
 
-/// Pedersen hash receives an address and a trie index and returns a hash calculated this way:
-/// H(constant || address_low || address_high || trie_index_low || trie_index_high)
-/// where constant = 2 + 256*64
-/// address_low = lower 16 bytes of the address interpreted as a little endian integer
-/// address_high = higher 16 bytes of the address interpreted as a little endian integer
-/// trie_index_low = lower 16 bytes of the trie index
-/// trie_index_high = higher 16 bytes of the trie index
-/// The result is a 256 bit hash
-/// This is ported from rust-verkle/verkle-specs
-#[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
-    env: JNIEnv,
-    _class: JClass,
-    input: jbyteArray,
-) -> jbyteArray {
+const PRECOMPUTED_POINTS_PATH: &str = "./ipa_multipoint_jni/src/precomputed_points.bin";
 
-    let input = env.convert_byte_array(input).unwrap();
+pub const VERKLE_NODE_WIDTH: usize = 256;
 
-    let mut address32 = [0u8; 32];
+pub static CRS: Lazy<CRS> = Lazy::new(|| CRS::load_points_from_file(PRECOMPUTED_POINTS_PATH));
 
-    address32.copy_from_slice(&input[0..32]);
 
-    let mut trie_index= [0u8; 32];
 
-    trie_index.copy_from_slice(&input[32..64]);
-    trie_index.reverse(); // reverse for little endian per specs
+// / Pedersen hash receives an address and a trie index and returns a hash calculated this way:
+// / H(constant || address_low || address_high || trie_index_low || trie_index_high)
+// / where constant = 2 + 256*64
+// / address_low = lower 16 bytes of the address interpreted as a little endian integer
+// / address_high = higher 16 bytes of the address interpreted as a little endian integer
+// / trie_index_low = lower 16 bytes of the trie index
+// / trie_index_high = higher 16 bytes of the trie index
+// / The result is a 256 bit hash
+// / This is ported from rust-verkle/verkle-specs
+// #[no_mangle]
+// pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
+//     env: JNIEnv,
+//     _class: JClass,
+//     input: jbyteArray,
+// ) -> jbyteArray {
 
-    let base_hash = hash_addr_int(&address32, &trie_index);
+//     let input = env.convert_byte_array(input).unwrap();
 
-    let result = base_hash.as_fixed_bytes();
-    let output = env.byte_array_from_slice(result).unwrap();
-    output
-}
+//     let mut address32 = [0u8; 32];
 
-// Helper function to hash an address and an integer taken from rust-verkle/verkle-specs.
-pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
+//     address32.copy_from_slice(&input[0..32]);
 
-    let address_bytes = addr;
+//     let mut trie_index= [0u8; 32];
 
-    let integer_bytes = integer;
-    let mut hash_input = [0u8; 64];
-    let (first_half, second_half) = hash_input.split_at_mut(32);
+//     trie_index.copy_from_slice(&input[32..64]);
+//     trie_index.reverse(); // reverse for little endian per specs
 
-    // Copy address and index into slice, then hash it
-    first_half.copy_from_slice(address_bytes);
-    second_half.copy_from_slice(integer_bytes);
+//     let base_hash = hash_addr_int(&address32, &trie_index);
 
-    hash64(hash_input)
-}
+//     let result = base_hash.as_fixed_bytes();
+//     let output = env.byte_array_from_slice(result).unwrap();
+//     output
+// }
+
+// // Helper function to hash an address and an integer taken from rust-verkle/verkle-specs.
+// pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
+
+//     let address_bytes = addr;
+
+//     let integer_bytes = integer;
+//     let mut hash_input = [0u8; 64];
+//     let (first_half, second_half) = hash_input.split_at_mut(32);
+
+//     // Copy address and index into slice, then hash it
+//     first_half.copy_from_slice(address_bytes);
+//     second_half.copy_from_slice(integer_bytes);
+
+//     hash64(hash_input)
+// }
 
 /// Commit receives a list of 32 byte scalars and returns a 32 byte Commitment(Banderwagon element) serialized as Fp*sign(y)
 /// This is ported from ipa_multipoint.
@@ -90,6 +116,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
+
+    use std::time::Instant;
+    let now = Instant::now();
     // Input should be a multiple of 32-be-bytes.
     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
     let len = inp.len();
@@ -110,14 +139,54 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     for b in inp.chunks(32) {
         scalars.push(Fr::from_be_bytes_mod_order(b));
     }
+    // /Users/admin/Development/besu-native/ipa-multipoint/ipa_multipoint_jni/src/precomputed_points.bin
+    // let path = env::current_dir().unwrap();
+    // panic!("The current directory is {}", path.display());
 
-    // Committing all values at once.
-    let bases = CRS::new(n_scalars, PEDERSEN_SEED);
-    let commit = multi_scalar_mul(&bases.G, &scalars);
+
+
+
+    let elements = &CRS.G;
+
+
+
+
+    // let elapsed = now.elapsed();
+
+    // println!("process things after precompute: {:.10?}", elapsed);
+
+
+    // let committer = DefaultCommitter::new(elements.clone());
+
+    // let elapsed = now.elapsed();
+
+    // println!("ONEMORE things after precompute: {:.10?}", elapsed);
+
+
+    // let mut fixed_array: [Fr; 256] = [Fr::from(0); 256];
+    // fixed_array.copy_from_slice(&scalars[0..256]);
+
+    // let elapsed = now.elapsed();
+
+    // println!("process things before commit: {:.10?}", elapsed);
+
+    // let result = committer.commit_lagrange(&fixed_array);
+    // // for (index,input) in scalars.into_iter().enumerate() {
+    // //     result += committer.scalar_mul(input.into(), index);
+    // // }
+    // let elapsed = now.elapsed();
+    // println!("process things after commit: {:.10?}", elapsed);
+    
+    let first_five = elements[..4].to_vec();
+    let elapsed = now.elapsed();
+    println!("BEFORE MULTI SCALAR MUL: {:.10?}", elapsed);
+    let result = multi_scalar_mul(&elements, &scalars);
+    let elapsed = now.elapsed();
+    println!("AFTER MULTI SCALAR MUL: {:.10?}", elapsed);
 
 
     // Serializing using first affine coordinate
-    let mut commit_bytes = commit.to_bytes();
+    let mut commit_bytes = result.to_bytes();
 
     return env.byte_array_from_slice(&commit_bytes).expect("Couldn't convert to byte array");
 }
@@ -158,6 +227,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let result = new_commitment.to_bytes();
 
 
+
     let output = env.byte_array_from_slice(&result).expect("Couldn't convert to byte array");
 
     output
@@ -170,6 +240,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
                                                                                                  _class: JClass<'_>,
                                                                                                  input: jbyteArray)
                                                                                                  -> jbyteArray {
+
+
+    // use ark_serialize::CanonicalSerialize;
     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
 
     let mut ser_point_bytes = [0u8; 32];
@@ -177,95 +250,119 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     ser_point_bytes.copy_from_slice(&inp[0..32]);
 
     let point = Element::from_bytes(&ser_point_bytes).unwrap();
-    let base_field = point.map_to_field();
+    let base_field = point.map_to_scalar_field();
+
+
     let mut bytes = [0u8; 32];
     base_field
-        .serialize(&mut bytes[..])
+        .serialize_uncompressed(&mut bytes[..])
         .expect("could not serialise point into a 32 byte array");
     // Here we do LE bytes because serialize works with LE.
     let scalar = Fr::from_le_bytes_mod_order(&bytes);
 
     let mut scalar_bytes = [0u8; 32];
-    scalar.serialize(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
+    scalar.serialize_uncompressed(&mut scalar_bytes[..]).expect("could not serialise Fr into a 32 byte array");
     // Serialize works with little endian, so we need to reverse because we want to return BE
     scalar_bytes.reverse();
     return env.byte_array_from_slice(&scalar_bytes).expect("Couldn't convert to byte array");
 }
 
 
-/// Receives a tuple (C_i, f_i(X), z_i, y_i)
-/// Where C_i is a commitment to f_i(X) serialized as 32 bytes
-/// f_i(X) is the polynomial serialized as 8192 bytes since we have 256 Fr elements each serialized as 32 bytes
-/// z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
-/// y_i is the evaluation of the polynomial at z_i i.e value we are opening: 32 bytes
-/// Returns a proof serialized as bytes
+// / Receives a tuple (C_i, f_i(X), z_i, y_i)
+// / Where C_i is a commitment to f_i(X) serialized as 32 bytes
+// / f_i(X) is the polynomial serialized as 8192 bytes since we have 256 Fr elements each serialized as 32 bytes
+// / z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+// / y_i is the evaluation of the polynomial at z_i i.e value we are opening: 32 bytes
+// / Returns a proof serialized as bytes
+// #[no_mangle]
+// pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_createProof(env: JNIEnv,
+//     _class: JClass<'_>,
+//     input: jbyteArray)
+//     -> jbyteArray {
+//     // Define the chunk size (8257 bytes)
+//     // C_i, f_i(X), z_i, y_i
+//     // 32, 8192, 1, 32
+//     // = 8257
+//     let chunk_size = 8257;
+//     // Create an iterator over the input Vec<u8>
+
+//     let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+
+//     let chunked_data = inp.chunks(chunk_size);
+
+//     let mut prover_queries: Vec<ProverQuery> = Vec::new();
+
+
+//     for (_i, chunk) in chunked_data.enumerate() {
+//         if chunk.len() >= chunk_size {
+//             let data = chunk.clone();
+//             let commitment = Element::from_bytes(&data[0..32]).unwrap();
+
+//             // Create f_x from the next 8192 bytes
+//             let f_i_x: Vec<u8> = chunk[32..8224].to_vec();
+
+//             let chunked_f_i_x_data = f_i_x.chunks(32);
+
+//             let mut collect_lagrange_basis: Vec<Fr> = Vec::new();
+//             for (_j, chunk_f_i_x) in chunked_f_i_x_data.enumerate() {
+//                 if chunk_f_i_x.len() >= 32 {
+//                     let data_f_i_x = chunk_f_i_x.clone();
+//                     let fr_data_f_i_x = Fr::from_be_bytes_mod_order(&data_f_i_x);
+//                     collect_lagrange_basis.push(fr_data_f_i_x);
+//                 }
+//             }
+
+//             let lagrange_basis = LagrangeBasis::new(collect_lagrange_basis);
+
+
+//             let z_i: usize = chunk[8224] as usize;
+
+//             let y_i = Fr::from_be_bytes_mod_order(&chunk[8225..8257]);
+
+//             let prover_query = ProverQuery {
+//                 commitment,
+//                 poly: lagrange_basis,
+//                 point: z_i,
+//                 result: y_i,
+//             };
+//             prover_queries.push(prover_query);
+//         }
+//     }
+//     let precomp = PrecomputedWeights::new(256);
+
+
+//     let crs = CRS::new(256, PEDERSEN_SEED);
+//     let mut transcript = Transcript::new(b"verkle");
+
+//     let proof = MultiPoint::open(
+//         crs.clone(),
+//         &precomp,
+//         &mut transcript,
+//         prover_queries,
+//     );
+//     let output = proof.to_bytes().unwrap();
+
+//     return env.byte_array_from_slice(&output).expect("Couldn't convert to byte array");
+// }
+
+
+
+// This keeps Rust from "mangling" the name and making it unique for this
+// crate.
 #[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_createProof(env: JNIEnv,
-    _class: JClass<'_>,
-    input: jbyteArray)
-    -> jbyteArray {
-    // Define the chunk size (8257 bytes)
-    // C_i, f_i(X), z_i, y_i
-    // 32, 8192, 1, 32
-    // = 8257
-    let chunk_size = 8257;
-    // Create an iterator over the input Vec<u8>
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipointHelloWorld_hello<'local>(mut env: JNIEnv<'local>,
+// This is the class that owns our static method. It's not going to be used,
+// but still must be present to match the expected signature of a static
+// native method.
+                                                     class: JClass<'local>,
+                                                     input: jbyteArray)
+                                                     -> jbyteArray {
 
-    let inp = env.convert_byte_array(input).expect("Cannot convert jbyteArray to rust array");
+    let inp = [0u8; 32];
+    return env.byte_array_from_slice(&inp).expect("Couldn't convert to byte array");
+    }                  
 
-    let chunked_data = inp.chunks(chunk_size);
-
-    let mut prover_queries: Vec<ProverQuery> = Vec::new();
-
-
-    for (_i, chunk) in chunked_data.enumerate() {
-        if chunk.len() >= chunk_size {
-            let data = chunk.clone();
-            let commitment = Element::from_bytes(&data[0..32]).unwrap();
-
-            // Create f_x from the next 8192 bytes
-            let f_i_x: Vec<u8> = chunk[32..8224].to_vec();
-
-            let chunked_f_i_x_data = f_i_x.chunks(32);
-
-            let mut collect_lagrange_basis: Vec<Fr> = Vec::new();
-            for (_j, chunk_f_i_x) in chunked_f_i_x_data.enumerate() {
-                if chunk_f_i_x.len() >= 32 {
-                    let data_f_i_x = chunk_f_i_x.clone();
-                    let fr_data_f_i_x = Fr::from_be_bytes_mod_order(&data_f_i_x);
-                    collect_lagrange_basis.push(fr_data_f_i_x);
-                }
-            }
-
-            let lagrange_basis = LagrangeBasis::new(collect_lagrange_basis);
-
-
-            let z_i: usize = chunk[8224] as usize;
-
-            let y_i = Fr::from_be_bytes_mod_order(&chunk[8225..8257]);
-
-            let prover_query = ProverQuery {
-                commitment,
-                poly: lagrange_basis,
-                point: z_i,
-                result: y_i,
-            };
-            prover_queries.push(prover_query);
-        }
-    }
-    let precomp = PrecomputedWeights::new(256);
-
-
-    let crs = CRS::new(256, PEDERSEN_SEED);
-    let mut transcript = Transcript::new(b"verkle");
-
-    let proof = MultiPoint::open(
-        crs.clone(),
-        &precomp,
-        &mut transcript,
-        prover_queries,
-    );
-    let output = proof.to_bytes().unwrap();
-
-    return env.byte_array_from_slice(&output).expect("Couldn't convert to byte array");
+#[test]
+fn test_call() {
+    print!("Hello from Rust! The result of 2 + 2 is");
 }

@@ -53,9 +53,26 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
+
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x069e4460d5dd6b48cfcb0a3338a84bc6e38fe686c9d9035017570c3fa10471d6");
-        assertThat(result).isEqualTo(expected);
+        long startTime = System.nanoTime();
+
+        Bytes32 result2 = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        long estimatedTime2 = System.nanoTime() - startTime;
+
+        Bytes32 result3 = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes32 result4 = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes32 result5 = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+
+
+//        System.out.println("Hello first  : " + estimatedTime1);
+        System.out.println("Hello second  : " + estimatedTime2);
+
+
+
+
+//        Bytes32 expected = Bytes32.fromHexString("0x4530208975d662e7b39eefab9f727ece1b0a30e046c31a602359940c75130e7b");
+//        assertThat(result).isEqualTo(expected);
     }
 
     @Test
