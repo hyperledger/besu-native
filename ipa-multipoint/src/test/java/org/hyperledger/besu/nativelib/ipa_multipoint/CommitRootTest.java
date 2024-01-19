@@ -18,6 +18,7 @@ package org.hyperledger.besu.nativelib.ipa_multipoint;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import static org.assertj.core.api.Assertions.*;
+import static org.hyperledger.besu.nativelib.ipamultipoint.LibIpaMultipoint.committerPointer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,10 @@ public class CommitRootTest {
             FrBytes.add(value);
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input));
+
+        long committerPointer = LibIpaMultipoint.committerPointer(new LibIpaMultipoint());
+
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input, committerPointer));
         Bytes32 expected = Bytes32.fromHexString(testData.expected);
         assertThat(result).isEqualTo(expected);
     }

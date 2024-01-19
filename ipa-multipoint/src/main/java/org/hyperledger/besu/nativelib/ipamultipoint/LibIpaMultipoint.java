@@ -28,6 +28,13 @@ import java.io.IOException;
  */
 public class LibIpaMultipoint {
 
+  /**
+   * Pointer to committer in rust JNI.
+   * @param callback
+   * @return
+   */
+  public static native long committerPointer(LibIpaMultipoint callback);
+
   @SuppressWarnings("WeakerAccess")
   public static final boolean ENABLED;
 
@@ -47,16 +54,18 @@ public class LibIpaMultipoint {
    * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
 
    * @param input [Fr,Fr,Fr...]
+   * @param committerPointer pointer
    * @return group_to_field(commitment)
    */
-  public static native byte[] commit(byte[] input);
+  public static native byte[] commit(byte[] input, long committerPointer);
 
   /**
    * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
    * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes()
+   * @param committerPointer pointer
+   * @return commitment serialized to Fp
    */
-  public static native byte[] commitRoot(byte[] input);
+  public static native byte[] commitRoot(byte[] input, long committerPointer);
 
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip

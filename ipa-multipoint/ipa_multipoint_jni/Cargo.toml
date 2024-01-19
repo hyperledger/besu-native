@@ -17,20 +17,15 @@ name = "ipa_multipoint_jni"
 version = "0.1.0"
 description = "IPA Multipoint Crypto Library"
 license = "Apache-2.0"
-authors = ["Antoine Toulme <antoine@lunar-ocean.com>"]
+authors = ["Antoine Toulme <antoine@lunar-ocean.com>", "Dragan Pilipovic https://github.com/dragan2234", "thomas-quadratic https://github.com/thomas-quadratic"]
 repository = "https://github.com/hyperledger/besu-native"
 edition = "2018"
 
+
 [dependencies]
-verkle-spec = { git = "https://github.com/crate-crypto/rust-verkle", branch = "master" }
-verkle-trie = { git = "https://github.com/crate-crypto/rust-verkle", branch = "master" }
-ipa-multipoint = { git = "https://github.com/crate-crypto/ipa_multipoint", branch = "banderwagon_migration" }
-banderwagon = { git = "https://github.com/crate-crypto/banderwagon" }
-bandersnatch = "0.1.1"
-ark-ff = { version = "^0.3.0", default-features = false }
-ark-ec = { version = "^0.3.0", default-features = false }
-ark-serialize = { version = "^0.3.0", default-features = false }
-ark-std = { version = "^0.3.0", default-features = false }
+ipa-multipoint = { git = "https://github.com/crate-crypto/rust-verkle", rev="1c365ac" }
+banderwagon = { git = "https://github.com/crate-crypto/rust-verkle", rev="1c365ac" }
+verkle-spec = { git = "https://github.com/crate-crypto/rust-verkle", rev="1c365ac" }
 jni = { version = "0.19.0", features = ["invocation"] } # We use invocation in tests.
 hex = "0.4.3"
 num-bigint = "0.4.4"

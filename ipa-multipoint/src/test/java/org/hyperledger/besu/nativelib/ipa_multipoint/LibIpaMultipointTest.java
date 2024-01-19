@@ -27,7 +27,8 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibrary() {
         Bytes32 input = Bytes32.fromHexString("0x0cfe0000");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        long committerPointer = LibIpaMultipoint.committerPointer(new LibIpaMultipoint());
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray(), committerPointer));
         Bytes32 expected = Bytes32.fromHexString("0x11169fb6b9dab0b5984ce0b02c9f2c9a3a5adf6f9a95b597bca42ac2a8d8e89f");
         assertThat(result).isEqualTo(expected);
     }
@@ -35,7 +36,8 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibraryCommitRoot() {
         Bytes32 input = Bytes32.fromHexString("0xf6e31f7a565a390b48fdd24569ac10d43562d19de37ea951c7f9f250a339d059");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
+        long committerPointer = LibIpaMultipoint.committerPointer(new LibIpaMultipoint());
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray(), committerPointer));
         Bytes32 expected = Bytes32.fromHexString("0x588f93e52b41d8d3abade94bf44a2ccd5d6ef9090a63164fba8d02c909168c53");
         assertThat(result).isEqualTo(expected);
     }
@@ -48,7 +50,8 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        long committerPointer = LibIpaMultipoint.committerPointer(new LibIpaMultipoint());
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray(), committerPointer));
         Bytes32 expected = Bytes32.fromHexString("0x1b8a1c8c25323f9a58d9221b521f9618e78bb253866de6a3d1c16398678dfa26");
         assertThat(result).isEqualTo(expected);
     }
@@ -61,7 +64,8 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
+        long committerPointer = LibIpaMultipoint.committerPointer(new LibIpaMultipoint());
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray(), committerPointer));
         Bytes32 expected = Bytes32.fromHexString("0x069e4460d5dd6b48cfcb0a3338a84bc6e38fe686c9d9035017570c3fa10471d6");
         assertThat(result).isEqualTo(expected);
     }
