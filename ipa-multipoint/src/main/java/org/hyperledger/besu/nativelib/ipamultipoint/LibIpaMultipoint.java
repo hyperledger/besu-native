@@ -70,7 +70,8 @@ public class LibIpaMultipoint {
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
    * @param input Expects 64byte value as input encoded as byte[]
+   * @param committerPointer pointer
    * @return 32bytes as byte[]
    */
-  public static native byte[] pedersenHash(byte[] input);
+  public static native byte[] pedersenHash(byte[] input, long committerPointer);
 }

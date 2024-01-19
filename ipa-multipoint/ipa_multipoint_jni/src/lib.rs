@@ -32,6 +32,7 @@ use jni::sys::jlong;
 
 pub const VERKLE_NODE_WIDTH: usize = 256;
 
+#[warn(dead_code)]
 pub struct ExtendedCommitter {
     inner: DefaultCommitter,
     callback: GlobalRef,
@@ -70,11 +71,14 @@ pub unsafe extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_
 /// The result is a 256 bit hash
 /// This is ported from rust-verkle/verkle-specs
 #[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
+pub unsafe extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
     env: JNIEnv,
     _class: JClass,
     input: jbyteArray,
+    committer_pointer: jlong
 ) -> jbyteArray {
+
+    let committer = &mut *(committer_pointer as *mut ExtendedCommitter);
 
     let input = env.convert_byte_array(input).unwrap();
 
@@ -87,7 +91,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     trie_index.copy_from_slice(&input[32..64]);
     trie_index.reverse(); // reverse for little endian per specs
 
-    let base_hash = hash_addr_int(&address32, &trie_index);
+    let base_hash = hash_addr_int(&address32, &trie_index, committer);
 
     let result = base_hash.as_fixed_bytes();
     
@@ -95,7 +99,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 }
 
 // Helper function to hash an address and an integer taken from rust-verkle/verkle-specs.
-pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
+pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32], committer: &mut ExtendedCommitter) -> H256 {
 
     let address_bytes = addr;
 
@@ -107,7 +111,7 @@ pub(crate) fn hash_addr_int(addr: &[u8; 32], integer: &[u8; 32]) -> H256 {
     first_half.copy_from_slice(address_bytes);
     second_half.copy_from_slice(integer_bytes);
 
-    hash64(hash_input)
+    hash64(&committer.inner, hash_input)
 }
 
 /// # Safety
