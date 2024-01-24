@@ -73,6 +73,6 @@ public class LibIpaMultipointTest {
         Bytes32 trieIndex = Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271");
         byte[] total = Bytes.wrap(address, trieIndex).toArray();
         Bytes result = Bytes.of(LibIpaMultipoint.pedersenHash(total));
-        assertThat(result).isEqualTo(Bytes32.fromHexString("0xbe9401ae598470e73d284279d01c8b49bf88565b14cb1a7ae829dbd78c3a5018"));
+        assertThat(result).isEqualTo(Bytes32.fromHexString("0xff6e8f1877fd27f91772a4cec41d99d2f835d7320e929b8d509c5fa7ce095c51"));
     }
 }
