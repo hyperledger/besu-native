@@ -15,24 +15,14 @@
 
 use std::convert::TryInto;
 
-use ipa_multipoint::committer::DefaultCommitter;
-use ipa_multipoint::crs::CRS;
 use jni::objects::JClass;
 use jni::sys::jbyteArray;
 use jni::JNIEnv;
 use once_cell::sync::Lazy;
 
-pub struct Config {
-    committer: DefaultCommitter,
-}
-
 // TODO: Use a pointer here instead. This is only being used so that the interface does not get changed.
 // TODO: and bindings do not need to be modified.
-pub static CONFIG: Lazy<Config> = Lazy::new(|| {
-    let crs = CRS::default();
-    let committer = DefaultCommitter::new(&crs.G);
-    Config { committer }
-});
+pub static CONFIG: Lazy<ffi_interface::Context> = Lazy::new(|| ffi_interface::Context::default());
 
 /// Pedersen hash receives an address and a trie index and returns a hash calculated this way:
 /// H(constant || address_low || address_high || trie_index_low || trie_index_high)
