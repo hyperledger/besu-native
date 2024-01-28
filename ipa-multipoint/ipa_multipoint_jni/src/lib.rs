@@ -75,7 +75,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     }
     reverse_last_32_bytes(&mut input);
 
-    let hash = ffi_interface::get_tree_key_hash(committer, input);
+    let hash = ffi_interface::get_tree_key_hash_flat_input(committer, input);
     env.byte_array_from_slice(&hash).unwrap()
 }
 
@@ -88,14 +88,19 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     _class: JClass<'_>,
     input: jbyteArray,
 ) -> jbyteArray {
-    let input = env
+    let mut input = env
         .convert_byte_array(input)
         .expect("Cannot convert jbyteArray to rust array");
 
     let committer = &CONFIG.committer;
 
+    reverse_scalars_endian(&mut input);
     let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
-    let hash = ffi_interface::hash_commitment(commitment);
+
+    let mut hash = ffi_interface::hash_commitment(commitment);
+    // TODO(Big-Endian): The output of `hash_commitment` is a scalar serialized
+    // TODO(Big-Endian): in little endian. The previous implementation used big endian.
+    hash.reverse();
 
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
@@ -109,15 +114,27 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     _class: JClass<'_>,
     input: jbyteArray,
 ) -> jbyteArray {
-    let input = env
+    let mut input = env
         .convert_byte_array(input)
         .expect("Cannot convert jbyteArray to rust array");
 
     let committer = &CONFIG.committer;
+    reverse_scalars_endian(&mut input);
 
     let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
     let hash = ffi_interface::deprecated_serialize_commitment(commitment);
 
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
+}
+
+// TODO(Big-Endian): rust-verkle now uses Little-Endian for scalars.
+// TODO(Big-Endian): We switch the endianness here to match the old implementation.
+// TODO(Big-Endian): Doing the switch here allows use to restrict the changes to just this part of the code, until
+// TODO(Big-Endian): we are ready to change besu-verkle and other parts of the code to use little endian input.
+fn reverse_scalars_endian(scalars: &mut [u8]) {
+    const SCALAR_SIZE: usize = 32;
+    for scalar in scalars.chunks_exact_mut(SCALAR_SIZE) {
+        scalar.reverse();
+    }
 }
