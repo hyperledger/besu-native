@@ -53,7 +53,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 
     let committer = &CONFIG.committer;
 
-    let input: [u8; 64] = match input.try_into() {
+    let mut input: [u8; 64] = match input.try_into() {
         Ok(input) => input,
         Err(_) => {
             env.throw_new(
@@ -65,8 +65,17 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         }
     };
 
-    let hash = ffi_interface::get_tree_key_hash(committer, input);
+    // The tree_index is interpreted as a little endian integer
+    // But its given in big endian format.
+    // The tree_index is the last 32 bytes of the input,
+    // so we use this method to reverse its endian
+    fn reverse_last_32_bytes(arr: &mut [u8; 64]) {
+        let last_32 = &mut arr[32..];
+        last_32.reverse();
+    }
+    reverse_last_32_bytes(&mut input);
 
+    let hash = ffi_interface::get_tree_key_hash(committer, input);
     env.byte_array_from_slice(&hash).unwrap()
 }
 
