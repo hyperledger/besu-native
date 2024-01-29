@@ -34,9 +34,9 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCallLibraryCommitRoot() {
-        Bytes32 input = Bytes32.fromHexString("0xf6e31f7a565a390b48fdd24569ac10d43562d19de37ea951c7f9f250a339d059");
+        Bytes32 input = Bytes32.fromHexString("0x00e31f7a565a390b48fdd24569ac10d43562d19de37ea951c7f9f250a339d059");
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x588f93e52b41d8d3abade94bf44a2ccd5d6ef9090a63164fba8d02c909168c53");
+        Bytes32 expected = Bytes32.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
         assertThat(result).isEqualTo(expected);
     }
 
@@ -55,24 +55,24 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCallLibraryWithMaxElements() {
-        Bytes32 element = Bytes32.fromHexString("0xd36f20567f74f607d9252186ff8efed04de4578d1ddb3de4fe6c5e4249e0045b");
+        Bytes32 element = Bytes32.fromHexString("0x006f20567f74f607d9252186ff8efed04de4578d1ddb3de4fe6c5e4249e0045b");
         Bytes32[] arr = new Bytes32[256];
         for (int i = 0; i < 256; i++) {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x069e4460d5dd6b48cfcb0a3338a84bc6e38fe686c9d9035017570c3fa10471d6");
+        Bytes32 expected = Bytes32.fromHexString("0x148badc53042581c95e71f21b2b85826bc2f4088e617cd18f488ab664af1d043");
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testCallLibraryPedersenHash() {
         // Example of passing address and trieIndex to pedersenHash.
-        Bytes32 address = Bytes32.fromHexString("0xed3f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
-        Bytes32 trieIndex = Bytes32.fromHexString("0x1C4C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271");
+        Bytes32 address = Bytes32.fromHexString("0x003f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
+        Bytes32 trieIndex = Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271");
         byte[] total = Bytes.wrap(address, trieIndex).toArray();
         Bytes result = Bytes.of(LibIpaMultipoint.pedersenHash(total));
-        assertThat(result).isEqualTo(Bytes32.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43"));
+        assertThat(result).isEqualTo(Bytes32.fromHexString("0xff6e8f1877fd27f91772a4cec41d99d2f835d7320e929b8d509c5fa7ce095c51"));
     }
 }
