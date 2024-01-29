@@ -35,7 +35,7 @@ public class CommitRootTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static List<TestData> JsonData() throws IOException {
-        InputStream inputStream = PedersenCommitmentTest.class.getResourceAsStream("/genesis_lvl1_commits.json");
+        InputStream inputStream = PedersenCommitmentTest.class.getResourceAsStream("/commit_root_test.json");
         return objectMapper.readValue(inputStream, new TypeReference<List<TestData>>() {
         });
     }
