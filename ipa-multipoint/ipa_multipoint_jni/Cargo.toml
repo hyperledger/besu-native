@@ -22,8 +22,7 @@ repository = "https://github.com/hyperledger/besu-native"
 edition = "2018"
 
 [dependencies]
-ffi_interface = { git = "https://github.com/crate-crypto/rust-verkle", rev = "ea7d2bd" }
-ipa-multipoint = { git = "https://github.com/crate-crypto/rust-verkle", rev = "ea7d2bd" }
+ffi_interface = { git = "https://github.com/crate-crypto/rust-verkle", rev = "185ccf14678ae4d2277547e2f2615933f10553b5" }
 jni = { version = "0.19.0", features = [
     "invocation",
 ] } # We use invocation in tests.
