@@ -26,15 +26,15 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCallLibrary() {
-        Bytes32 input = Bytes32.fromHexString("0x0cfe0000");
+        Bytes32 input = Bytes32.fromHexString("0x0000fe0c00000000000000000000000000000000000000000000000000000000");
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
         Bytes32 expected = Bytes32.fromHexString("0x11169fb6b9dab0b5984ce0b02c9f2c9a3a5adf6f9a95b597bca42ac2a8d8e89f");
-        assertThat(result).isEqualTo(expected);
+        assertThat(result).isEqualTo(expected.reverse());
     }
 
     @Test
     public void testCallLibraryCommitRoot() {
-        Bytes32 input = Bytes32.fromHexString("0x00e31f7a565a390b48fdd24569ac10d43562d19de37ea951c7f9f250a339d059");
+        Bytes32 input = Bytes32.fromHexString("0x59d039a350f2f9c751a97ee39dd16235d410ac6945d2fd480b395a567a1fe300");
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
         Bytes32 expected = Bytes32.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
         assertThat(result).isEqualTo(expected);
@@ -42,27 +42,28 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCallLibraryWithManyElements() {
-        Bytes32 element = Bytes32.fromHexString("0x0cfe3041fb6512c87922e2146c8308b372f3bf967f889e69ad116ce7c7ec00");
+        Bytes32 element = Bytes32.fromHexString("0x00ecc7e76c11ad699e887f96bff372b308836c14e22279c81265fb4130fe0c00");
         Bytes32[] arr = new Bytes32[128];
         for (int i = 0; i < 128; i++) {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x1b8a1c8c25323f9a58d9221b521f9618e78bb253866de6a3d1c16398678dfa26");
+        Bytes32 expected = Bytes32.fromHexString("0x26fa8d679863c1d1a3e66d8653b28be718961f521b22d9589a3f32258c1c8a1b");
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testCallLibraryWithMaxElements() {
-        Bytes32 element = Bytes32.fromHexString("0x006f20567f74f607d9252186ff8efed04de4578d1ddb3de4fe6c5e4249e0045b");
+        Bytes32 element = Bytes32.fromHexString("0x5b04e049425e6cfee43ddb1d8d57e44dd0fe8eff862125d907f6747f56206f00");
+        Bytes rev = element.reverse();
         Bytes32[] arr = new Bytes32[256];
         for (int i = 0; i < 256; i++) {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x148badc53042581c95e71f21b2b85826bc2f4088e617cd18f488ab664af1d043");
+        Bytes32 expected = Bytes32.fromHexString("0x43d0f14a66ab88f418cd17e688402fbc2658b8b2211fe7951c584230c5ad8b14");
         assertThat(result).isEqualTo(expected);
     }
 
