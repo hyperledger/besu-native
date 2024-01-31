@@ -56,7 +56,6 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibraryWithMaxElements() {
         Bytes32 element = Bytes32.fromHexString("0x5b04e049425e6cfee43ddb1d8d57e44dd0fe8eff862125d907f6747f56206f00");
-        Bytes rev = element.reverse();
         Bytes32[] arr = new Bytes32[256];
         for (int i = 0; i < 256; i++) {
             arr[i] = element;
