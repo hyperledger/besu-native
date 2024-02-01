@@ -41,7 +41,7 @@ public class PedersenCommitmentTest {
             FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())).reverse());
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
-        BigInteger result = Bytes32.wrap(LibIpaMultipoint.commit(input)).toBigInteger(ByteOrder.LITTLE_ENDIAN);
+        BigInteger result = Bytes32.wrap(LibIpaMultipoint.groupToField(LibIpaMultipoint.commit(input))).toBigInteger(ByteOrder.LITTLE_ENDIAN);
         BigInteger expected = new BigInteger(testData.commitment);
         assertThat(result).isEqualTo(expected);
     }
