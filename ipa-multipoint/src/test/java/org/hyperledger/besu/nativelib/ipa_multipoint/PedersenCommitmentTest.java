@@ -14,6 +14,7 @@ import org.hyperledger.besu.nativelib.ipamultipoint.LibIpaMultipoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,10 +38,10 @@ public class PedersenCommitmentTest {
         List<Bytes> FrBytes = new ArrayList<>();
         for (int i = 0 ; i < 256; i++ ) {
             BigInteger decimalBigInt = new BigInteger(testData.frs.get(i));
-            FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())));
+            FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())).reverse());
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
-        BigInteger result = Bytes32.wrap(LibIpaMultipoint.commit(input)).toBigInteger();
+        BigInteger result = Bytes32.wrap(LibIpaMultipoint.commit(input)).toBigInteger(ByteOrder.LITTLE_ENDIAN);
         BigInteger expected = new BigInteger(testData.commitment);
         assertThat(result).isEqualTo(expected);
     }

@@ -51,7 +51,7 @@ public class CommitRootTest {
         List<Bytes> FrBytes = new ArrayList<>();
         for (int i = 0; i < 256; i++) {
             Bytes32 value = Bytes32.fromHexString(testData.frs.get(i));
-            FrBytes.add(value);
+            FrBytes.add(value.reverse());
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
         Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input));
