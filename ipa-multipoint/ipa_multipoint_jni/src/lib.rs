@@ -22,7 +22,7 @@ use once_cell::sync::Lazy;
 
 // TODO: Use a pointer here instead. This is only being used so that the interface does not get changed.
 // TODO: and bindings do not need to be modified.
-pub static CONFIG: Lazy<ffi_interface::Context> = Lazy::new(|| ffi_interface::Context::default());
+pub static CONFIG: Lazy<ffi_interface::Context> = Lazy::new(ffi_interface::Context::default);
 
 /// Pedersen hash receives an address and a trie index and returns a hash calculated this way:
 /// H(constant || address_low || address_high || trie_index_low || trie_index_high)
@@ -86,9 +86,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 
     let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
 
-    let hash = ffi_interface::hash_commitment(commitment);
-
-    env.byte_array_from_slice(&hash)
+    env.byte_array_from_slice(&commitment)
         .expect("Couldn't convert to byte array")
 }
 
@@ -108,6 +106,24 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 
     let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
     let hash = ffi_interface::deprecated_serialize_commitment(commitment);
+
+    env.byte_array_from_slice(&hash)
+        .expect("Couldn't convert to byte array")
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_groupToField(
+    env: JNIEnv,
+    _class: JClass<'_>,
+    input: jbyteArray,
+) -> jbyteArray {
+    let commitment = env
+        .convert_byte_array(input)
+        .expect("Cannot convert jbyteArray to rust array");
+
+    let commitment_bytes = commitment.try_into().unwrap();
+
+    let hash = ffi_interface::hash_commitment(commitment_bytes);
 
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
