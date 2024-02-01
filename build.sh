@@ -339,6 +339,33 @@ EOF
   cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
 }
 
+build_compress() {
+  cat <<EOF
+  ############################
+  ####### build compress #######
+  ############################
+EOF
+
+  cd "$SCRIPTDIR/compress/compress-jni"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/compress/build" || true
+  mkdir -p "$SCRIPTDIR/compress/build/lib"
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+    	LIBRARY_EXTENSION=dll
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    LIBRARY_EXTENSION=so
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    LIBRARY_EXTENSION=dylib
+  fi
+
+  go build -buildmode=c-shared -o libcompress_jni.$LIBRARY_EXTENSION compress-jni.go
+
+  mkdir -p "$SCRIPTDIR/compress/build/${OSARCH}/lib"
+  cp libcompress_jni.* "$SCRIPTDIR/compress/build/${OSARCH}/lib"
+}
+
 build_blake2bf
 build_secp256k1
 build_altbn128
@@ -347,6 +374,7 @@ build_bls12_381
 build_ipa_multipoint
 build_secp256r1
 build_gnark
+build_compress
 
 
 build_jars
