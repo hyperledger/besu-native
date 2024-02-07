@@ -1,5 +1,5 @@
-github.com/consensys/compress v0.2.3 h1:B34qdHCg2t9Ikd2jS2UnrNZPG9I3PTBet6f5fHmG7to=
-github.com/consensys/compress v0.2.3/go.mod h1:Ne8+cGKjqgjF1dlHapZx38pHzWpaBYhsKxQa+JPl0zM=
+github.com/consensys/compress v0.2.4 h1:d6WGZtlrdBCZjGZ76xO236JvYhU1zbb7zhQ1uHdLRoI=
+github.com/consensys/compress v0.2.4/go.mod h1:Ne8+cGKjqgjF1dlHapZx38pHzWpaBYhsKxQa+JPl0zM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/icza/bitio v1.1.0 h1:ysX4vtldjdi3Ygai5m1cWy4oLkhWTAi+SyO6HC8L9T0=
 github.com/icza/bitio v1.1.0/go.mod h1:0jGnlLAx8MKMr9VGnn/4YrvZiprkvBelsVIbA9Jjr9A=

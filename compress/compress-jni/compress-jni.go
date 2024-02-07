@@ -2,6 +2,7 @@ package main
 
 import "C"
 import (
+	"errors"
 	"os"
 	"sync"
 	"unsafe"
@@ -11,8 +12,8 @@ import (
 
 var (
 	compressor *lzss.Compressor
-	lastError  error      // last error that occurred
-	lock       sync.Mutex // for the moment, we only allow one compression at a time
+	lastError  error // last error that occurred
+	lock       sync.Mutex
 )
 
 const compressionLevel = lzss.BestCompression
@@ -47,24 +48,26 @@ func initGo(dictPath string) bool {
 // If an error occurred, returns -1.
 // User must call Error() to get the error message.
 //
+// This function is thread-safe.
+//
 //export CompressedSize
 func CompressedSize(input *C.char, inputLength C.int) C.int {
 	inputSlice := C.GoBytes(unsafe.Pointer(input), inputLength)
-	lock.Lock()
-	defer lock.Unlock()
-	if lastError != nil {
-		return -1
-	}
 
-	// TODO future version of consensys/compress should export
-	// a more efficient method (threadsafe + no need to actually write the result to estimate the size.)
-	c, err := compressor.Compress(inputSlice)
+	n, err := compressor.CompressedSize256k(inputSlice)
 	if err != nil {
-		lastError = err
+		lock.Lock()
+		lastError = errors.Join(lastError, err)
+		lock.Unlock()
 		return -1
 	}
-
-	return C.int(len(c))
+	if n > len(inputSlice) {
+		// this simulates the fallback to "no compression"
+		// this case may happen if the input is not compressible
+		// in which case the compressed size is the input size + the header size
+		n = len(inputSlice) + lzss.HeaderSize
+	}
+	return C.int(n)
 }
 
 // Error returns the last encountered error.
