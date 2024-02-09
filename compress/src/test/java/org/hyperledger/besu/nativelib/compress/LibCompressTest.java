@@ -36,5 +36,13 @@ public class LibCompressTest {
         assertThat(size).isLessThan(10);
     }
 
+    @Test
+    public void testCompressTooLargeInput() {
+        byte[] zeroes = new byte[512*1024];
+        int size = LibCompress.CompressedSize(zeroes, 512*1024);
+
+        // should error --> too large payload.
+        assertThat(size).isLessThan(0);
+    }
 
 }
