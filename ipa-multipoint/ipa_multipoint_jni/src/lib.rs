@@ -128,7 +128,6 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
 }
-<<<<<<< HEAD
 
 /// Update commitment sparse
 /// Expects byteArray of fixed 64bytes for the commitment
@@ -154,5 +153,3 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     env.byte_array_from_slice(&updated_commitment)
         .expect("Couldn't convert to byte array")
 }
-=======
->>>>>>> main
