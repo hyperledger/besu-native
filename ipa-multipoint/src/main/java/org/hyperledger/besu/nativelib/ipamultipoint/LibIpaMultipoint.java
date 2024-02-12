@@ -71,4 +71,14 @@ public class LibIpaMultipoint {
    * @return 32bytes as byte[]
    */
   public static native byte[] pedersenHash(byte[] input);
+
+  /**
+   * Update Commitment sparse
+   * @param input Expects byteArray of fixed 64bytes for the commitment
+   * and dynamic tuple (old_scalar(32 bytes), new_scalar(32 bytes), index(1 byte)) in this sequence
+   * Bytearray is processed with ffi_interface::deserialize_update_commitment_sparse and sent to ffi_interface::update_commitment_sparse.
+   * If Commitment is empty we should pass https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L57
+   * @return Updated commitemnt and return it as 64 bytes.
+   */
+  public static native byte[] updateCommitmentSparse(byte[] input);
 }
