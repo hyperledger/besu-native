@@ -47,16 +47,23 @@ public class LibIpaMultipoint {
    * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
 
    * @param input [Fr,Fr,Fr...]
-   * @return group_to_field(commitment)
+   * @return commitment.to_bytes() - uncompressed serialization
    */
   public static native byte[] commit(byte[] input);
 
   /**
    * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
    * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes()
+   * @return commitment.to_bytes() - compressed serialization
    */
   public static native byte[] commitRoot(byte[] input);
+
+  /**
+   * Serializaes group element to field.
+   * @param input C uncompressed serialization = 64bytes
+   * @return Fr = 32 bytes
+   */
+  public static native byte[] groupToField(byte[] input);
 
   /**
    * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip

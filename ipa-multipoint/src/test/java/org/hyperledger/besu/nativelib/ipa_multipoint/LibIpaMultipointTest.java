@@ -27,8 +27,8 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibrary() {
         Bytes32 input = Bytes32.fromHexString("0x0000fe0c00000000000000000000000000000000000000000000000000000000");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x11169fb6b9dab0b5984ce0b02c9f2c9a3a5adf6f9a95b597bca42ac2a8d8e89f");
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes expected = Bytes.fromHexString("0x0c7f8df856f6860c9f2c6cb0f86c10228e511cca1c4a08263189d629940cb189706cbaa63c436901b6355e10a524337d97688fa5b0cf6b2b91b98e654547f728");
         assertThat(result).isEqualTo(expected.reverse());
     }
 
@@ -48,8 +48,8 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x26fa8d679863c1d1a3e66d8653b28be718961f521b22d9589a3f32258c1c8a1b");
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes expected = Bytes.fromHexString("0x0128b513cfb016d3d836b5fa4a8a1260395d4ca831d65027aa74b832d92e0d6d9beb8d5e42b78b99e4eb233e7eca6276c6f4bd235b35c091546e2a2119bc1455");
         assertThat(result).isEqualTo(expected);
     }
 
@@ -61,8 +61,8 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commit(input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x43d0f14a66ab88f418cd17e688402fbc2658b8b2211fe7951c584230c5ad8b14");
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes expected = Bytes.fromHexString("0xcfb8d6fe536dec3d72ae549a0b58c7d2d119e7dd58adb2663369275307cd5a1f8adafed4044dbdc9ba9fb4f7ea0e44ab14c1c47297633015d175d7dcaffeb843");
         assertThat(result).isEqualTo(expected);
     }
 
