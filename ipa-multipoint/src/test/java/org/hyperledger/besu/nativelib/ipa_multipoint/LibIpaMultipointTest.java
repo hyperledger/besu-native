@@ -77,33 +77,39 @@ public class LibIpaMultipointTest {
     }
 
     @Test
-    public void testUpdateCommitmentSparse() {
+    public void testUpdateCommitmentSparseIdentityCommitment() {
         // Numbers and result is taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L576
         // Identity element
-        byte[] old_commitment = new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        Bytes oldCommitment = Bytes.fromHexString("0x00000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000");
 
-        byte[] old_scalar_new_scalar_index = new byte[]{2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7,
-                2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8};
-        Bytes input = Bytes.concatenate(Bytes.of(old_commitment), Bytes.of(old_scalar_new_scalar_index));
+        Bytes oldScalar1 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
+        Bytes newScalar1 = Bytes.fromHexString("0x1300000000000000000000000000000000000000000000000000000000000000");
+        Bytes index1 = Bytes.fromHexString("0x07");
+
+        Bytes oldScalar2 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
+        Bytes newScalar2 = Bytes.fromHexString("0x1100000000000000000000000000000000000000000000000000000000000000");
+        Bytes index2 = Bytes.fromHexString("0x08");
+
+        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
+
         Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
 
         assertThat(result).isEqualTo(Bytes.fromHexString("6cf7264f1fff79a21b1be098e66e2457f2cba14c36c33a794566f85be8e6c61dc2a29760223e7c568af4ca13a08535d3e66ba7e2dd1e053894f1fdccdc560a54"));
     }
 
     @Test
-    public void testUpdateComSpr() {
+    public void testUpdateCommitmentSparseNonIdentityCommitment() {
+        // These values are taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L494
         Bytes oldCommitment = Bytes.fromHexString("c2a169fe13aab966d6642801727c8534e40b355372890e18a9880f66b88e143a37fe18000aaf81d4536b64ec3266678c56baf81645d4cfd5133a908247ab8445");
+        Bytes oldScalar1 = Bytes.fromHexString("0x0400000000000000000000000000000000000000000000000000000000000000");
+        Bytes newScalar1 = Bytes.fromHexString("0x7f00000000000000000000000000000000000000000000000000000000000000");
+        Bytes index1 = Bytes.fromHexString("0x01");
 
-        byte[] old_scalar_new_scalar_index = new byte[]{4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                -120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2};
+        Bytes oldScalar2 = Bytes.fromHexString("0x0900000000000000000000000000000000000000000000000000000000000000");
+        Bytes newScalar2 = Bytes.fromHexString("0xff00000000000000000000000000000000000000000000000000000000000000");
+        Bytes index2 = Bytes.fromHexString("0x02");
 
-
-        Bytes input = Bytes.concatenate(oldCommitment, Bytes.of(old_scalar_new_scalar_index));
+        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
 
         Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
 
