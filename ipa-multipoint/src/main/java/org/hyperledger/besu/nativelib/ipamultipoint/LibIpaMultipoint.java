@@ -81,4 +81,35 @@ public class LibIpaMultipoint {
    * @return Updated commitemnt and return it as 64 bytes.
    */
   public static native byte[] updateCommitmentSparse(byte[] input);
+
+
+  /**
+   * Receives a tuple (C_i, f_i(X), z_i, y_i)
+   * Where C_i is a commitment to f_i(X) serialized as 32 bytes
+   * f_i(X) is the polynomial serialized as 8192 bytes since we have 256 Fr elements each serialized as 32 bytes
+   * z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+   * y_i is the evaluation of the polynomial at z_i i.e. value we are opening: 32 bytes
+   * Returns a proof serialized as bytes
+   * This function assumes that the domain is always 256 values and commitment is 32bytes.
+   * @param input (C_i: 32bytes, f_i(X): 8192bytes, z_i: 1byte, y_i: 32bytes) tuple of 8257bytes for each opening
+   * @return proof.as_bytes()
+   */
+  public static native byte[] createProof(byte[] input);
+
+
+  /**
+   * Receives a proof and a tuple (C_i, z_i, y_i)
+   * Where C_i is a commitment to f_i(X) serialized as 64 bytes (uncompressed commitment)
+   * z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+   * y_i is the evaluation of the polynomial at z_i i.e value we are opening: 32 bytes or Fr (scalar field element)
+   * Returns true of false.
+   * Proof is verified or not.
+   * Proof bytes are 576 bytes
+   * First 32 bytes is the g_x_comm_bytes
+   * Next 544 bytes are part of IPA proof. Domain size is always 256. Explanation is in IPAProof::from_bytes().
+   * Next N bytes are (Ci: 32bytes, zi: 1byte, yi: 32bytes) tuples of 65bytes for commitments and values we are verifying.
+   * @param input proof.as_bytes()
+   * @return boolean
+   */
+  public static native boolean verifyProof(byte[] input);
 }

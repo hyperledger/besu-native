@@ -16,7 +16,7 @@
 use std::convert::TryInto;
 
 use jni::objects::JClass;
-use jni::sys::jbyteArray;
+use jni::sys::{jboolean, jbyteArray};
 use jni::JNIEnv;
 use once_cell::sync::Lazy;
 
@@ -147,9 +147,61 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 
     let committer = &CONFIG.committer;
 
-    let (old_commitment_bytes,indexes,old_scalars,new_scalars) = ffi_interface::deserialize_update_commitment_sparse(input);
-    let updated_commitment = ffi_interface::update_commitment_sparse(committer, old_commitment_bytes, indexes, old_scalars, new_scalars).unwrap();
+    let (old_commitment_bytes, indexes, old_scalars, new_scalars) =
+        ffi_interface::deserialize_update_commitment_sparse(input);
+    let updated_commitment = ffi_interface::update_commitment_sparse(
+        committer,
+        old_commitment_bytes,
+        indexes,
+        old_scalars,
+        new_scalars,
+    )
+    .unwrap();
 
     env.byte_array_from_slice(&updated_commitment)
         .expect("Couldn't convert to byte array")
+}
+
+/// Receives a tuple (C_i, f_i(X), z_i, y_i)
+/// Where C_i is a commitment to f_i(X) serialized as 32 bytes
+/// f_i(X) is the polynomial serialized as 8192 bytes since we have 256 Fr elements each serialized as 32 bytes
+/// z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+/// y_i is the evaluation of the polynomial at z_i i.e value we are opening: 32 bytes
+/// Returns a proof serialized as bytes
+/// This function assumes that the domain is always 256 values and commitment is 32bytes.
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_createProof(
+    env: JNIEnv,
+    _class: JClass<'_>,
+    input: jbyteArray,
+) -> jbyteArray {
+    let input = env
+        .convert_byte_array(input)
+        .expect("Cannot convert jbyteArray to rust array");
+
+    let result = ffi_interface::create_proof(input);
+
+    env.byte_array_from_slice(&result)
+        .expect("Couldn't convert to byte array")
+}
+
+/// Receives a proof and a tuple (C_i, z_i, y_i)
+/// Where C_i is a commitment to f_i(X) serialized as 64 bytes (uncompressed commitment)
+/// z_i is index of the point in the polynomial: 1 byte (number from 1 to 256)
+/// y_i is the evaluation of the polynomial at z_i i.e value we are opening: 32 bytes or Fr (scalar field element)
+/// Returns true of false.
+/// Proof is verified or not.
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_verifyProof(
+    env: JNIEnv,
+    _class: JClass<'_>,
+    input: jbyteArray,
+) -> jboolean {
+    let input = env
+        .convert_byte_array(input)
+        .expect("Cannot convert jbyteArray to rust array");
+
+    let result = ffi_interface::verify_proof(input);
+
+    result as u8
 }
