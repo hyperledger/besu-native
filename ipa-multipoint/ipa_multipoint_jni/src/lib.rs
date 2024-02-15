@@ -128,3 +128,28 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
 }
+
+/// Update commitment sparse
+/// Expects byteArray of fixed 64bytes for the commitment
+/// and dynamic tuple (old_scalar(32 bytes), new_scalar(32 bytes), index(1 byte)) in this sequence
+/// Bytearray is processed with ffi_interface::deserialize_update_commitment_sparse and sent to ffi_interface::update_commitment_sparse.
+/// We get updated commitemnt and return it as 64 bytes.
+/// If Commitment is empty we should pass https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L57
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_updateCommitmentSparse(
+    env: JNIEnv,
+    _class: JClass<'_>,
+    input: jbyteArray,
+) -> jbyteArray {
+    let input = env
+        .convert_byte_array(input)
+        .expect("Cannot convert jbyteArray to rust array");
+
+    let committer = &CONFIG.committer;
+
+    let (old_commitment_bytes,indexes,old_scalars,new_scalars) = ffi_interface::deserialize_update_commitment_sparse(input);
+    let updated_commitment = ffi_interface::update_commitment_sparse(committer, old_commitment_bytes, indexes, old_scalars, new_scalars).unwrap();
+
+    env.byte_array_from_slice(&updated_commitment)
+        .expect("Couldn't convert to byte array")
+}
