@@ -44,41 +44,41 @@ public class LibIpaMultipoint {
   }
 
   /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
-
-   * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes() - uncompressed serialization
+   * Commit to a vector of values.
+   *
+   * @param byte_size byte size of serialised scalars, at most 32.
+   * @param input vector of `byte_size` bytes serialised scalars.
+   * @return uncompressed serialised commitment.
    */
-  public static native byte[] commit(byte[] input);
-
-  /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
-   * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes() - compressed serialization
-   */
-  public static native byte[] commitRoot(byte[] input);
+  public static native byte[] commit(byte byte_size, byte[] input);
 
   /**
-   * Serializaes group element to field.
-   * @param input C uncompressed serialization = 64bytes
-   * @return Fr = 32 bytes
+   * Commit to a vector of values.
+   *
+   * @param byte_size byte size of serialised scalars, at most 32.
+   * @param input vector of `byte_size` bytes serialised scalars.
+   * @return compressed serialised commitment.
    */
-  public static native byte[] groupToField(byte[] input);
+  public static native byte[] commitCompressed(byte byte_size, byte[] input);
 
   /**
-   * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
-   * @param input Expects 64byte value as input encoded as byte[]
-   * @return 32bytes as byte[]
+   * Compresses a commitment.
+   *
+   * Converts a serialised commitment from uncompressed to compressed form.
+   *
+   * @param input uncompressed serialised commitment.
+   * @return compressed serialised commitment.
    */
-  public static native byte[] pedersenHash(byte[] input);
+  public static native byte[] compressCommitment(byte[] input);
 
   /**
-   * Update Commitment sparse
-   * @param input Expects byteArray of fixed 64bytes for the commitment
-   * and dynamic tuple (old_scalar(32 bytes), new_scalar(32 bytes), index(1 byte)) in this sequence
-   * Bytearray is processed with ffi_interface::deserialize_update_commitment_sparse and sent to ffi_interface::update_commitment_sparse.
-   * If Commitment is empty we should pass https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L57
-   * @return Updated commitemnt and return it as 64 bytes.
+   * Map a vector of commitments to its corresponding vector of scalars.
+   *
+   * The vectorised version is highly optimised, making use of Montgoméry's batch
+   * inversion trick.
+   *
+   * @param input vector of uncompressed serialised commitments
+   * @return vector of serialised scalars
    */
-  public static native byte[] updateCommitmentSparse(byte[] input);
+  public static native byte[] mapCommitmentToScalar(byte[] input);
 }

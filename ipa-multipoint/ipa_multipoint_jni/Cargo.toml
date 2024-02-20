@@ -14,21 +14,20 @@
 
 [package]
 name = "ipa_multipoint_jni"
-version = "0.1.0"
-description = "IPA Multipoint Crypto Library"
+version = "0.1.1"
+description = "JNI for Besu Verkle Tries"
 license = "Apache-2.0"
-authors = ["Antoine Toulme <antoine@lunar-ocean.com>"]
-repository = "https://github.com/hyperledger/besu-native"
-edition = "2018"
+authors = ["Dragan Pilipovic", "Thomas Zamojski <thomas.zamojski@quadratic-labs.com>"]
+repository = "https://github.com/hyperledger/besu-native/ipa-mulitpoint"
+edition = "2021"
 
 [dependencies]
-ffi_interface = { git = "https://github.com/crate-crypto/rust-verkle", rev = "bb5af2f2fe9788d49d2896b9614a3125f8227818" }
-jni = { version = "0.19.0", features = [
-    "invocation",
-] } # We use invocation in tests.
-hex = "0.4.3"
-num-bigint = "0.4.4"
+ark-ed-on-bls12-381-bandersnatch = "0.4.0"
+ark-ff = { version = "^0.4.2", default-features = false }
+banderwagon = { git = "https://github.com/crate-crypto/rust-verkle", rev = "bb5af2f2fe9788d49d2896b9614a3125f8227818" }
+ipa-multipoint = { git = "https://github.com/crate-crypto/rust-verkle", rev = "bb5af2f2fe9788d49d2896b9614a3125f8227818" }
 once_cell = "1.19.0"
+jni = { version = "0.19.0", features = ["invocation"] } # We use invocation in tests.
 
 [lib]
 name = "ipa_multipoint_jni"

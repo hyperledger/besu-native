@@ -25,9 +25,57 @@ import org.hyperledger.besu.nativelib.ipamultipoint.LibIpaMultipoint;
 public class LibIpaMultipointTest {
 
     @Test
+    public void testCommitCompressedZeroes() {
+	Bytes input = Bytes.fromHexString("0x02400000000000000000000000000000");
+        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, input.toArray()));
+        assertThat(result).isEqualTo(Bytes32.fromHexString("0xbf101a6e1c8e83c11bd203a582c7981b91097ec55cbd344ce09005c1f26d1922"));
+    }
+
+    @Test
+    public void testCommitCompressedOnes() {
+	Bytes input0 = Bytes.fromHexString("0x02400000000000000000000000000000");
+	Bytes input1 = Bytes.fromHexString("0x01010101010101010101010101010101");
+	Bytes input = Bytes.wrap(input0, input1, input1, input1, input1);
+        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, input.toArray()));
+        assertThat(result).isEqualTo(Bytes32.fromHexString("0x54427497ffbee0d2511e14ddaf3497e9b5e8438ff17974d06918e0e8ebe8b61a"));
+    }
+
+    @Test
+    public void testTrieKeyAdaptorCommitOnly() {
+	Bytes constant = Bytes.fromHexString("0x02400000000000000000000000000000");
+        // Example of passing address and trieIndex to pedersenHash.
+        Bytes32 address = Bytes32.fromHexString("0xed3f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
+        Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x1C4C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
+        byte[] total = Bytes.wrap(constant, address, trieIndex).toArray();
+        Bytes result = Bytes.of(LibIpaMultipoint.commit((byte) 16, total));
+	Bytes expected = Bytes.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43bc1029fd6e6484bae410d6b5cb7d6223ce054c9d51ad28f76de4fbc6fd55bd73");
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void testCompressCommitTrieKey() {
+	Bytes input = Bytes.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43bc1029fd6e6484bae410d6b5cb7d6223ce054c9d51ad28f76de4fbc6fd55bd73");
+        Bytes result = Bytes.of(LibIpaMultipoint.compressCommitment(input.toArray()));
+	Bytes expected = input.slice(0, 32);
+	assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void testTrieKeyAdaptor() {
+	Bytes constant = Bytes.fromHexString("0x02400000000000000000000000000000");
+        // Example of passing address and trieIndex to pedersenHash.
+        Bytes32 address = Bytes32.fromHexString("0xed3f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
+        Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x1C4C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
+        byte[] total = Bytes.wrap(constant, address, trieIndex).toArray();
+        // Bytes result = Bytes.of(LibIpaMultipoint.mapCommitmentToScalar(LibIpaMultipoint.commit(16, total)));
+        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, total));
+        assertThat(result).isEqualTo(Bytes32.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43"));
+    }
+
+    @Test
     public void testCallLibrary() {
         Bytes32 input = Bytes32.fromHexString("0x0000fe0c00000000000000000000000000000000000000000000000000000000");
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
         Bytes expected = Bytes.fromHexString("0x0c7f8df856f6860c9f2c6cb0f86c10228e511cca1c4a08263189d629940cb189706cbaa63c436901b6355e10a524337d97688fa5b0cf6b2b91b98e654547f728");
         assertThat(result).isEqualTo(expected.reverse());
     }
@@ -35,9 +83,9 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibraryCommitRoot() {
         Bytes32 input = Bytes32.fromHexString("0x59d039a350f2f9c751a97ee39dd16235d410ac6945d2fd480b395a567a1fe300");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitCompressed((byte) 32, input.toArray()));
         Bytes32 expected = Bytes32.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
-        assertThat(result).isEqualTo(expected);
+        assertThat(result).isEqualTo(expected.reverse());
     }
 
     @Test
@@ -48,7 +96,7 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
         Bytes expected = Bytes.fromHexString("0x0128b513cfb016d3d836b5fa4a8a1260395d4ca831d65027aa74b832d92e0d6d9beb8d5e42b78b99e4eb233e7eca6276c6f4bd235b35c091546e2a2119bc1455");
         assertThat(result).isEqualTo(expected);
     }
@@ -61,7 +109,7 @@ public class LibIpaMultipointTest {
             arr[i] = element;
         }
         Bytes input = Bytes.concatenate(arr);
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
         Bytes expected = Bytes.fromHexString("0xcfb8d6fe536dec3d72ae549a0b58c7d2d119e7dd58adb2663369275307cd5a1f8adafed4044dbdc9ba9fb4f7ea0e44ab14c1c47297633015d175d7dcaffeb843");
         assertThat(result).isEqualTo(expected);
     }
@@ -69,51 +117,54 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibraryPedersenHash() {
         // Example of passing address and trieIndex to pedersenHash.
-        Bytes32 address = Bytes32.fromHexString("0x003f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
-        Bytes32 trieIndex = Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271");
-        byte[] total = Bytes.wrap(address, trieIndex).toArray();
-        Bytes result = Bytes.of(LibIpaMultipoint.pedersenHash(total));
+	Bytes input0 = Bytes.fromHexString("0x02400000000000000000000000000000");
+        Bytes32 address = (Bytes32) Bytes32.fromHexString("0x003f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
+        Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
+        byte[] total = Bytes.wrap(input0, address, trieIndex).toArray();
+        // Bytes result = Bytes.of(LibIpaMultipoint.mapCommitmentToScalar(LibIpaMultipoint.commit(16, total)));
+        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, total));
         assertThat(result).isEqualTo(Bytes32.fromHexString("0xff6e8f1877fd27f91772a4cec41d99d2f835d7320e929b8d509c5fa7ce095c51"));
     }
 
-    @Test
-    public void testUpdateCommitmentSparseIdentityCommitment() {
-        // Numbers and result is taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L576
-        // Identity element
-        Bytes oldCommitment = Bytes.fromHexString("0x00000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000");
+    // @Test
+    // public void testUpdateCommitmentSparseIdentityCommitment() {
+    //     // Numbers and result is taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L576
+    //    // Identity element
+    //    Bytes oldCommitment = Bytes.fromHexString("0x00000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000");
 
-        Bytes oldScalar1 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
-        Bytes newScalar1 = Bytes.fromHexString("0x1300000000000000000000000000000000000000000000000000000000000000");
-        Bytes index1 = Bytes.fromHexString("0x07");
+    //    Bytes oldScalar1 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes newScalar1 = Bytes.fromHexString("0x1300000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes index1 = Bytes.fromHexString("0x07");
 
-        Bytes oldScalar2 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
-        Bytes newScalar2 = Bytes.fromHexString("0x1100000000000000000000000000000000000000000000000000000000000000");
-        Bytes index2 = Bytes.fromHexString("0x08");
+    //    Bytes oldScalar2 = Bytes.fromHexString("0x0200000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes newScalar2 = Bytes.fromHexString("0x1100000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes index2 = Bytes.fromHexString("0x08");
 
-        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
+    //    Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
 
-        Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
+    //    Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
 
-        assertThat(result).isEqualTo(Bytes.fromHexString("6cf7264f1fff79a21b1be098e66e2457f2cba14c36c33a794566f85be8e6c61dc2a29760223e7c568af4ca13a08535d3e66ba7e2dd1e053894f1fdccdc560a54"));
-    }
+    //    assertThat(result).isEqualTo(Bytes.fromHexString("6cf7264f1fff79a21b1be098e66e2457f2cba14c36c33a794566f85be8e6c61dc2a29760223e7c568af4ca13a08535d3e66ba7e2dd1e053894f1fdccdc560a54"));
+    //}
 
-    @Test
-    public void testUpdateCommitmentSparseNonIdentityCommitment() {
-        // These values are taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L494
-        Bytes oldCommitment = Bytes.fromHexString("c2a169fe13aab966d6642801727c8534e40b355372890e18a9880f66b88e143a37fe18000aaf81d4536b64ec3266678c56baf81645d4cfd5133a908247ab8445");
-        Bytes oldScalar1 = Bytes.fromHexString("0x0400000000000000000000000000000000000000000000000000000000000000");
-        Bytes newScalar1 = Bytes.fromHexString("0x7f00000000000000000000000000000000000000000000000000000000000000");
-        Bytes index1 = Bytes.fromHexString("0x01");
+    //@Test
+    //public void testUpdateCommitmentSparseNonIdentityCommitment() {
+    //    // These values are taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L494
+    //    Bytes oldCommitment = Bytes.fromHexString("c2a169fe13aab966d6642801727c8534e40b355372890e18a9880f66b88e143a37fe18000aaf81d4536b64ec3266678c56baf81645d4cfd5133a908247ab8445");
+    //    Bytes oldScalar1 = Bytes.fromHexString("0x0400000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes newScalar1 = Bytes.fromHexString("0x7f00000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes index1 = Bytes.fromHexString("0x01");
 
-        Bytes oldScalar2 = Bytes.fromHexString("0x0900000000000000000000000000000000000000000000000000000000000000");
-        Bytes newScalar2 = Bytes.fromHexString("0xff00000000000000000000000000000000000000000000000000000000000000");
-        Bytes index2 = Bytes.fromHexString("0x02");
+    //    Bytes oldScalar2 = Bytes.fromHexString("0x0900000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes newScalar2 = Bytes.fromHexString("0xff00000000000000000000000000000000000000000000000000000000000000");
+    //    Bytes index2 = Bytes.fromHexString("0x02");
 
-        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
+    //    Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
 
-        Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
+    //    Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
 
-        assertThat(result).isEqualTo(Bytes.fromHexString("2dd3bb69da79ecd91a74b188bfddc74827a995dec07e5308f8215f08d69e77330b11628c6d3313a7781b74850e64cb6ac706290da79e56ff311a10214d14dc36"));
+    //    assertThat(result).isEqualTo(Bytes.fromHexString("2dd3bb69da79ecd91a74b188bfddc74827a995dec07e5308f8215f08d69e77330b11628c6d3313a7781b74850e64cb6ac706290da79e56ff311a10214d14dc36"));
 
-    }
+    //}
 }
+
