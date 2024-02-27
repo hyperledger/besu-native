@@ -1,4 +1,8 @@
-use ipa_multipoint::committer::DefaultCommitter;
+use crate::traits::*;
+use crate::types::*;
+
+use banderwagon::Fr;
+use ipa_multipoint::committer::{DefaultCommitter, Committer};
 use ipa_multipoint::crs::CRS;
 use ipa_multipoint::lagrange_basis::PrecomputedWeights;
 
@@ -38,3 +42,32 @@ impl Context {
     }
 }
 
+impl Committable for Context {
+    fn commit(&self, values: Vec<ScalarBytes>) -> CommitmentBytes {
+        let frs: Vec<Fr> = values.iter().map(|x| x.to_scalar()).collect();
+        // CommitmentBytes::from(self.committer.commit_lagrange(&frs))
+        self.committer.commit_lagrange(&frs).into()
+    }
+
+    fn commit_sparse(&self, values: Vec<(ScalarBytes, u8)>) -> CommitmentBytes {
+        let frs: Vec<(Fr, usize)> = values.iter()
+            .map(|(s, i)| (s.to_scalar(), *i as usize))
+            .collect();
+        CommitmentBytes::from(self.committer.commit_sparse(frs))
+    }
+}
+
+impl Updatable for Context {
+    fn update(&self, commitment: CommitmentBytes, value: ScalarEdit) -> CommitmentBytes {
+        let old_commitment = commitment.to_element();
+        let delta_commitment = self.committer.scalar_mul(value.to_scalar(), value.index as usize);
+        CommitmentBytes::from(old_commitment + delta_commitment)
+    }
+
+    fn update_sparse(&self, commitment: CommitmentBytes, values: Vec<ScalarEdit>) -> CommitmentBytes {
+        let old_commitment = commitment.to_element();
+        let deltas: Vec<(Fr, usize)> = values.iter().map(|x| x.to_tuple()).collect();
+        let delta_commitment = self.committer.commit_sparse(deltas);
+        CommitmentBytes::from(old_commitment + delta_commitment)
+    }
+}

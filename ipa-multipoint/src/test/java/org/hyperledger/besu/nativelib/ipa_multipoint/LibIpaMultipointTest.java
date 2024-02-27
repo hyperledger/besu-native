@@ -26,9 +26,9 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCommitCompressedZeroes() {
-	Bytes input = Bytes.fromHexString("0x02400000000000000000000000000000");
-        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, input.toArray()));
-        assertThat(result).isEqualTo(Bytes32.fromHexString("0xbf101a6e1c8e83c11bd203a582c7981b91097ec55cbd344ce09005c1f26d1922"));
+	Bytes input = Bytes.fromHexString("0x9002400000000000000000000000000000");
+    Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(input.toArray()));
+    assertThat(result).isEqualTo(Bytes.fromHexString("0xa0bf101a6e1c8e83c11bd203a582c7981b91097ec55cbd344ce09005c1f26d1922"));
     }
 
     @Test
@@ -36,7 +36,7 @@ public class LibIpaMultipointTest {
 	Bytes input0 = Bytes.fromHexString("0x02400000000000000000000000000000");
 	Bytes input1 = Bytes.fromHexString("0x01010101010101010101010101010101");
 	Bytes input = Bytes.wrap(input0, input1, input1, input1, input1);
-        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, input.toArray()));
+        Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(input.toArray()));
         assertThat(result).isEqualTo(Bytes32.fromHexString("0x54427497ffbee0d2511e14ddaf3497e9b5e8438ff17974d06918e0e8ebe8b61a"));
     }
 
@@ -47,7 +47,7 @@ public class LibIpaMultipointTest {
         Bytes32 address = Bytes32.fromHexString("0xed3f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
         Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x1C4C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
         byte[] total = Bytes.wrap(constant, address, trieIndex).toArray();
-        Bytes result = Bytes.of(LibIpaMultipoint.commit((byte) 16, total));
+        Bytes result = Bytes.of(LibIpaMultipoint.commit(total));
 	Bytes expected = Bytes.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43bc1029fd6e6484bae410d6b5cb7d6223ce054c9d51ad28f76de4fbc6fd55bd73");
         assertThat(result).isEqualTo(expected);
     }
@@ -55,7 +55,7 @@ public class LibIpaMultipointTest {
     @Test
     public void testCompressCommitTrieKey() {
 	Bytes input = Bytes.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43bc1029fd6e6484bae410d6b5cb7d6223ce054c9d51ad28f76de4fbc6fd55bd73");
-        Bytes result = Bytes.of(LibIpaMultipoint.compressCommitment(input.toArray()));
+        Bytes result = Bytes.of(LibIpaMultipoint.toCompressed(input.toArray()));
 	Bytes expected = input.slice(0, 32);
 	assertThat(result).isEqualTo(expected);
     }
@@ -68,36 +68,48 @@ public class LibIpaMultipointTest {
         Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x1C4C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
         byte[] total = Bytes.wrap(constant, address, trieIndex).toArray();
         // Bytes result = Bytes.of(LibIpaMultipoint.mapCommitmentToScalar(LibIpaMultipoint.commit(16, total)));
-        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, total));
+        Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(total));
         assertThat(result).isEqualTo(Bytes32.fromHexString("0x2e50716b7d8c6d13d6005ea248f63f5a11ed63318cad38010f4bcb9a9c2e8b43"));
     }
 
     @Test
-    public void testCallLibrary() {
-        Bytes32 input = Bytes32.fromHexString("0x0000fe0c00000000000000000000000000000000000000000000000000000000");
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
-        Bytes expected = Bytes.fromHexString("0x0c7f8df856f6860c9f2c6cb0f86c10228e511cca1c4a08263189d629940cb189706cbaa63c436901b6355e10a524337d97688fa5b0cf6b2b91b98e654547f728");
-        assertThat(result).isEqualTo(expected.reverse());
+    public void testCallLibraryCommit() {
+        Bytes inHeader = Bytes.fromHexString("0xe1a0");
+        Bytes inPayload = Bytes.fromHexString("0x0000fe0c00000000000000000000000000000000000000000000000000000000");
+        Bytes input = Bytes.concatenate(inHeader, inPayload);
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes exHeader = Bytes.fromHexString("0xb840");
+        Bytes exPayload = Bytes.fromHexString("0x28f74745658eb9912b6bcfb0a58f68977d3324a5105e35b60169433ca6ba6c7089b10c9429d6893126084a1cca1c518e22106cf8b06c2c9f0c86f656f88d7f0c");
+        Bytes expected = Bytes.concatenate(exHeader, exPayload);
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
-    public void testCallLibraryCommitRoot() {
-        Bytes32 input = Bytes32.fromHexString("0x59d039a350f2f9c751a97ee39dd16235d410ac6945d2fd480b395a567a1fe300");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitCompressed((byte) 32, input.toArray()));
-        Bytes32 expected = Bytes32.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
-        assertThat(result).isEqualTo(expected.reverse());
+    public void testCallLibraryCommitAsCompressed() {
+        Bytes inHeader = Bytes.fromHexString("0xe1a0");
+        Bytes inPayload = Bytes.fromHexString("0x59d039a350f2f9c751a97ee39dd16235d410ac6945d2fd480b395a567a1fe300");
+        Bytes input = Bytes.concatenate(inHeader, inPayload);
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commitAsCompressed(input.toArray()));
+        Bytes exHeader = Bytes.fromHexString("0xa0");
+        Bytes exPayload = Bytes.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
+        Bytes expected = Bytes.concatenate(exHeader, exPayload);
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testCallLibraryWithManyElements() {
-        Bytes32 element = Bytes32.fromHexString("0x00ecc7e76c11ad699e887f96bff372b308836c14e22279c81265fb4130fe0c00");
-        Bytes32[] arr = new Bytes32[128];
+        Bytes element = Bytes.fromHexString("0x00ecc7e76c11ad699e887f96bff372b308836c14e22279c81265fb4130fe0c");
+        Bytes[] arr = new Bytes[128];
         for (int i = 0; i < 128; i++) {
             arr[i] = element;
         }
-        Bytes input = Bytes.concatenate(arr);
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
-        Bytes expected = Bytes.fromHexString("0x0128b513cfb016d3d836b5fa4a8a1260395d4ca831d65027aa74b832d92e0d6d9beb8d5e42b78b99e4eb233e7eca6276c6f4bd235b35c091546e2a2119bc1455");
+        Bytes inHeader = Bytes.fromHexString("0xc21000");
+        Bytes inPayload = Bytes.concatenate(arr);
+        Bytes input = Bytes.concatenate(inHeader, inPayload);
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes exHeader = Bytes.fromHexString("0xb840");
+        Bytes exPayload = Bytes.fromHexString("0x0128b513cfb016d3d836b5fa4a8a1260395d4ca831d65027aa74b832d92e0d6d9beb8d5e42b78b99e4eb233e7eca6276c6f4bd235b35c091546e2a2119bc1455");
+        Bytes expected = Bytes.concatenate(exHeader, exPayload);
         assertThat(result).isEqualTo(expected);
     }
 
@@ -108,22 +120,37 @@ public class LibIpaMultipointTest {
         for (int i = 0; i < 256; i++) {
             arr[i] = element;
         }
-        Bytes input = Bytes.concatenate(arr);
-        Bytes result = Bytes.wrap(LibIpaMultipoint.commit((byte) 32, input.toArray()));
-        Bytes expected = Bytes.fromHexString("0xcfb8d6fe536dec3d72ae549a0b58c7d2d119e7dd58adb2663369275307cd5a1f8adafed4044dbdc9ba9fb4f7ea0e44ab14c1c47297633015d175d7dcaffeb843");
+        Bytes inHeader = Bytes.fromHexString("0xc22100");
+        Bytes inPayload = Bytes.concatenate(arr);
+        Bytes input = Bytes.concatenate(inHeader, inPayload);
+        Bytes result = Bytes.wrap(LibIpaMultipoint.commit(input.toArray()));
+        Bytes exHeader = Bytes.fromHexString("0xb840");
+        Bytes exPayload = Bytes.fromHexString("0xcfb8d6fe536dec3d72ae549a0b58c7d2d119e7dd58adb2663369275307cd5a1f8adafed4044dbdc9ba9fb4f7ea0e44ab14c1c47297633015d175d7dcaffeb843");
+        Bytes expected = Bytes.concatenate(exHeader, exPayload);
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testCallLibraryPedersenHash() {
         // Example of passing address and trieIndex to pedersenHash.
-	Bytes input0 = Bytes.fromHexString("0x02400000000000000000000000000000");
+        Bytes header2 = Bytes.fromHexString("0x82");
+	    Bytes input0 = Bytes.fromHexString("0x0240");
+        Bytes header16 = Bytes.fromHexString("0x90");
         Bytes32 address = (Bytes32) Bytes32.fromHexString("0x003f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
         Bytes32 trieIndex = (Bytes32) Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271").reverse();
-        byte[] total = Bytes.wrap(input0, address, trieIndex).toArray();
+        byte[] total = Bytes.concatenate(
+            header2, input0,
+            header16, address.slice(0, 16),
+            header16, address.slice(16, 16),
+            header16, trieIndex.slice(0, 16),
+            header16, trieIndex.slice(16, 16)
+        ).toArray();
         // Bytes result = Bytes.of(LibIpaMultipoint.mapCommitmentToScalar(LibIpaMultipoint.commit(16, total)));
-        Bytes result = Bytes.of(LibIpaMultipoint.commitCompressed((byte) 16, total));
-        assertThat(result).isEqualTo(Bytes32.fromHexString("0xff6e8f1877fd27f91772a4cec41d99d2f835d7320e929b8d509c5fa7ce095c51"));
+        Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(total));
+        Bytes exHeader = Bytes.fromHexString("0xa0");
+        Bytes exPayload = Bytes32.fromHexString("0xff6e8f1877fd27f91772a4cec41d99d2f835d7320e929b8d509c5fa7ce095c51");
+        Bytes expected = Bytes.concatenate(exHeader, exPayload);
+        assertThat(result).isEqualTo(expected);
     }
 
     // @Test

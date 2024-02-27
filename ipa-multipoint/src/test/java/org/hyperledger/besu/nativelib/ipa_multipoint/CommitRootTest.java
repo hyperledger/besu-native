@@ -48,13 +48,16 @@ public class CommitRootTest {
     @ParameterizedTest
     @MethodSource("JsonData")
     public void TestPolynomialCommitments(TestData testData) {
+        Bytes frHeader = Bytes.fromHexString("0xa0");
         List<Bytes> FrBytes = new ArrayList<>();
         for (int i = 0; i < 256; i++) {
             Bytes32 value = Bytes32.fromHexString(testData.frs.get(i));
-            FrBytes.add(value.reverse());
+            FrBytes.add(Bytes.concatenate(frHeader, value.reverse()));
         }
-        byte[] input = Bytes.concatenate(FrBytes).toArray();
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitCompressed((byte) 32, input));
+        Bytes inHeader = Bytes.fromHexString("0xf92100");
+        Bytes inPayload = Bytes.concatenate(FrBytes);
+        byte[] input = Bytes.concatenate(inHeader, inPayload).toArray();
+        Bytes32 result = (Bytes32) Bytes.wrap(LibIpaMultipoint.commitAsCompressed(input)).slice(1);
         Bytes32 expected = Bytes32.fromHexString(testData.expected);
         assertThat(result).isEqualTo(expected.reverse());
     }

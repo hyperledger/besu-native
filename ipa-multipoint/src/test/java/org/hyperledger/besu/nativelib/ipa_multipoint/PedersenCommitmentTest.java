@@ -35,13 +35,16 @@ public class PedersenCommitmentTest {
     @ParameterizedTest
     @MethodSource("JsonData")
     public void TestPolynomialCommitments(TestData testData) {
+        Bytes frHeader = Bytes.fromHexString("0xa0");
         List<Bytes> FrBytes = new ArrayList<>();
         for (int i = 0 ; i < 256; i++ ) {
             BigInteger decimalBigInt = new BigInteger(testData.frs.get(i));
-            FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())).reverse());
+            FrBytes.add(Bytes.concatenate(frHeader, Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())).reverse()));
         }
-        byte[] input = Bytes.concatenate(FrBytes).toArray();
-        BigInteger result = Bytes32.wrap(LibIpaMultipoint.mapCommitmentToScalar(LibIpaMultipoint.commit((byte) 32, input))).toBigInteger(ByteOrder.LITTLE_ENDIAN);
+        Bytes inHeader = Bytes.fromHexString("0xf92100");
+        Bytes inPayload = Bytes.concatenate(FrBytes);
+        byte[] input = Bytes.concatenate(inHeader, inPayload).toArray();
+        BigInteger result = Bytes32.wrap(LibIpaMultipoint.toScalars(LibIpaMultipoint.commit(input))).slice(1).toBigInteger(ByteOrder.LITTLE_ENDIAN);
         BigInteger expected = new BigInteger(testData.commitment);
         assertThat(result).isEqualTo(expected);
     }
