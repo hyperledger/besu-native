@@ -44,7 +44,9 @@ public class PedersenCommitmentTest {
         Bytes inHeader = Bytes.fromHexString("0xf92100");
         Bytes inPayload = Bytes.concatenate(FrBytes);
         byte[] input = Bytes.concatenate(inHeader, inPayload).toArray();
-        BigInteger result = Bytes32.wrap(LibIpaMultipoint.toScalars(LibIpaMultipoint.commit(input))).slice(1).toBigInteger(ByteOrder.LITTLE_ENDIAN);
+        Bytes commitment = Bytes.wrap(LibIpaMultipoint.commit(input));
+        Bytes commitments = Bytes.concatenate(Bytes.fromHexString("0xf842"), commitment);
+        BigInteger result = Bytes.wrap(LibIpaMultipoint.toScalars(commitments.toArray())).slice(1).toBigInteger(ByteOrder.LITTLE_ENDIAN);
         BigInteger expected = new BigInteger(testData.commitment);
         assertThat(result).isEqualTo(expected);
     }
