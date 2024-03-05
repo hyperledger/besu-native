@@ -26,14 +26,14 @@ public class LibIpaMultipointTest {
 
     @Test
     public void testCommitCompressedZeroes() {
-	    Bytes input = Bytes.fromHexString("0xd1" + "90" + "02400000000000000000000000000000");
+	Bytes input = Bytes.fromHexString("0xd1" + "90" + "02400000000000000000000000000000");
         Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(input.toArray()));
         assertThat(result).isEqualTo(Bytes.fromHexString("0xa0" + "bf101a6e1c8e83c11bd203a582c7981b91097ec55cbd344ce09005c1f26d1922"));
     }
 
     @Test
     public void testCommitCompressedZeroesTiny() {
-	    Bytes input = Bytes.fromHexString("0xc3" + "82" + "0240");
+        Bytes input = Bytes.fromHexString("0xc3" + "82" + "0240");
         Bytes result = Bytes.of(LibIpaMultipoint.commitAsCompressed(input.toArray()));
         assertThat(result).isEqualTo(Bytes.fromHexString("0xa0" + "bf101a6e1c8e83c11bd203a582c7981b91097ec55cbd344ce09005c1f26d1922"));
     }

@@ -12,18 +12,10 @@ pub struct CommitmentBytesCompressed(pub(crate) [u8; 32]);
 #[derive(Clone, Copy, Debug)]
 pub struct ScalarBytes(pub(crate) [u8; 32]);
 
-
 /// Data for a commitment update
 #[derive(Clone, Copy, Debug)]
 pub struct ScalarEdit {
     pub index: u8,
     pub old: ScalarBytes,
     pub new: ScalarBytes,
-}
-
-/// Data for a commitment update
-#[derive(Clone, Debug)]
-pub struct UpdateSparseInput {
-    pub current: CommitmentBytes,
-    pub values: Vec<ScalarEdit>,
 }

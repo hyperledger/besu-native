@@ -82,6 +82,27 @@ public class LibIpaMultipoint {
   public static native byte[] toCompressed(byte[] input);
 
   /**
+   * Compresses many commitments.
+   *
+   * Converts a serialised commitment from uncompressed to compressed form.
+   *
+   * @param input uncompressed serialised commitment.
+   * @return compressed serialised commitment.
+   */
+  public static native byte[] toCompressedVec(byte[] input);
+
+  /**
+   * Convert a commitment to its corresponding scalar.
+   *
+   * The vectorised version is highly optimised, making use of Montgoméry's batch
+   * inversion trick.
+   *
+   * @param input vector of uncompressed serialised commitments
+   * @return vector of serialised scalars
+   */
+  public static native byte[] toScalar(byte[] input);
+
+  /**
    * Map a vector of commitments to its corresponding vector of scalars.
    *
    * The vectorised version is highly optimised, making use of Montgoméry's batch
@@ -90,5 +111,5 @@ public class LibIpaMultipoint {
    * @param input vector of uncompressed serialised commitments
    * @return vector of serialised scalars
    */
-  public static native byte[] toScalars(byte[] input);
+  public static native byte[] toScalarVec(byte[] input);
 }

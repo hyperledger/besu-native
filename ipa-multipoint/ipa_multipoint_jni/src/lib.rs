@@ -192,7 +192,67 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 }
 
 #[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_toScalars(
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_toCompressedVec(
+    env: JNIEnv, _class: JClass<'_>, commitments: jbyteArray
+) -> jbyteArray {
+    let input = match env.convert_byte_array(commitments) {
+        Ok(s) => s,
+        Err(_) => {
+            env.throw_new(
+                "java/lang/IllegalArgumentException",
+                "Invalid input: could not convert to bytes.")
+               .expect("Failed to throw exception for commit inputs.");
+            return std::ptr::null_mut();
+        }
+    };
+    let commitments: Vec<CommitmentBytes> = decode_list(&input);
+    let compressed: Vec<CommitmentBytesCompressed> = commitments.iter().map(|x| x.compress()).collect();
+    let out = encode_list(&compressed);
+    let result = match env.byte_array_from_slice(&out) {
+        Ok(s) => s,
+        Err(_) => {
+            env.throw_new(
+                "java/lang/IllegalArgumentException",
+                "Invalid commitment output. Couldn't convert to byte array.")
+            .expect("Couldn't convert to byte array");
+            return std::ptr::null_mut();
+        }
+    };
+    result
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_toScalar(
+    env: JNIEnv, _class: JClass<'_>, commitment: jbyteArray
+) -> jbyteArray {
+    let commitment = match env.convert_byte_array(commitment) {
+        Ok(s) => s,
+        Err(_) => {
+            env.throw_new(
+                "java/lang/IllegalArgumentException",
+                "Invalid input: could not convert to bytes.")
+               .expect("Failed to throw exception for commit inputs.");
+            return std::ptr::null_mut();
+        }
+    };
+    let commitment: CommitmentBytes = decode(&commitment).expect("Commitment decode error");
+    let scalar = commitment.to_scalar();
+    let out = encode(&ScalarBytes::from(&scalar));
+    let result = match env.byte_array_from_slice(&out) {
+        Ok(s) => s,
+        Err(_) => {
+            env.throw_new(
+                "java/lang/IllegalArgumentException",
+                "Invalid commitment output. Couldn't convert to byte array.")
+            .expect("Couldn't convert to byte array");
+            return std::ptr::null_mut();
+        }
+    };
+    result
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_toScalarVec(
     env: JNIEnv, _class: JClass<'_>, commitments: jbyteArray
 ) -> jbyteArray {
     let input = match env.convert_byte_array(commitments) {
