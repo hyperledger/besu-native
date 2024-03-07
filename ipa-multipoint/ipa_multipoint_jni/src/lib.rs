@@ -24,49 +24,6 @@ use once_cell::sync::Lazy;
 // TODO: and bindings do not need to be modified.
 pub static CONFIG: Lazy<ffi_interface::Context> = Lazy::new(ffi_interface::Context::default);
 
-/// Pedersen hash receives an address and a trie index and returns a hash calculated this way:
-/// H(constant || address_low || address_high || trie_index_low || trie_index_high)
-/// where constant = 2 + 256*64
-/// address_low = lower 16 bytes of the address interpreted as a little endian integer
-/// address_high = higher 16 bytes of the address interpreted as a little endian integer
-/// trie_index_low = lower 16 bytes of the trie index
-/// trie_index_high = higher 16 bytes of the trie index
-/// The result is a 256 bit hash
-/// This is ported from rust-verkle/verkle-specs
-#[no_mangle]
-pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_pedersenHash(
-    env: JNIEnv,
-    _class: JClass,
-    input: jbyteArray,
-) -> jbyteArray {
-    let input = env.convert_byte_array(input).unwrap();
-
-    let mut input: [u8; 64] = match input.try_into() {
-        Ok(input) => input,
-        Err(_) => {
-            env.throw_new(
-                "java/lang/IllegalArgumentException",
-                "Invalid input length. Should be 64-bytes.",
-            )
-            .expect("Failed to throw exception");
-            return std::ptr::null_mut(); // Return null pointer to indicate an error
-        }
-    };
-
-    // The tree_index is interpreted as a little endian integer
-    // But its given in big endian format.
-    // The tree_index is the last 32 bytes of the input,
-    // so we use this method to reverse its endian
-    fn reverse_last_32_bytes(arr: &mut [u8; 64]) {
-        let last_32 = &mut arr[32..];
-        last_32.reverse();
-    }
-    reverse_last_32_bytes(&mut input);
-
-    let hash = ffi_interface::get_tree_key_hash_flat_input(&CONFIG, input);
-    env.byte_array_from_slice(&hash).unwrap()
-}
-
 /// Commit receives a list of 32 byte scalars and returns a 32 byte scalar
 /// Scalar is actually the map_to_field(commitment) because we want to reuse the commitment in parent node.
 /// This is ported from rust-verkle.
