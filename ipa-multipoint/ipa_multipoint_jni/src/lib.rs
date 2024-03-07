@@ -41,8 +41,6 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 ) -> jbyteArray {
     let input = env.convert_byte_array(input).unwrap();
 
-    let committer = &CONFIG.committer;
-
     let mut input: [u8; 64] = match input.try_into() {
         Ok(input) => input,
         Err(_) => {
@@ -65,7 +63,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     }
     reverse_last_32_bytes(&mut input);
 
-    let hash = ffi_interface::get_tree_key_hash_flat_input(committer, input);
+    let hash = ffi_interface::get_tree_key_hash_flat_input(&CONFIG, input);
     env.byte_array_from_slice(&hash).unwrap()
 }
 
@@ -82,9 +80,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         .convert_byte_array(input)
         .expect("Cannot convert jbyteArray to rust array");
 
-    let committer = &CONFIG.committer;
-
-    let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
+    let commitment = ffi_interface::commit_to_scalars(&CONFIG, &input).unwrap();
 
     env.byte_array_from_slice(&commitment)
         .expect("Couldn't convert to byte array")
@@ -102,10 +98,8 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         .convert_byte_array(input)
         .expect("Cannot convert jbyteArray to rust array");
 
-    let committer = &CONFIG.committer;
-
-    let commitment = ffi_interface::commit_to_scalars(committer, &input).unwrap();
-    let hash = ffi_interface::deprecated_serialize_commitment(commitment);
+    let commitment = ffi_interface::commit_to_scalars(&CONFIG, &input).unwrap();
+    let hash = ffi_interface::serialize_commitment(commitment);
 
     env.byte_array_from_slice(&hash)
         .expect("Couldn't convert to byte array")
@@ -145,10 +139,26 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         .convert_byte_array(input)
         .expect("Cannot convert jbyteArray to rust array");
 
-    let committer = &CONFIG.committer;
-
-    let (old_commitment_bytes,indexes,old_scalars,new_scalars) = ffi_interface::deserialize_update_commitment_sparse(input);
-    let updated_commitment = ffi_interface::update_commitment_sparse(committer, old_commitment_bytes, indexes, old_scalars, new_scalars).unwrap();
+    let (old_commitment_bytes, indexes, old_scalars, new_scalars) =
+        match ffi_interface::deserialize_update_commitment_sparse(input) {
+            Ok(decomposed_input) => decomposed_input,
+            Err(err) => {
+                env.throw_new(
+                    "java/text/ParseException",
+                    format!("Could not deserialize the input, error : {:?}", err),
+                )
+                .expect("Failed to throw exception");
+                return std::ptr::null_mut(); // Return null pointer to indicate an error
+            }
+        };
+    let updated_commitment = ffi_interface::update_commitment_sparse(
+        &CONFIG,
+        old_commitment_bytes,
+        indexes,
+        old_scalars,
+        new_scalars,
+    )
+    .unwrap();
 
     env.byte_array_from_slice(&updated_commitment)
         .expect("Couldn't convert to byte array")
