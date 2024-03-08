@@ -37,12 +37,12 @@ public class PedersenCommitmentTest {
     public void TestPolynomialCommitments(TestData testData) {
         List<Bytes> FrBytes = new ArrayList<>();
         for (int i = 0 ; i < 256; i++ ) {
-            BigInteger decimalBigInt = new BigInteger(testData.frs.get(i));
-            FrBytes.add(Bytes32.leftPad(Bytes.wrap(decimalBigInt.toByteArray())).reverse());
+            Bytes32 value = Bytes32.fromHexString(testData.frs.get(i));
+            FrBytes.add(value);
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
-        BigInteger result = Bytes32.wrap(LibIpaMultipoint.groupToField(LibIpaMultipoint.commit(input))).toBigInteger(ByteOrder.LITTLE_ENDIAN);
-        BigInteger expected = new BigInteger(testData.commitment);
+        Bytes result = Bytes.wrap(LibIpaMultipoint.hash(LibIpaMultipoint.commit(input)));
+        Bytes expected = Bytes.fromHexString(testData.commitment);
         assertThat(result).isEqualTo(expected);
     }
 }

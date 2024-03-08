@@ -54,7 +54,7 @@ public class CommitRootTest {
             FrBytes.add(value.reverse());
         }
         byte[] input = Bytes.concatenate(FrBytes).toArray();
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input));
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitAsCompressed(input));
         Bytes32 expected = Bytes32.fromHexString(testData.expected);
         assertThat(result).isEqualTo(expected);
     }
