@@ -66,13 +66,6 @@ public class LibIpaMultipoint {
   public static native byte[] groupToField(byte[] input);
 
   /**
-   * Pedersen hash as specified in https://notes.ethereum.org/@vbuterin/verkle_tree_eip
-   * @param input Expects 64byte value as input encoded as byte[]
-   * @return 32bytes as byte[]
-   */
-  public static native byte[] pedersenHash(byte[] input);
-
-  /**
    * Update Commitment sparse
    * @param input Expects byteArray of fixed 64bytes for the commitment
    * and dynamic tuple (old_scalar(32 bytes), new_scalar(32 bytes), index(1 byte)) in this sequence

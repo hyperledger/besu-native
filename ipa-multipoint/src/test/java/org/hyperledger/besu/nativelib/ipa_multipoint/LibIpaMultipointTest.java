@@ -67,16 +67,6 @@ public class LibIpaMultipointTest {
     }
 
     @Test
-    public void testCallLibraryPedersenHash() {
-        // Example of passing address and trieIndex to pedersenHash.
-        Bytes32 address = Bytes32.fromHexString("0x003f9549040250ec5cdef31947e5213edee80ad2d5bba35c9e48246c5d9213d6");
-        Bytes32 trieIndex = Bytes32.fromHexString("0x004C6CE0115457AC1AB82968749EB86ED2D984743D609647AE88299989F91271");
-        byte[] total = Bytes.wrap(address, trieIndex).toArray();
-        Bytes result = Bytes.of(LibIpaMultipoint.pedersenHash(total));
-        assertThat(result).isEqualTo(Bytes32.fromHexString("eeda254375eea77b9f8904610c79ecbe039c2a63b064c453fd8910f7055ced10"));
-    }
-
-    @Test
     public void testUpdateCommitmentSparseIdentityCommitment() {
         // Numbers and result is taken from: https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L576
         // Identity element
