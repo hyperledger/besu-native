@@ -46,17 +46,15 @@ public class LibIpaMultipoint {
   /**
    * Commit to a vector of values.
    *
-   * @param byte_size byte size of serialised scalars, at most 32.
-   * @param input vector of `byte_size` bytes serialised scalars.
+   * @param values vector of serialised scalars to commit to.
    * @return uncompressed serialised commitment.
    */
   public static native byte[] commit(byte[] values);
 
   /**
-   * Commit to a vector of values.
+   * Commit to a vector of values and compress commitment.
    *
-   * @param byte_size byte size of serialised scalars, at most 32.
-   * @param input vector of `byte_size` bytes serialised scalars.
+   * @param values vector of serialised scalars to commit to.
    * @return compressed serialised commitment.
    */
   public static native byte[] commitAsCompressed(byte[] values);
@@ -64,10 +62,11 @@ public class LibIpaMultipoint {
   /**
    * Update a commitment with a sparse vector.
    *
-   * Converts a serialised commitment from uncompressed to compressed form.
-   *
-   * @param input uncompressed serialised commitment.
-   * @return compressed serialised commitment.
+   * @param commitment uncompressed serialised commitment.
+   * @param indices indices in value vector to update.
+   * @param oldValues old serialised scalars to update.
+   * @param newValues new serialised scalars.
+   * @return uncompressed serialised commitment.
    */
   public static native byte[] updateSparse(byte[] commitment, byte[] indices, byte[] oldValues, byte[] newValues);
 
@@ -76,7 +75,7 @@ public class LibIpaMultipoint {
    *
    * Converts a serialised commitment from uncompressed to compressed form.
    *
-   * @param input uncompressed serialised commitment.
+   * @param commitment uncompressed serialised commitment.
    * @return compressed serialised commitment.
    */
   public static native byte[] compress(byte[] commitment);
@@ -86,19 +85,16 @@ public class LibIpaMultipoint {
    *
    * Converts a serialised commitment from uncompressed to compressed form.
    *
-   * @param input uncompressed serialised commitment.
-   * @return compressed serialised commitment.
+   * @param commitments uncompressed serialised commitments.
+   * @return compressed serialised commitments.
    */
   public static native byte[] compressMany(byte[] commitments);
 
   /**
    * Convert a commitment to its corresponding scalar.
    *
-   * The vectorised version is highly optimised, making use of Montgoméry's batch
-   * inversion trick.
-   *
-   * @param input vector of uncompressed serialised commitments
-   * @return vector of serialised scalars
+   * @param commitment uncompressed serialised commitment
+   * @return serialised scalar
    */
   public static native byte[] hash(byte[] commitment);
 
@@ -108,8 +104,8 @@ public class LibIpaMultipoint {
    * The vectorised version is highly optimised, making use of Montgoméry's batch
    * inversion trick.
    *
-   * @param input vector of uncompressed serialised commitments
-   * @return vector of serialised scalars
+   * @param commitments uncompressed serialised commitments
+   * @return serialised scalars
    */
   public static native byte[] hashMany(byte[] commitments);
 }
