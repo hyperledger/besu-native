@@ -44,34 +44,68 @@ public class LibIpaMultipoint {
   }
 
   /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
-
-   * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes() - uncompressed serialization
+   * Commit to a vector of values.
+   *
+   * @param values vector of serialised scalars to commit to.
+   * @return uncompressed serialised commitment.
    */
-  public static native byte[] commit(byte[] input);
-
-  /**
-   * Evaluates a polynomial of degree 255 (uniquely defined by 256 values) at a specific point on the curve.
-   * @param input [Fr,Fr,Fr...]
-   * @return commitment.to_bytes() - compressed serialization
-   */
-  public static native byte[] commitRoot(byte[] input);
+  public static native byte[] commit(byte[] values);
 
   /**
-   * Serializaes group element to field.
-   * @param input C uncompressed serialization = 64bytes
-   * @return Fr = 32 bytes
+   * Commit to a vector of values and compress commitment.
+   *
+   * @param values vector of serialised scalars to commit to.
+   * @return compressed serialised commitment.
    */
-  public static native byte[] groupToField(byte[] input);
+  public static native byte[] commitAsCompressed(byte[] values);
 
   /**
-   * Update Commitment sparse
-   * @param input Expects byteArray of fixed 64bytes for the commitment
-   * and dynamic tuple (old_scalar(32 bytes), new_scalar(32 bytes), index(1 byte)) in this sequence
-   * Bytearray is processed with ffi_interface::deserialize_update_commitment_sparse and sent to ffi_interface::update_commitment_sparse.
-   * If Commitment is empty we should pass https://github.com/crate-crypto/rust-verkle/blob/bb5af2f2fe9788d49d2896b9614a3125f8227818/ffi_interface/src/lib.rs#L57
-   * @return Updated commitemnt and return it as 64 bytes.
+   * Update a commitment with a sparse vector.
+   *
+   * @param commitment uncompressed serialised commitment.
+   * @param indices indices in value vector to update.
+   * @param oldValues old serialised scalars to update.
+   * @param newValues new serialised scalars.
+   * @return uncompressed serialised commitment.
    */
-  public static native byte[] updateCommitmentSparse(byte[] input);
+  public static native byte[] updateSparse(byte[] commitment, byte[] indices, byte[] oldValues, byte[] newValues);
+
+  /**
+   * Compresses a commitment.
+   *
+   * Converts a serialised commitment from uncompressed to compressed form.
+   *
+   * @param commitment uncompressed serialised commitment.
+   * @return compressed serialised commitment.
+   */
+  public static native byte[] compress(byte[] commitment);
+
+  /**
+   * Compresses many commitments.
+   *
+   * Converts a serialised commitment from uncompressed to compressed form.
+   *
+   * @param commitments uncompressed serialised commitments.
+   * @return compressed serialised commitments.
+   */
+  public static native byte[] compressMany(byte[] commitments);
+
+  /**
+   * Convert a commitment to its corresponding scalar.
+   *
+   * @param commitment uncompressed serialised commitment
+   * @return serialised scalar
+   */
+  public static native byte[] hash(byte[] commitment);
+
+  /**
+   * Map a vector of commitments to its corresponding vector of scalars.
+   *
+   * The vectorised version is highly optimised, making use of Montgoméry's batch
+   * inversion trick.
+   *
+   * @param commitments uncompressed serialised commitments
+   * @return serialised scalars
+   */
+  public static native byte[] hashMany(byte[] commitments);
 }

@@ -35,7 +35,8 @@ public class LibIpaMultipointTest {
     @Test
     public void testCallLibraryCommitRoot() {
         Bytes32 input = Bytes32.fromHexString("0x59d039a350f2f9c751a97ee39dd16235d410ac6945d2fd480b395a567a1fe300");
-        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitRoot(input.toArray()));
+        // Bytes32 result = Bytes32.wrap(LibIpaMultipoint.commitAsCompressed(input.toArray()));
+        Bytes32 result = Bytes32.wrap(LibIpaMultipoint.compress(LibIpaMultipoint.commit(input.toArray())));
         Bytes32 expected = Bytes32.fromHexString("0x3337896554fd3960bef9a4d0ff658ee8ee470cf9ca88a3c807cbe128536c5c05");
         assertThat(result).isEqualTo(expected);
     }
@@ -80,10 +81,14 @@ public class LibIpaMultipointTest {
         Bytes newScalar2 = Bytes.fromHexString("0x1100000000000000000000000000000000000000000000000000000000000000");
         Bytes index2 = Bytes.fromHexString("0x08");
 
-        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
+	Bytes indices = Bytes.concatenate(index1, index2);
+        Bytes oldScalars = Bytes.concatenate(oldScalar1, oldScalar2);
+	Bytes newScalars = Bytes.concatenate(newScalar1, newScalar2);
 
-        Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
-
+        Bytes result = Bytes.of(LibIpaMultipoint.updateSparse(
+		oldCommitment.toArray(), indices.toArray(),
+		oldScalars.toArray(), newScalars.toArray()
+ 	));
         assertThat(result).isEqualTo(Bytes.fromHexString("6cf7264f1fff79a21b1be098e66e2457f2cba14c36c33a794566f85be8e6c61dc2a29760223e7c568af4ca13a08535d3e66ba7e2dd1e053894f1fdccdc560a54"));
     }
 
@@ -99,10 +104,14 @@ public class LibIpaMultipointTest {
         Bytes newScalar2 = Bytes.fromHexString("0xff00000000000000000000000000000000000000000000000000000000000000");
         Bytes index2 = Bytes.fromHexString("0x02");
 
-        Bytes input = Bytes.concatenate(oldCommitment, oldScalar1, newScalar1, index1, oldScalar2, newScalar2, index2);
+	Bytes indices = Bytes.concatenate(index1, index2);
+        Bytes oldScalars = Bytes.concatenate(oldScalar1, oldScalar2);
+	Bytes newScalars = Bytes.concatenate(newScalar1, newScalar2);
 
-        Bytes result = Bytes.of(LibIpaMultipoint.updateCommitmentSparse(input.toArray()));
-
+        Bytes result = Bytes.of(LibIpaMultipoint.updateSparse(
+		oldCommitment.toArray(), indices.toArray(),
+		oldScalars.toArray(), newScalars.toArray()
+ 	));
         assertThat(result).isEqualTo(Bytes.fromHexString("2dd3bb69da79ecd91a74b188bfddc74827a995dec07e5308f8215f08d69e77330b11628c6d3313a7781b74850e64cb6ac706290da79e56ff311a10214d14dc36"));
 
     }
