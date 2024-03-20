@@ -44,8 +44,8 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let commitment = match ffi_interface::commit_to_scalars(&CONFIG, &input) {
         Ok(v) => v,
         Err(_) => {
-            env.throw_new("java/lang/IllegalArgumentException",
-                          "Could not commit to scalars.")
+           let error_message = format!("Could not commit to scalars: {:?}", e);
+           env.throw_new("java/lang/IllegalArgumentException", &error_message)
                .expect("Failed to throw exception for commit inputs.");
             return std::ptr::null_mut();
         }
