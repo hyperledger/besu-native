@@ -52,9 +52,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     };
     let result = match env.byte_array_from_slice(&commitment) {
         Ok(v) => v,
-        Err(_) => {
-            env.throw_new("java/lang/IllegalArgumentException",
-                          "Couldn't return commitment.")
+        Err(e) => {
+            let error_message = format!("Couldn't return commitment.: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -85,9 +85,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let compressed = ffi_interface::serialize_commitment(commitment);
     let result = match env.byte_array_from_slice(&compressed) {
         Ok(v) => v,
-        Err(_) => {
-            env.throw_new("java/lang/IllegalArgumentException",
-                          "Couldn't return commitment.")
+        Err(e) => {
+            let error_message = format!("Couldn't return commitment: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -151,8 +151,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     };
     let result = match env.byte_array_from_slice(&commitment) {
         Ok(v) => v,
-        Err(_) => {
-            env.throw_new("java/lang/IllegalArgumentException", "Couldn't return commitment.")
+        Err(e) => {
+            let error_message = format!("Couldn't return commitment: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
                .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -176,10 +177,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let compressed = ffi_interface::serialize_commitment(commitment);
     let result = match env.byte_array_from_slice(&compressed) {
         Ok(s) => s,
-        Err(_) => {
-            env.throw_new(
-                "java/lang/IllegalArgumentException",
-                "Invalid commitment output. Couldn't convert to byte array.")
+        Err(e) => {
+            let error_message = format!("Invalid commitment output. Couldn't convert to byte array: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -203,10 +203,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let compressed: Vec<u8> = commitments.chunks_exact(64).flat_map(|x| ffi_interface::serialize_commitment(x.try_into().unwrap())).collect();
     let result = match env.byte_array_from_slice(&compressed) {
         Ok(s) => s,
-        Err(_) => {
-            env.throw_new(
-                "java/lang/IllegalArgumentException",
-                "Invalid commitment output. Couldn't convert to byte array.")
+        Err(e) => {
+            let error_message = format!("Invalid commitment output. Couldn't convert to byte array: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -229,7 +228,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let hash = ffi_interface::hash_commitment(commitment);
     let result = match env.byte_array_from_slice(&hash) {
         Ok(s) => s,
-        Err(_) => {
+        Err(e) => {
             env.throw_new(
                 "java/lang/IllegalArgumentException",
                 "Invalid commitment output. Couldn't convert to byte array.")
@@ -261,10 +260,9 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let hashes: Vec<u8> = hashes.iter().flat_map(|x| x.iter().copied()).collect();
     let result = match env.byte_array_from_slice(&hashes) {
         Ok(s) => s,
-        Err(_) => {
-            env.throw_new(
-                "java/lang/IllegalArgumentException",
-                "Invalid scalars output. Couldn't convert to byte array.")
+        Err(e) => {
+            let error_message = format!("Invalid scalars output. Couldn't convert to byte array: {:?}", e);
+            env.throw_new("java/lang/IllegalArgumentException", error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
