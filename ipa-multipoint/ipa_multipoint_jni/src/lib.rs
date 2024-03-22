@@ -54,7 +54,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(v) => v,
         Err(e) => {
             let error_message = format!("Couldn't return commitment.: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -87,7 +87,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(v) => v,
         Err(e) => {
             let error_message = format!("Couldn't return commitment: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -153,7 +153,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(v) => v,
         Err(e) => {
             let error_message = format!("Couldn't return commitment: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
                .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -179,7 +179,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(s) => s,
         Err(e) => {
             let error_message = format!("Invalid commitment output. Couldn't convert to byte array: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -205,7 +205,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(s) => s,
         Err(e) => {
             let error_message = format!("Invalid commitment output. Couldn't convert to byte array: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
@@ -262,7 +262,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         Ok(s) => s,
         Err(e) => {
             let error_message = format!("Invalid scalars output. Couldn't convert to byte array: {:?}", e);
-            env.throw_new("java/lang/IllegalArgumentException", error_message)
+            env.throw_new("java/lang/IllegalArgumentException", &error_message)
             .expect("Couldn't convert to byte array");
             return std::ptr::null_mut();
         }
