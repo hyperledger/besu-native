@@ -39,6 +39,12 @@ Rust needs to be installed to compile the arithmetic and bls12-381 libraries. Th
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
+If you are Mac M1/M2/M3 you might need to add this after installing rust:
+
+```
+rustup target add x86_64-apple-darwin
+```
+
 If you prefer another installation method please refer to the [Rust installation instructions](https://www.rust-lang.org/tools/install).
 
 ## Building
