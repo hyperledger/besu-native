@@ -1,6 +1,20 @@
 # Changelog
 
-# 0.8.4-SNAPSHOT
+# 0.8.4
+
+* BLS12-381: Add subgroup checks to BLS-12 mul amd multiexp precompiles (#166)
+* ipa-multipoint : Use debug-like to log the execption from the ffi::commit_to_scalars (#161)
+* ipa-multipoint : Error handling and init no-copy in JNI (#158)
+* ipa-multipoint : Removes pedersenHash method (#157)
+* ipa-multipoint : Updates rust-verkle dependency (#156)
+* ipa-multipoint : add update sparse commitment (#149)
+* ipa-multipoint : add groupToField and return uncompressed serialized commitments (#146)
+* ipa-multipoint : switch to LE bytes (#145)
+* ipa-multipoint : update to a version of rust-verkle which uses little endian ipa-multipoint (#143)
+* ipa-multipoint : Switch to `ffi_interface` ipa-multipoint (#139)
+* ipa-multipoint : Modify test vectors to use canonical scalars for their input  (#142)
+* ipa-multipoint : fix commit for verkle trie library(#141)
+* ipa-multipoint : Fix linking error for LibIpaMultipoint(#131)
 
 # 0.8.3
 
