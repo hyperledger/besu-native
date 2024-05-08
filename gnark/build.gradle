@@ -30,12 +30,14 @@ dependencies {
 
 task macArmLibCopy(type: Copy) {
     from 'build/darwin-aarch64/lib/libgnark_jni.dylib'
+    from 'build/darwin-aarch64/lib/libgnark_eip_2537.dylib'
     into 'build/resources/main/darwin-aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
     from 'build/darwin-x86-64/lib/libgnark_jni.dylib'
+    from 'build/darwin-x86-64/lib/libgnark_eip_2537.dylib'
     into 'build/resources/main/darwin-x86-64'
 }
 processResources.dependsOn macLibCopy
