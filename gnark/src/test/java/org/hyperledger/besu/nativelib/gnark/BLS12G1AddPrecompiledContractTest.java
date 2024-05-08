@@ -65,28 +65,22 @@ public class BLS12G1AddPrecompiledContractTest {
     final ByteBuffer output = ByteBuffer.allocateDirect(
         LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES);
 
-
     int res = LibGnarkEIP2537.eip2537blsG1Add(
         input,
         output, input.capacity(), output.capacity());
 
-    final Bytes expectedResultBytes = Bytes.fromHexString(expectedResult);
-
     if (res != 1) {
       var errBytes = Bytes.wrapByteBuffer(output);
+      // trim trailing zeros from output error response and convert to String:
       var err = new String(errBytes
           .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
           .toArrayUnsafe());
-      System.out.printf("expected %s != actual %s\n", notes, err);
       assertThat(err).isEqualTo(notes);
     } else {
-      // strip the padding
       final Bytes expectedComputation =
-          expectedResult == null ? null : Bytes.concatenate(
-              expectedResultBytes.slice(16,48),
-              expectedResultBytes.slice(80, 48));
+          expectedResult == null ? null : Bytes.fromHexString(expectedResult);
 
-      final Bytes actualComputation = Bytes.wrapByteBuffer(output, 0, 96);
+      final Bytes actualComputation = Bytes.wrapByteBuffer(output, 0, 128);
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }
