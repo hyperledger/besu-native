@@ -24,6 +24,8 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -57,29 +59,34 @@ public class BLS12G1AddPrecompiledContractTest {
       // skip the header row
       return;
     }
-    final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
+    final ByteBuffer input = ByteBuffer.wrap(
+        Bytes.fromHexString(this.input).toArrayUnsafe());
 
-    final byte[] output = new byte[LibGnarkPrecompiles.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkPrecompiles.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
+    final ByteBuffer output = ByteBuffer.allocateDirect(
+        LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES);
 
-    LibGnarkPrecompiles.eip2537_perform_operation(
-        LibGnarkPrecompiles.BLS12_G1ADD_OPERATION_RAW_VALUE,
+
+    int res = LibGnarkEIP2537.eip2537blsG1Add(
         input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+        output, input.capacity(), output.capacity());
 
-    final Bytes expectedComputation =
-        expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-    if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
-      assertThat(outputLength.getValue()).isZero();
+    final Bytes expectedResultBytes = Bytes.fromHexString(expectedResult);
+
+    if (res != 1) {
+      var errBytes = Bytes.wrapByteBuffer(output);
+      var err = new String(errBytes
+          .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
+          .toArrayUnsafe());
+      System.out.printf("expected %s != actual %s\n", notes, err);
+      assertThat(err).isEqualTo(notes);
     } else {
-      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
+      // strip the padding
+      final Bytes expectedComputation =
+          expectedResult == null ? null : Bytes.concatenate(
+              expectedResultBytes.slice(16,48),
+              expectedResultBytes.slice(80, 48));
+
+      final Bytes actualComputation = Bytes.wrapByteBuffer(output, 0, 96);
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }

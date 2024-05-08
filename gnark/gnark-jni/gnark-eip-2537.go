@@ -1,82 +1,71 @@
 package main
 
+import "C"
 import (
+    "encoding/hex"
 	"errors"
+    "fmt"
 	"unsafe"
+    "github.com/consensys/gnark-crypto/ecc/bls12-381"
 )
 
 const (
-	EIP2537PreallocateForErrorBytes  = 256
 	EIP2537PreallocateForResultBytes = 64 * 2 * 2 // maximum for G2 point
+	EIP2537PreallocateForG1 = 64 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
 )
 
-// Eip2537OperationType represents the types of operations in EIP-2537.
-type Eip2537OperationType uint8
+//export eip2537blsG1Add
+func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
 
-const (
-	BLS12G1Add Eip2537OperationType = 1
-	BLS12G1Mul Eip2537OperationType = 2
-	BLS12G1MultiExp Eip2537OperationType = 3
-	BLS12G2Add Eip2537OperationType = 4
-	BLS12G2Mul Eip2537OperationType = 5
-	BLS12G2MultiExp Eip2537OperationType = 6
-	BLS12Pair Eip2537OperationType = 7
-	BLS12FpToG1 Eip2537OperationType = 8
-	BLS12Fp2ToG2 Eip2537OperationType = 9
-)
+    fmt.Printf("Expected outputLen: %d\n", outputLen)
+    fmt.Printf("Expected inputLen: %d\n", cInputLen)
 
-// eip2537PerformOperation performs the cryptographic operation specified by op.
-//export eip2537PerformOperation
-func eip2537PerformOperation(op uint8, input []byte, output []byte, errorOut []byte) (outputLength uint32, errorLength uint32, errCode uint32) {
-	opType := Eip2537OperationType(op)
-	switch opType {
-	case BLS12G1Add:
-		result, err = eip2537ExecutorG1Add(input)
-	case BLS12G1Mul:
-		result, err = eip2537ExecutorG1Mul(input)
-	case BLS12G1MultiExp:
-		result, err = eip2537ExecutorG1MultiExp(input)
-	case BLS12G2Add:
-		result, err = eip2537ExecutorG2Add(input)
-	case BLS12G2Mul:
-		result, err = eip2537ExecutorG2Mul(input)
-	case BLS12G2MultiExp:
-		result, err = eip2537ExecutorG2MultiExp(input)
-	case BLS12Pair:
-		result, err = eip2537ExecutorPair(input)
-	case BLS12FpToG1:
-		result, err = eip2537ExecutorMapFpToG1(input)
-	case BLS12Fp2ToG2:
-		result, err = eip2537ExecutorMapFp2ToG2(input)
-	default:
-		copy(errorOut, "Unknown operation type\x00")
-		return 0, uint32(len("Unknown operation type\x00")), 1
-	}
+    var inputLen = int(cInputLen)
 
-	// Mock-up for result handling
-	var result = []byte{} // This should be the result of the cryptographic operation
-	var err error = nil   // This should be the error from the cryptographic operation, if any
+    if outputLen != EIP2537PreallocateForResultBytes {
+        fmt.Printf("found invalid output len size : %d\n", outputLen)
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    fmt.Printf("go output array size: %d\n", len(output))
 
-	if err != nil {
-		errDesc := err.Error()
-		copy(errorOut, errDesc+"\x00")
-		return 0, uint32(len(errDesc) + 1), 1
-	}
+    if inputLen != 2*EIP2537PreallocateForG1 {
+        fmt.Printf("found invalid input len size : %d\n", inputLen)
+        copy(output, "invalid input parameters, invalid input length for G1 addition\x00")
+        return -1
+    }
 
-	if len(result) > len(output) {
-		copy(errorOut, "Output buffer too small\x00")
-		return 0, uint32(len("Output buffer too small\x00")), 1
-	}
+    // Convert C pointers to Go slices
+    input := (*[2*EIP2537PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+    fmt.Printf("go input array size: %d\n", len(input))
+    fmt.Printf("g1x1 point encoding plus 16 byte padding: %s\n", hex.EncodeToString(input[:64]))
+    fmt.Printf("g1y1 point encoding plus 16 byte padding: %s\n", hex.EncodeToString(input[64:128]))
+    fmt.Printf("g1x2 point encoding plus 16 byte padding: %s\n", hex.EncodeToString(input[128:192]))
+    fmt.Printf("g1y2 point encoding plus 16 byte padding: %s\n", hex.EncodeToString(input[192:]))
 
-	copy(output, result)
-	return uint32(len(result)), 0, 0
-}
+    p0, err := g1AffineDecode(input[:128])
 
-// Placeholder function definitions for cryptographic operations, which must be defined elsewhere.
-func eip2537ExecutorG1Add(input []byte) ([]byte, error) {
+    if err != nil {
+        fmt.Printf("error decoding p0: %s\n", err.Error())
+        copy(output, err.Error())
+        return -1
+    }
+//     fmt.Printf("point p0: ", p0)
 
+    p1, err := g1AffineDecode(input[128:])
 
-	return nil, errors.New("not implemented")
+    if err != nil {
+        fmt.Printf("error decoding p1: %s\n", err.Error())
+        copy(output, err.Error())
+        return -1
+    }
+
+    result := p0.Add(p0, p1) // Use the Add method to combine points
+    ret := result.Marshal()
+    fmt.Printf("nothing exploded, val %s", hex.EncodeToString(ret))
+    copy(output, ret)
+    return 1 // marshal the resulting point
+
 }
 
 func eip2537ExecutorG1Mul(input []byte) ([]byte, error) {
@@ -110,3 +99,16 @@ func eip2537ExecutorMapFpToG1(input []byte) ([]byte, error) {
 func eip2537ExecutorMapFp2ToG2(input []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
+
+func g1AffineDecode(input []byte) (*bls12381.G1Affine, error) {
+    // TODO check 0:16 and 64:80 for zeroes
+
+    g1x := input[16:64]
+    g1y := input[80:128]
+    g1 := &bls12381.G1Affine{};
+    // this does subgroup checks by default, could be slow according to Marius, consider using setBytes
+    err := g1.Unmarshal(append(g1x, g1y...))
+    return g1, err
+}
+
+func main() {}
