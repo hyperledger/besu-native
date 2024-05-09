@@ -37,9 +37,14 @@ public class LibGnarkEIP2537 implements Library {
 //    public static final byte BLS12_MAP_FP_TO_G1_OPERATION_RAW_VALUE = 8;
 //    public static final byte BLS12_MAP_FP2_TO_G2_OPERATION_RAW_VALUE = 9;
 
-    public static native int eip2537blsG1Add(
-        ByteBuffer input,
-        ByteBuffer output,
-        int inputSize, int outputSize);
+  public static native int eip2537blsG1Add(
+      ByteBuffer input,
+      ByteBuffer output,
+      int inputSize, int outputSize);
+
+  public static native int eip2537blsG1Add2(
+      byte[] input,
+      byte[] output,
+      int inputSize, int outputSize);
 
 }
