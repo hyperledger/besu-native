@@ -15,8 +15,8 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
-import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +25,6 @@ import org.junit.runners.Parameterized;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -59,18 +58,21 @@ public class BLS12G1AddPrecompiledContractTest {
       // skip the header row
       return;
     }
-    final ByteBuffer input = ByteBuffer.wrap(
-        Bytes.fromHexString(this.input).toArrayUnsafe());
+    byte[] input = null;
 
-    final ByteBuffer output = ByteBuffer.allocateDirect(
-        LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES);
+    byte[] output = null;
 
-    int res = LibGnarkEIP2537.eip2537blsG1Add(
-        input,
-        output, input.capacity(), output.capacity());
+    int res = -1;
+    Stopwatch timer = Stopwatch.createStarted();
+    for(int i = 0; i < 1000; i++) {
+      input = Bytes.fromHexString(this.input).toArrayUnsafe();
+      output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+      res = LibGnarkEIP2537.eip2537blsG1Add2(input, output, input.length, output.length);
+    }
+    System.err.println("time taken for 1000x gnark w/byte array G1Add: " + timer);
 
     if (res != 1) {
-      var errBytes = Bytes.wrapByteBuffer(output);
+      var errBytes = Bytes.wrap(output);
       // trim trailing zeros from output error response and convert to String:
       var err = new String(errBytes
           .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
@@ -80,7 +82,7 @@ public class BLS12G1AddPrecompiledContractTest {
       final Bytes expectedComputation =
           expectedResult == null ? null : Bytes.fromHexString(expectedResult);
 
-      final Bytes actualComputation = Bytes.wrapByteBuffer(output, 0, 128);
+      final Bytes actualComputation = Bytes.wrap(output, 0, 128);
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }

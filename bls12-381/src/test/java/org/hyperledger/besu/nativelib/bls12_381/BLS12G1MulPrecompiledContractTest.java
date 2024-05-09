@@ -59,20 +59,18 @@ public class BLS12G1MulPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
+    byte[] output = null;
+    IntByReference outputLength = new IntByReference();
+    byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
+    IntByReference errorLength = new IntByReference();
 
-    LibEthPairings.eip2537_perform_operation(
-        LibEthPairings.BLS12_G1MUL_OPERATION_RAW_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
 
+    for (int i =0 ; i<1000; i++) {
+      output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+
+      LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_G1MUL_OPERATION_RAW_VALUE,
+          input, input.length, output, outputLength, error, errorLength);
+    }
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
