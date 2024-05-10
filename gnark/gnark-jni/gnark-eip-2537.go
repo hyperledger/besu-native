@@ -7,8 +7,9 @@ import "C"
 import (
 	"errors"
 // 	"fmt"
-	"unsafe"
+	"math/big"
 // 	"time"
+	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bls12-381"
     "github.com/consensys/gnark-crypto/ecc/bls12-381/fp"
 )
@@ -16,6 +17,7 @@ import (
 const (
 	EIP2537PreallocateForResultBytes = 64 * 2 * 2 // maximum for G2 point
 	EIP2537PreallocateForG1 = 64 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
+	EIP2537PreallocateForScalar = 32 // scalar int is 32 byte
 )
 
 var ErrSubgroupCheckFailed = errors.New("invalid point: subgroup check failed")
@@ -46,7 +48,7 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 //     fmt.Printf("convert input array time: %v\n", time.Since(startTime))
 
     // generate p0 g1 affine
-    p0, err := g1AffineDecode3(input[:128])
+    p0, err := g1AffineDecodeOnCurve(input[:128])
 //     fmt.Printf("convert g1 p0 affine time: %v\n", time.Since(startTime))
 
     if err != nil {
@@ -55,7 +57,7 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     }
 
     // generate p0 g1 affine
-    p1, err := g1AffineDecode3(input[128:])
+    p1, err := g1AffineDecodeOnCurve(input[128:])
 //     fmt.Printf("convert g1 p1 affine time: %v\n", time.Since(startTime))
 
     if err != nil {
@@ -76,8 +78,42 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
 }
 
-func eip2537blsG1Mul(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsG1Mul
+func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen != (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar){
+        copy(output, "invalid input parameters, invalid input length for G1 multiplication\x00")
+        return -1
+    }
+
+    // Convert input C pointers to Go slice
+    input := (*[EIP2537PreallocateForG1 + EIP2537PreallocateForScalar]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+    // generate p0 g1 affine
+    p0, err := g1AffineDecodeInSubGroup(input[:128])
+
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // Convert byte slice to *big.Int
+    scalar := big.NewInt(0)
+    scalar.SetBytes(input[128:160])
+
+    // multiply g1 point by scalar
+    result := p0.ScalarMultiplication(p0, scalar)
+
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g1AffineEncode(ret, javaOutputBuf)
+    return 1
 }
 
 func eip2537ExecutorG1MultiExp(input []byte) ([]byte, error) {
@@ -108,32 +144,25 @@ func eip2537ExecutorMapFp2ToG2(input []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
-func g1AffineDecode(input []byte) (*bls12381.G1Affine, error) {
-    // TODO check 0:16 and 64:80 are zeroes
-    g1x := input[16:64]
-    g1y := input[80:128]
-    g1 := &bls12381.G1Affine{};
-    // Unmarshal does point-in-curve and subgroup checks by default, consider setBytes instead for G1Add
-    err := g1.Unmarshal(append(g1x, g1y...))
-    return g1, err
-}
-
-func g1AffineDecode2(input []byte) (*bls12381.G1Affine, error) {
+func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
     // TODO check 0:16 and 64:80 are zeroes
     var g1x, g1y fp.Element
     g1x.Unmarshal(input[16:64])
     g1y.Unmarshal(input[80:128])
     // construct g1affine directly rather than unmarshalling
     g1 := &bls12381.G1Affine{X: g1x, Y: g1y}
+
     // do explicit subgroup check
-    if (!g1.IsOnCurve() && !g1.IsInSubGroup()) {
+    if (!g1.IsInSubGroup()) {
+        if (!g1.IsOnCurve()) {
+            return nil, ErrPointOnCurveCheckFailed
+        }
         return nil, ErrSubgroupCheckFailed
     }
-
     return g1, nil;
 }
 
-func g1AffineDecode3(input []byte) (*bls12381.G1Affine, error) {
+func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
     // TODO check 0:16 and 64:80 are zeroes
     var g1x, g1y fp.Element
     g1x.Unmarshal(input[16:64])
