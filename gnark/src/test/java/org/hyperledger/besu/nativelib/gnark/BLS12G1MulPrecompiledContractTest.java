@@ -15,22 +15,23 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.io.CharStreams;
-import org.apache.tuweni.bytes.Bytes;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.common.base.Stopwatch;
+import com.google.common.io.CharStreams;
+import com.sun.jna.ptr.IntByReference;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class BLS12G1AddPrecompiledContractTest {
+public class BLS12G1MulPrecompiledContractTest {
 
   @Parameterized.Parameter(0)
   public String input;
@@ -45,7 +46,7 @@ public class BLS12G1AddPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                BLS12G1AddPrecompiledContractTest.class.getResourceAsStream("g1_add.csv"), UTF_8))
+                BLS12G1MulPrecompiledContractTest.class.getResourceAsStream("g1_mul.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -57,18 +58,17 @@ public class BLS12G1AddPrecompiledContractTest {
       // skip the header row
       return;
     }
-    byte[] input = null;
+    final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
     byte[] output = null;
-
     int res = -1;
     Stopwatch timer = Stopwatch.createStarted();
-    for(int i = 0; i < 1000; i++) {
-      input = Bytes.fromHexString(this.input).toArrayUnsafe();
+    for (int i =0 ; i<1000; i++) {
       output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-      res = LibGnarkEIP2537.eip2537blsG1Add(input, output, input.length, output.length);
+      res = LibGnarkEIP2537.eip2537blsG1Mul(input, output, input.length, output.length);
+
     }
-    System.err.println("time taken for 1000x gnark w/byte array G1Add: " + timer);
+    System.err.println("time taken for 1000x gnark G1Mul: " + timer);
 
     if (res != 1) {
       var errBytes = Bytes.wrap(output);

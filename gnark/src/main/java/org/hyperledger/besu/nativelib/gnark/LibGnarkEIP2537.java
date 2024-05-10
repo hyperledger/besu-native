@@ -25,7 +25,7 @@ public class LibGnarkEIP2537 implements Library {
 
     public static final int EIP2537_PREALLOCATE_FOR_ERROR_BYTES = 256;
 
-    public static final int EIP2537_PREALLOCATE_FOR_RESULT_BYTES = 256;
+  public static final int EIP2537_PREALLOCATE_FOR_RESULT_BYTES = 256;
 
 //    public static final byte BLS12_G1ADD_OPERATION_RAW_VALUE = 1;
 //    public static final byte BLS12_G1MUL_OPERATION_RAW_VALUE = 2;
@@ -38,11 +38,11 @@ public class LibGnarkEIP2537 implements Library {
 //    public static final byte BLS12_MAP_FP2_TO_G2_OPERATION_RAW_VALUE = 9;
 
   public static native int eip2537blsG1Add(
-      ByteBuffer input,
-      ByteBuffer output,
+      byte[] input,
+      byte[] output,
       int inputSize, int outputSize);
 
-  public static native int eip2537blsG1Add2(
+  public static native int eip2537blsG1Mul(
       byte[] input,
       byte[] output,
       int inputSize, int outputSize);
