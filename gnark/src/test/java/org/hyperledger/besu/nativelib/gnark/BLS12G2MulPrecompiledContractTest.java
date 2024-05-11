@@ -13,7 +13,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.bls12_381;
+package org.hyperledger.besu.nativelib.gnark;
+
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,8 +32,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class BLS12G2AddPrecompiledContractTest {
-
+public class BLS12G2MulPrecompiledContractTest {
   @Parameterized.Parameter(0)
   public String input;
   @Parameterized.Parameter(1)
@@ -46,7 +46,7 @@ public class BLS12G2AddPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                BLS12G2AddPrecompiledContractTest.class.getResourceAsStream("g2_add.csv"), UTF_8))
+                BLS12G2MulPrecompiledContractTest.class.getResourceAsStream("g2_mul.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -58,29 +58,32 @@ public class BLS12G2AddPrecompiledContractTest {
       // skip the header row
       return;
     }
-
     byte[] input = null;
+
     byte[] output = null;
-    final IntByReference outputLength = new IntByReference();
-    byte[] error = null;
-    final IntByReference errorLength = new IntByReference();
+
+    int res = -1;
+
     Stopwatch timer = Stopwatch.createStarted();
     for(int i = 0; i < 1000; i++) {
       input = Bytes.fromHexString(this.input).toArrayUnsafe();
-      output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-      error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-      LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_G2ADD_OPERATION_RAW_VALUE,
-          input, input.length, output, outputLength, error, errorLength);
+      output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+      res = LibGnarkEIP2537.eip2537blsG2Mul(input, output, input.length, output.length);
     }
-    System.err.println("time taken for 1000x rust G2Add: " + timer);
+    System.err.println("time taken for 1000x gnark w/byte array G2Mul: " + timer);
 
-    final Bytes expectedComputation =
-        expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-    if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).contains(notes);
-      assertThat(outputLength.getValue()).isZero();
+    if (res != 1) {
+      var errBytes = Bytes.wrap(output);
+      // trim trailing zeros from output error response and convert to String:
+      var err = new String(errBytes
+          .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
+          .toArrayUnsafe());
+      assertThat(err).isEqualTo(notes);
     } else {
-      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
+      final Bytes expectedComputation =
+          expectedResult == null ? null : Bytes.fromHexString(expectedResult);
+
+      final Bytes actualComputation = Bytes.wrap(output, 0, 256);
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }
