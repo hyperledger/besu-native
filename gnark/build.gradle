@@ -44,12 +44,14 @@ processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
     from 'build/linux-gnu-x86_64/lib/libgnark_jni.so'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.so'
     into 'build/resources/main/linux-x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
     from 'build/linux-gnu-aarch64/lib/libgnark_jni.so'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.so'
     into 'build/resources/main/linux-aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
