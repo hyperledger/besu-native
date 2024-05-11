@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Streams;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
@@ -66,20 +65,21 @@ public class BLS12PairingPrecompiledContractTest {
       // skip the header row
       return;
     }
-    byte[] input = null;
-    byte[] output = null;
+    final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
+
+    final byte[] output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    byte[] error = null;
+    final byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
-    Stopwatch timer = Stopwatch.createStarted();
-    for(int i = 0; i < 100; i++) {
-      input = Bytes.fromHexString(this.input).toArrayUnsafe();
-      output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-      error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-      LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_PAIR_OPERATION_RAW_VALUE,
-          input, input.length, output, outputLength, error, errorLength);
-    }
-    System.err.println("time taken for 100x rust pairing: " + timer);
+
+    LibEthPairings.eip2537_perform_operation(
+        LibEthPairings.BLS12_PAIR_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output,
+        outputLength,
+        error,
+        errorLength);
 
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
