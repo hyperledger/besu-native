@@ -5,6 +5,7 @@ package main
 */
 import "C"
 import (
+    "bytes"
 	"errors"
 	"math/big"
 	"reflect"
@@ -23,8 +24,11 @@ const (
 
 var ErrSubgroupCheckFailed = errors.New("invalid point: subgroup check failed")
 var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curve")
+var ErrMalformedPointPadding = errors.New("invalid point: point is not left padded with zero")
+var ErrMalformedOutputBytes = errors.New("malformed output buffer parameter")
 
-
+// Predefine a zero slice of length 16
+var zeroSlice = make([]byte, 16)
 
 //export eip2537blsG1Add
 func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
@@ -73,13 +77,9 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
 //export eip2537blsG1Mul
 func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
 
+    output := castOutputBuffer(javaOutputBuf, outputLen)
     if inputLen != (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar){
         copy(output, "invalid input parameters, invalid input length for G1 multiplication\x00")
         return -1
@@ -111,12 +111,8 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
 //export eip2537blsG1MultiExp
 func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen < (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) {
         copy(output, "invalid input parameters, invalid number of pairs\x00")
@@ -168,10 +164,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
 //export eip2537blsG2Add
 func eip2537blsG2Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen != 2 * EIP2537PreallocateForG2 {
         copy(output, "invalid input parameters, invalid input length for G2 addition\x00")
@@ -208,10 +201,7 @@ func eip2537blsG2Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 //export eip2537blsG2Mul
 func eip2537blsG2Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen != EIP2537PreallocateForG2 + EIP2537PreallocateForScalar {
         copy(output, "invalid input parameters, invalid input length for G2 multiplication\x00")
@@ -243,12 +233,8 @@ func eip2537blsG2Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
 //export eip2537blsG2MultiExp
 func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) {
         copy(output, "invalid input parameters, invalid number of pairs\x00")
@@ -299,12 +285,8 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
 
 //export eip2537blsPairing
 func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
         copy(output, "invalid input parameters, invalid number of pairs\x00")
@@ -362,10 +344,7 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen
 func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen != (EIP2537PreallocateForFp){
         copy(output, "invalid input parameters, invalid input length for Fp to G1 to curve mapping\x00")
@@ -390,10 +369,7 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     //TODO: DRY up
     var inputLen = int(cInputLen)
-    if outputLen != EIP2537PreallocateForResultBytes {
-        return -1
-    }
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castOutputBuffer(javaOutputBuf, outputLen)
 
     if inputLen != (2*EIP2537PreallocateForFp){
         copy(output, "invalid input parameters, invalid input length for Fp2 to G2 to curve mapping\x00")
@@ -403,7 +379,6 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     // Convert input C pointers to Go slice
     input := (*[2*EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-    // TODO: DRY up
     var g2 bls12381.G2Affine
     g2.X.A0.Unmarshal(input[16:64])
     g2.X.A1.Unmarshal(input[80:128])
@@ -415,8 +390,25 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     return 1
 }
 
+
+// Function to check if the first 16 bytes of a slice are zero
+func isZero(slice []byte) bool {
+    return bytes.Equal(slice[:16], zeroSlice)
+}
+
+func hasWrongG1Padding(input []byte) bool {
+    return !isZero(input[:16]) || !isZero(input[64:80])
+}
+
+func hasWrongG2Padding(input []byte) bool {
+    return !isZero(input[:16]) || !isZero(input[64:80] )|| !isZero(input[128:144]) || !isZero(input[192:208])
+}
+
+
 func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
-    // TODO check 0:16 and 64:80 are zeroes
+    if hasWrongG1Padding(input) {
+        return nil, ErrMalformedPointPadding
+    }
     var g1x, g1y fp.Element
     g1x.Unmarshal(input[16:64])
     g1y.Unmarshal(input[80:128])
@@ -434,7 +426,9 @@ func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 }
 
 func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
-    // TODO check 0:16 and 64:80 are zeroes, DRY it up
+    if hasWrongG1Padding(input) {
+        return nil, ErrMalformedPointPadding
+    }
     var g1x, g1y fp.Element
     g1x.Unmarshal(input[16:64])
     g1y.Unmarshal(input[80:128])
@@ -449,7 +443,9 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 }
 
 func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
-    // TODO check zeroes, return error
+    if hasWrongG2Padding(input) {
+        return nil, ErrMalformedPointPadding
+    }
 
     var g2 bls12381.G2Affine
     g2.X.A0.Unmarshal(input[16:64])
@@ -468,7 +464,9 @@ func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 }
 
 func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
-    // TODO check zeroes, return error
+    if hasWrongG2Padding(input) {
+        return nil, ErrMalformedPointPadding
+    }
 
     var g2 bls12381.G2Affine
     g2.X.A0.Unmarshal(input[16:64])
@@ -543,5 +541,10 @@ func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
     return slice
 }
 
-
+func castOutputBuffer(javaOutputBuf *C.char, outputLen C.int) []byte {
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return nil
+    }
+    return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+}
 func main() {}
