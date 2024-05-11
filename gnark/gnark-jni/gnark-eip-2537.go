@@ -131,7 +131,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
 
     if inputLen < (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) {
-        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        copy(output, "invalid input parameters, invalid number of pairs\x00")
         return -1
     }
     if inputLen % (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) != 0 {
@@ -263,7 +263,7 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) {
-        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        copy(output, "invalid input parameters, invalid number of pairs\x00")
         return -1
     }
     if inputLen % (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) != 0 {
@@ -319,42 +319,54 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen
     output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
-        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        copy(output, "invalid input parameters, invalid number of pairs\x00")
         return -1
     }
-    if inputLen % (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) != 0 {
+    if inputLen % (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) != 0 {
         copy(output, "invalid input parameters, invalid input length for pairing\x00")
         return -1
     }
 
-//     // Convert input C pointers to Go slice
-//     input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
-//     var pairCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForG1)
-//
-//     for i := 0 ; i < pairCount ; i++ {
-//
-//         // get g1
-//         g1, err := g1AffineDecodeInSubGroup(input[i*384:i*384+128])
-//         if err != nil {
-//             copy(output, err.Error())
-//             return -1
-//         }
-//
-//         // get g2
-//         g2, err := g2AffineDecodeOnCurve(input[i*384+128:(i+1)*384])
-//         if err != nil {
-//             copy(output, err.Error())
-//             return -1
-//         }
-//
-//         // TODO: collect g1, g2 points
-//
-//     }
-//
-    // TODO: pass collected points to pairing engine
+    // Convert input C pointers to Go slice
+    input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
+    var pairCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForG1)
+    g1Points := make([]bls12381.G1Affine, pairCount)
+    g2Points := make([]bls12381.G2Affine, pairCount)
 
-    // TODO: finish me
-    return -1
+
+    for i := 0 ; i < pairCount ; i++ {
+
+        // get g1
+        g1, err := g1AffineDecodeInSubGroup(input[i*384:i*384+128])
+        if err != nil {
+            copy(output, err.Error())
+            return -1
+        }
+
+        // get g2
+        g2, err := g2AffineDecodeInSubGroup(input[i*384+128:(i+1)*384])
+        if err != nil {
+            copy(output, err.Error())
+            return -1
+        }
+
+        // collect g1, g2 points
+        g1Points[i] = *g1
+        g2Points[i] = *g2
+    }
+
+    isOne, err := bls12381.PairingCheck(g1Points, g2Points)
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    if (isOne) {
+        // respond with 1 if pairing check was true, leave 0's intact otherwise
+        output[31]=0x01
+    }
+
+    return 1
 
 }
 
