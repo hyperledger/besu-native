@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	EIP2537PreallocateForResultBytes = 64 * 2 * 2 // maximum for G2 point
-	EIP2537PreallocateForG1 = 64 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
-	EIP2537PreallocateForG2 = 128 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
 	EIP2537PreallocateForScalar = 32 // scalar int is 32 byte
+	EIP2537PreallocateForFp = 64  // G1 points are 48 bytes, left padded with zero for 16 bytes
+	EIP2537PreallocateForG1 = EIP2537PreallocateForFp * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
+	EIP2537PreallocateForG2 = EIP2537PreallocateForG1 * 2 // G2 comprise 2 G1 points, left padded with zero for 16 bytes
+	EIP2537PreallocateForResultBytes = EIP2537PreallocateForG2 // maximum for G2 point
 )
 
 var ErrSubgroupCheckFailed = errors.New("invalid point: subgroup check failed")
@@ -252,20 +253,166 @@ func eip2537blsG2Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
 }
 
-func eip2537ExecutorG2MultiExp(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsG2MultiExp
+func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) {
+        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        return -1
+    }
+    if inputLen % (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) != 0 {
+        copy(output, "invalid input parameters, invalid input length for G2 multiplication\x00")
+        return -1
+    }
+
+    // Convert input C pointers to Go slice
+    input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
+
+    var exprCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar)
+
+    // get the first scalar mult operation
+    p0, err := g2AffineDecodeInSubGroup (input[:128])
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // Convert byte slice to *big.Int and do the initial scalar multiplication
+    scalar := big.NewInt(0)
+    scalar.SetBytes(input[256:288])
+    result := p0.ScalarMultiplication(p0, scalar)
+
+    for i := 1 ; i < exprCount ; i++ {
+        // for each subsequent operation, decode, mul, and add to the result
+        p1, err := g2AffineDecodeInSubGroup(input[i*288 : (i*288)+256])
+        if err != nil {
+            copy(output, err.Error())
+            return -1
+        }
+
+        scalar = big.NewInt(0)
+        scalar.SetBytes(input[(i*288)+256 : (i+1)*288])
+        p1.ScalarMultiplication(p1, scalar)
+        // add to the result:
+        result = result.Add(result, p1)
+    }
+
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g2AffineEncode(ret, javaOutputBuf)
+    return 1
 }
 
-func eip2537ExecutorPair(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsPairing
+func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
+        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        return -1
+    }
+    if inputLen % (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) != 0 {
+        copy(output, "invalid input parameters, invalid input length for pairing\x00")
+        return -1
+    }
+
+//     // Convert input C pointers to Go slice
+//     input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
+//     var pairCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForG1)
+//
+//     for i := 0 ; i < pairCount ; i++ {
+//
+//         // get g1
+//         g1, err := g1AffineDecodeInSubGroup(input[i*384:i*384+128])
+//         if err != nil {
+//             copy(output, err.Error())
+//             return -1
+//         }
+//
+//         // get g2
+//         g2, err := g2AffineDecodeOnCurve(input[i*384+128:(i+1)*384])
+//         if err != nil {
+//             copy(output, err.Error())
+//             return -1
+//         }
+//
+//         // TODO: collect g1, g2 points
+//
+//     }
+//
+    // TODO: pass collected points to pairing engine
+
+    // TODO: finish me
+    return -1
+
 }
 
-func eip2537ExecutorMapFpToG1(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsMapFpToG1
+func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen != (EIP2537PreallocateForFp){
+        copy(output, "invalid input parameters, invalid input length for Fp to G1 to curve mapping\x00")
+        return -1
+    }
+
+    // Convert input C pointers to Go slice
+    input := (*[EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+    // TODO: DRY up
+    var fp fp.Element
+    fp.Unmarshal(input[16:64])
+
+    result := bls12381.MapToG1(fp)
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g1AffineEncode(ret, javaOutputBuf)
+    return 1
 }
 
-func eip2537ExecutorMapFp2ToG2(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsMapFp2ToG2
+func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen != (2*EIP2537PreallocateForFp){
+        copy(output, "invalid input parameters, invalid input length for Fp2 to G2 to curve mapping\x00")
+        return -1
+    }
+
+    // Convert input C pointers to Go slice
+    input := (*[2*EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+    // TODO: DRY up
+    var g2 bls12381.G2Affine
+    g2.X.A0.Unmarshal(input[16:64])
+    g2.X.A1.Unmarshal(input[80:128])
+
+    result := bls12381.MapToG2(g2.X)
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g2AffineEncode(ret, javaOutputBuf)
+    return 1
 }
 
 func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
@@ -287,7 +434,7 @@ func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 }
 
 func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
-    // TODO check 0:16 and 64:80 are zeroes
+    // TODO check 0:16 and 64:80 are zeroes, DRY it up
     var g1x, g1y fp.Element
     g1x.Unmarshal(input[16:64])
     g1y.Unmarshal(input[80:128])

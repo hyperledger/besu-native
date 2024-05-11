@@ -73,7 +73,7 @@ public class BLS12G1MultiExpPrecompiledContractTest {
       LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_G1MULTIEXP_OPERATION_RAW_VALUE,
           input, input.length, output, outputLength, error, errorLength);
     }
-    System.err.println("time taken for 1000x rust G1Mul: " + timer);
+    System.err.println("time taken for 1000x rust G1MultiExp: " + timer);
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
