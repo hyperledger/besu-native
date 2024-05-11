@@ -5,6 +5,7 @@ package main
 */
 import "C"
 import (
+// 	"encoding/hex"
 	"errors"
 // 	"fmt"
 	"math/big"
@@ -17,11 +18,13 @@ import (
 const (
 	EIP2537PreallocateForResultBytes = 64 * 2 * 2 // maximum for G2 point
 	EIP2537PreallocateForG1 = 64 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
+	EIP2537PreallocateForG2 = 128 * 2 // G1 points are 48 bytes, left padded with zero for 16 bytes
 	EIP2537PreallocateForScalar = 32 // scalar int is 32 byte
 )
 
 var ErrSubgroupCheckFailed = errors.New("invalid point: subgroup check failed")
 var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curve")
+
 
 
 //export eip2537blsG1Add
@@ -116,16 +119,85 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     return 1
 }
 
-func eip2537ExecutorG1MultiExp(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    // TODO: not yet implemented, need to sort out dynamic sized byte buffer slice decoding
+    return -1
 }
 
-func eip2537ExecutorG2Add(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsG2Add
+func eip2537blsG2Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen != 2 * EIP2537PreallocateForG2 {
+        copy(output, "invalid input parameters, invalid input length for G2 addition\x00")
+        return -1
+    }
+    // Convert input C pointers to Go slice
+    input := (*[2 *EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+
+    // obtain p0
+    p0, err := g2AffineDecodeOnCurve(input[:256])
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // obtain p1
+    p1, err := g2AffineDecodeOnCurve(input[256:])
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // add p0,p1
+    result := p0.Add(p0, p1)
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g2AffineEncode(ret, javaOutputBuf)
+
+    return 1
+
 }
 
-func eip2537ExecutorG2Mul(input []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+//export eip2537blsG2Mul
+func eip2537blsG2Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen != EIP2537PreallocateForG2 + EIP2537PreallocateForScalar {
+        copy(output, "invalid input parameters, invalid input length for G2 multiplication\x00")
+        return -1
+    }
+    // Convert input C pointers to Go slice
+    input := (*[2 *EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+
+    // obtain p0
+    p0, err := g2AffineDecodeInSubGroup(input[:256])
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // Convert byte slice to *big.Int
+    scalar := big.NewInt(0)
+    scalar.SetBytes(input[256:288])
+
+    result := p0.ScalarMultiplication(p0, scalar)
+
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g2AffineEncode(ret, javaOutputBuf)
+    return 1
+
 }
 
 func eip2537ExecutorG2MultiExp(input []byte) ([]byte, error) {
@@ -177,6 +249,41 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
     return g1, nil;
 }
 
+func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
+    // TODO check zeroes, return error
+
+    var g2 bls12381.G2Affine
+    g2.X.A0.Unmarshal(input[16:64])
+    g2.X.A1.Unmarshal(input[80:128])
+    g2.Y.A0.Unmarshal(input[144:192])
+    g2.Y.A1.Unmarshal(input[208:256])
+
+    // do explicit subgroup check
+    if (!g2.IsInSubGroup()) {
+        if (!g2.IsOnCurve()) {
+            return nil, ErrPointOnCurveCheckFailed
+        }
+        return nil, ErrSubgroupCheckFailed
+    }
+    return &g2, nil;
+}
+
+func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
+    // TODO check zeroes, return error
+
+    var g2 bls12381.G2Affine
+    g2.X.A0.Unmarshal(input[16:64])
+    g2.X.A1.Unmarshal(input[80:128])
+    g2.Y.A0.Unmarshal(input[144:192])
+    g2.Y.A1.Unmarshal(input[208:256])
+
+    if (!g2.IsOnCurve()) {
+        return nil, ErrPointOnCurveCheckFailed
+    }
+    return &g2, nil;
+}
+
+
 func g1AffineEncode(g1Point []byte, output *C.char) (error) {
     // Check if point is not nil
     if g1Point == nil {
@@ -193,6 +300,34 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
 
     // Copy y to output[80:128]
     C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+80), g1y, 48)
+
+    return nil
+}
+
+func g2AffineEncode(g2Point []byte, output *C.char) (error) {
+    // Check if point is not nil
+    if g2Point == nil {
+        return errors.New("point cannot be nil")
+    }
+
+    // gnark g2 returns two two-48 byte component points in a packed array,
+    // we need to encode these four 64 byte points with prepended zeroes, in a packed array
+    g2x1 := unsafe.Pointer(&g2Point[0])
+    g2x0 := unsafe.Pointer(&g2Point[48])
+    g2y1 := unsafe.Pointer(&g2Point[96])
+    g2y0 := unsafe.Pointer(&g2Point[144])
+
+    // java should pass a zero-initialized ByteBuffer, copy x1 to output[16:64],
+    C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+16), g2x0, 48)
+
+    // Copy x2 to output[80:128]
+    C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+80), g2x1, 48)
+
+    // Copy y1 to output[144:192]
+    C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+144), g2y0, 48)
+
+    // Copy y2 to output[208:256]
+    C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+208), g2y1, 48)
 
     return nil
 }
