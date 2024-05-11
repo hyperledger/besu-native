@@ -5,12 +5,9 @@ package main
 */
 import "C"
 import (
-// 	"encoding/hex"
 	"errors"
-// 	"fmt"
 	"math/big"
 	"reflect"
-// 	"time"
 	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bls12-381"
     "github.com/consensys/gnark-crypto/ecc/bls12-381/fp"
@@ -31,17 +28,13 @@ var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curv
 
 //export eip2537blsG1Add
 func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-//     startTime := time.Now()
-//     fmt.Printf("start time: %v\n", time.Since(startTime))
     var inputLen = int(cInputLen)
-//     fmt.Printf("convert int time: %v\n", time.Since(startTime))
 
     if outputLen != EIP2537PreallocateForResultBytes {
         return -1
     }
     // Convert output C pointers to Go slices
     output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
-//     fmt.Printf("convert output array time: %v\n", time.Since(startTime))
 
     if inputLen != 2*EIP2537PreallocateForG1 {
         copy(output, "invalid input parameters, invalid input length for G1 addition\x00")
@@ -54,7 +47,6 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
     // generate p0 g1 affine
     p0, err := g1AffineDecodeOnCurve(input[:128])
-//     fmt.Printf("convert g1 p0 affine time: %v\n", time.Since(startTime))
 
     if err != nil {
         copy(output, err.Error())
@@ -63,7 +55,6 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
     // generate p0 g1 affine
     p1, err := g1AffineDecodeOnCurve(input[128:])
-//     fmt.Printf("convert g1 p1 affine time: %v\n", time.Since(startTime))
 
     if err != nil {
         copy(output, err.Error())
@@ -72,13 +63,10 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
     // Use the Add method to combine points
     result := p0.Add(p0, p1)
-//     fmt.Printf("add p0 p1 time: %v\n", time.Since(startTime))
 
     // marshal the resulting point and enocde directly to the output buffer
     ret := result.Marshal()
-//     fmt.Printf("marshal time: %v\n", time.Since(startTime))
     g1AffineEncode(ret, javaOutputBuf)
-//     fmt.Printf("g1 affine encode time: %v\n", time.Since(startTime))
     return 1
 
 }
