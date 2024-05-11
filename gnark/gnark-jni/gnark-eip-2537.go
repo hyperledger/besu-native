@@ -9,6 +9,7 @@ import (
 	"errors"
 // 	"fmt"
 	"math/big"
+	"reflect"
 // 	"time"
 	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bls12-381"
@@ -119,9 +120,60 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     return 1
 }
 
+//export eip2537blsG1MultiExp
 func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    // TODO: not yet implemented, need to sort out dynamic sized byte buffer slice decoding
-    return -1
+    //TODO: DRY up
+    var inputLen = int(cInputLen)
+    if outputLen != EIP2537PreallocateForResultBytes {
+        return -1
+    }
+    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+
+    if inputLen < (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) {
+        copy(output, "invalid input parameters, Invalid number of pairs\x00")
+        return -1
+    }
+    if inputLen % (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) != 0 {
+        copy(output, "invalid input parameters, invalid input length for G1 multiplication\x00")
+        return -1
+    }
+
+    // Convert input C pointers to Go slice
+    input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
+
+    var exprCount = inputLen / (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar)
+
+    // get the first scalar mult operation
+    p0, err := g1AffineDecodeInSubGroup (input[:128])
+    if err != nil {
+        copy(output, err.Error())
+        return -1
+    }
+
+    // Convert byte slice to *big.Int and do the initial scalar multiplication
+    scalar := big.NewInt(0)
+    scalar.SetBytes(input[128:160])
+    result := p0.ScalarMultiplication(p0, scalar)
+
+    for i := 1 ; i < exprCount ; i++ {
+        // for each subsequent operation, decode, mul, and add to the result
+        p1, err := g1AffineDecodeInSubGroup(input[i*160 : (i*160)+128])
+        if err != nil {
+            copy(output, err.Error())
+            return -1
+        }
+
+        scalar = big.NewInt(0)
+        scalar.SetBytes(input[(i*160)+128 : (i+1)*160])
+        p1.ScalarMultiplication(p1, scalar)
+        // add to the result:
+        result = result.Add(result, p1)
+    }
+
+    // marshal the resulting point and encode directly to the output buffer
+    ret := result.Marshal()
+    g1AffineEncode(ret, javaOutputBuf)
+    return 1
 }
 
 //export eip2537blsG2Add
@@ -331,5 +383,18 @@ func g2AffineEncode(g2Point []byte, output *C.char) (error) {
 
     return nil
 }
+
+
+func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
+    var slice []byte
+    // Obtain the slice header
+    header := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
+    header.Data = uintptr(buf)   // point directly to the data
+    header.Len = length          // set the length of the slice
+    header.Cap = length          // set the capacity of the slice
+
+    return slice
+}
+
 
 func main() {}

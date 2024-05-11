@@ -13,7 +13,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.bls12_381;
+package org.hyperledger.besu.nativelib.gnark;
+
 //
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -62,25 +63,27 @@ public class BLS12G1MultiExpPrecompiledContractTest {
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
     byte[] output = null;
-    IntByReference outputLength = new IntByReference();
-    byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    IntByReference errorLength = new IntByReference();
-
+    int res = -1;
     Stopwatch timer = Stopwatch.createStarted();
     for (int i =0 ; i<100; i++) {
-      output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+      output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+      res = LibGnarkEIP2537.eip2537blsG1MultiExp(input, output, input.length, output.length);
 
-      LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_G1MULTIEXP_OPERATION_RAW_VALUE,
-          input, input.length, output, outputLength, error, errorLength);
     }
-    System.err.println("time taken for 1000x rust G1Mul: " + timer);
-    final Bytes expectedComputation =
-        expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-    if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).contains(notes);
-      assertThat(outputLength.getValue()).isZero();
+    System.err.println("time taken for 1000x gnark G1MultiExp: " + timer);
+
+    if (res != 1) {
+      var errBytes = Bytes.wrap(output);
+      // trim trailing zeros from output error response and convert to String:
+      var err = new String(errBytes
+          .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
+          .toArrayUnsafe());
+      assertThat(err).isEqualTo(notes);
     } else {
-      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
+      final Bytes expectedComputation =
+          expectedResult == null ? null : Bytes.fromHexString(expectedResult);
+
+      final Bytes actualComputation = Bytes.wrap(output, 0, 128);
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }

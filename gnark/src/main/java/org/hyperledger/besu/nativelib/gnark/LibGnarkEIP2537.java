@@ -46,6 +46,11 @@ public class LibGnarkEIP2537 implements Library {
       byte[] output,
       int inputSize, int outputSize);
 
+  public static native int eip2537blsG1MultiExp(
+      byte[] input,
+      byte[] output,
+      int inputSize, int outputSize);
+
   public static native int eip2537blsG2Add(
       byte[] input,
       byte[] output,
