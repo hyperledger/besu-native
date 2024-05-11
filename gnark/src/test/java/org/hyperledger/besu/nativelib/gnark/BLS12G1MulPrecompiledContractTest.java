@@ -60,15 +60,9 @@ public class BLS12G1MulPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    byte[] output = null;
-    int res = -1;
-    Stopwatch timer = Stopwatch.createStarted();
-    for (int i =0 ; i<1000; i++) {
-      output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-      res = LibGnarkEIP2537.eip2537blsG1Mul(input, output, input.length, output.length);
+    final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
 
-    }
-    System.err.println("time taken for 1000x gnark G1Mul: " + timer);
+    int res = LibGnarkEIP2537.eip2537blsG1Mul(input, output, input.length, output.length);
 
     if (res != 1) {
       var errBytes = Bytes.wrap(output);
