@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
@@ -60,19 +59,20 @@ public class BLS12G1MulPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    byte[] output = null;
-    IntByReference outputLength = new IntByReference();
-    byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    IntByReference errorLength = new IntByReference();
+    final byte[] output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    final IntByReference outputLength = new IntByReference();
+    final byte[] error = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
+    final IntByReference errorLength = new IntByReference();
 
-    Stopwatch timer = Stopwatch.createStarted();
-    for (int i =0 ; i<1000; i++) {
-      output = new byte[LibEthPairings.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    LibEthPairings.eip2537_perform_operation(
+        LibEthPairings.BLS12_G1MUL_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output,
+        outputLength,
+        error,
+        errorLength);
 
-      LibEthPairings.eip2537_perform_operation(LibEthPairings.BLS12_G1MUL_OPERATION_RAW_VALUE,
-          input, input.length, output, outputLength, error, errorLength);
-    }
-    System.err.println("time taken for 1000x rust G1Mul: " + timer);
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
