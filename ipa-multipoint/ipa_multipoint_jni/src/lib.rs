@@ -13,13 +13,20 @@
 mod parsers;
 use parsers::{parse_scalars, parse_indices, parse_commitment, parse_commitments};
 
+mod utils;
+use utils::{convert_to_btree_set, get_optional_array, get_array, convert_byte_array_to_fixed_array,jobjectarray_to_vec}
+use utils::{byte_to_depth_extension_present,bytes32_to_scalar,bytes32_to_element};
+
 use jni::objects::JClass;
 use jni::sys::jbyteArray;
+use jni::sys::jobjectArray;
 use jni::JNIEnv;
 use once_cell::sync::Lazy;
 
 use std::convert::TryInto;
-
+use ipa_multipoint::multiproof::{MultiPointProof};
+use ipa_multipoint::ipa::{IPAProof};
+use verkle_trie::proof::{VerificationHint, VerkleProof};
 
 // TODO: Use a pointer here instead. This is only being used so that the interface does not get changed.
 // TODO: and bindings do not need to be modified.
@@ -268,4 +275,69 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
         }
     };
     result
+
+}
+
+
+#[no_mangle]
+pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_verifyPreStateRoot(
+    env: JNIEnv, _class: JClass<'_>, stems_keys: jobjectArray,
+                                     current_values: jobjectArray ,
+                                     new_values: jobjectArray,
+                                     commitments_by_path : jobjectArray,
+                                     cl : jobjectArray,
+                                     cr : jobjectArray,
+                                     other_stems : jobjectArray,
+                                     d : jbyteArray,
+                                     depths_extension_present_stems : jbyteArray,
+                                     final_evaluation : jbyteArray,
+                                     prestate_root : jbyteArray
+) -> bool {
+
+    let mut formatted_keys: Vec<[u8; 32]> = Vec::new();
+    let mut formatted_current_values : Vec<Option<[u8; 32]>> = Vec::new();
+    //let mut formatted_new_values Vec<Option<[u8; 32]>> = Vec::new();
+
+    let num_keys = env.get_array_length(stems_keys).unwrap() as i32;
+    for i in 0..num_keys {
+        formatted_keys.push(get_array(&env, stems_keys, i));
+        formatted_current_values.push(get_optional_array(&env, current_values, i));
+        //formatted_new_values.push(get_optional_array(&env, new_values, i));
+    }
+
+    let formatted_commitments = jobjectarray_to_vec(&env, commitments_by_path, bytes32_to_element);
+    let formatted_cl = jobjectarray_to_vec(&env, cl, bytes32_to_element);
+    let formatted_cr = jobjectarray_to_vec(&env, cr, bytes32_to_element);
+
+    let formatted_d = convert_byte_array_to_fixed_array(&env, d);
+    let formatted_final_evaluation = convert_byte_array_to_fixed_array(&env, final_evaluation);
+
+   let proof = MultiPointProof {
+        open_proof: IPAProof {
+            L_vec: formatted_cl,
+            R_vec: formatted_cr,
+            a: bytes32_to_scalar(formatted_final_evaluation),
+        },
+        g_x_comm: bytes32_to_element(formatted_d),
+    };
+
+    let depths_bytes = env.convert_byte_array(depths_extension_present_stems).unwrap();
+    let (formatted_extension_present, depths) = depths_bytes.iter().map(|&byte| byte_to_depth_extension_present(byte as u8)).unzip();
+
+
+    let verkleProof = VerkleProof {
+        verification_hint: VerificationHint {
+            depths: depths,
+            extension_present: formatted_extension_present,
+            diff_stem_no_proof: convert_to_btree_set(&env, other_stems),
+        },
+        comms_sorted: formatted_commitments,
+        proof: proof,
+    };
+
+    let prestate_root_bytes = convert_byte_array_to_fixed_array(&env, prestate_root);
+
+    let (bool,updateHint) = verkleProof.check(formatted_keys, formatted_current_values, bytes32_to_element(prestate_root_bytes));
+
+    bool
 }

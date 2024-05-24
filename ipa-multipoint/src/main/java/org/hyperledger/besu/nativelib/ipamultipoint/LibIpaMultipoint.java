@@ -108,4 +108,36 @@ public class LibIpaMultipoint {
    * @return serialised scalars
    */
   public static native byte[] hashMany(byte[] commitments);
+
+  /**
+   * Verifies a multi-point proof.
+   * <p>
+   * This method interfaces with a native Rust implementation to verify a Verkle trie multi-point proof.
+   * It checks the proof against the provided prestate root
+   * </p>
+   *
+   * @param allStemsKeys An array of byte arrays representing the keys for all stems.
+   * @param allCurrentValues An array of byte arrays representing the current values associated with the keys.
+   * @param allNewValues An array of byte arrays representing the new values.
+   * @param commitmentsByPath An array of byte arrays representing the commitments along the path in the Verkle trie.
+   * @param allCl An array of byte arrays representing the left commitments in the IPA proof.
+   * @param allCr An array of byte arrays representing the right commitments in the IPA proof.
+   * @param allOtherStems An array of byte arrays representing the others stems that are present.
+   * @param d A byte array representing the aggregated commitment to the polynomial D in the IPA proof.
+   * @param depthsExtensionPresentStems A byte array representing the depths and extension presence for each stem.
+   * @param finalEvaluation A byte array representing the final evaluation point in the IPA proof.
+   * @param prestateRoot A byte array representing the root of the prestate to be verified against.
+   */
+  public static native void verifyPreStateRoot(byte[][] allStemsKeys,
+                                               byte[][] allCurrentValues,
+                                               byte[][] allNewValues,
+                                               byte[][] commitmentsByPath,
+                                               byte[][] allCl,
+                                               byte[][] allCr,
+                                               byte[][] allOtherStems,
+                                               byte[] d,
+                                               byte[] depthsExtensionPresentStems,
+                                               byte[] finalEvaluation,
+                                               byte[] prestateRoot);
+
 }
