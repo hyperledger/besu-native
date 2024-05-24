@@ -128,7 +128,7 @@ public class LibIpaMultipoint {
    * @param finalEvaluation A byte array representing the final evaluation point in the IPA proof.
    * @param prestateRoot A byte array representing the root of the prestate to be verified against.
    */
-  public static native void verifyPreStateRoot(byte[][] allStemsKeys,
+  public static native boolean verifyPreStateRoot(byte[][] allStemsKeys,
                                                byte[][] allCurrentValues,
                                                byte[][] allNewValues,
                                                byte[][] commitmentsByPath,

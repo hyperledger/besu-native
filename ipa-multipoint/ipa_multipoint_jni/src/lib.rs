@@ -14,19 +14,18 @@ mod parsers;
 use parsers::{parse_scalars, parse_indices, parse_commitment, parse_commitments};
 
 mod utils;
-use utils::{convert_to_btree_set, get_optional_array, get_array, convert_byte_array_to_fixed_array,jobjectarray_to_vec}
+use utils::{convert_to_btree_set, get_optional_array, get_array, convert_byte_array_to_fixed_array,jobjectarray_to_vec};
 use utils::{byte_to_depth_extension_present,bytes32_to_scalar,bytes32_to_element};
 
 use jni::objects::JClass;
-use jni::sys::jbyteArray;
-use jni::sys::jobjectArray;
+use jni::sys::{jbyteArray, jobjectArray};
 use jni::JNIEnv;
 use once_cell::sync::Lazy;
 
 use std::convert::TryInto;
 use ipa_multipoint::multiproof::{MultiPointProof};
 use ipa_multipoint::ipa::{IPAProof};
-use verkle_trie::proof::{VerificationHint, VerkleProof};
+use verkle_trie::proof::{ExtPresent,VerificationHint, VerkleProof};
 
 // TODO: Use a pointer here instead. This is only being used so that the interface does not get changed.
 // TODO: and bindings do not need to be modified.
@@ -235,7 +234,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
     let hash = ffi_interface::hash_commitment(commitment);
     let result = match env.byte_array_from_slice(&hash) {
         Ok(s) => s,
-        Err(e) => {
+        Err(_e) => {
             env.throw_new(
                 "java/lang/IllegalArgumentException",
                 "Invalid commitment output. Couldn't convert to byte array.")
@@ -283,7 +282,7 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_verifyPreStateRoot(
     env: JNIEnv, _class: JClass<'_>, stems_keys: jobjectArray,
                                      current_values: jobjectArray ,
-                                     new_values: jobjectArray,
+                                     _new_values: jobjectArray,
                                      commitments_by_path : jobjectArray,
                                      cl : jobjectArray,
                                      cr : jobjectArray,
@@ -294,50 +293,98 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
                                      prestate_root : jbyteArray
 ) -> bool {
 
+    let num_keys = match env.get_array_length(stems_keys) {
+        Ok(len) => len,
+        Err(_) => return false,
+    };
+
     let mut formatted_keys: Vec<[u8; 32]> = Vec::new();
     let mut formatted_current_values : Vec<Option<[u8; 32]>> = Vec::new();
-    //let mut formatted_new_values Vec<Option<[u8; 32]>> = Vec::new();
 
-    let num_keys = env.get_array_length(stems_keys).unwrap() as i32;
     for i in 0..num_keys {
-        formatted_keys.push(get_array(&env, stems_keys, i));
-        formatted_current_values.push(get_optional_array(&env, current_values, i));
-        //formatted_new_values.push(get_optional_array(&env, new_values, i));
+        match get_array(&env, stems_keys, i) {
+            Some(key) => formatted_keys.push(key),
+            None => return false,
+        }
+        match get_optional_array(&env, current_values, i) {
+            Some(value) => formatted_current_values.push(value),
+            None => return false,
+        }
     }
 
-    let formatted_commitments = jobjectarray_to_vec(&env, commitments_by_path, bytes32_to_element);
-    let formatted_cl = jobjectarray_to_vec(&env, cl, bytes32_to_element);
-    let formatted_cr = jobjectarray_to_vec(&env, cr, bytes32_to_element);
+    let formatted_commitments = match jobjectarray_to_vec(&env, commitments_by_path, |b| bytes32_to_element(b)) {
+            Some(vec) => vec,
+            None => return false,
+    };
 
-    let formatted_d = convert_byte_array_to_fixed_array(&env, d);
-    let formatted_final_evaluation = convert_byte_array_to_fixed_array(&env, final_evaluation);
+    let formatted_cl = match jobjectarray_to_vec(&env, cl, |b| bytes32_to_element(b)) {
+        Some(vec) => vec,
+        None => return false,
+    };
 
-   let proof = MultiPointProof {
+    let formatted_cr = match jobjectarray_to_vec(&env, cr, |b| bytes32_to_element(b)) {
+        Some(vec) => vec,
+        None => return false,
+    };
+
+    let formatted_d = match convert_byte_array_to_fixed_array(&env, d) {
+            Some(arr) => arr,
+            None => return false,
+    };
+
+    let formatted_final_evaluation = match convert_byte_array_to_fixed_array(&env, final_evaluation) {
+        Some(arr) => arr,
+        None => return false,
+    };
+
+    let scalar_final_evaluation = match bytes32_to_scalar(formatted_final_evaluation) {
+            Some(scalar) => scalar,
+            None => return false,
+    };
+
+    let g_x_comm = match bytes32_to_element(formatted_d) {
+        Some(element) => element,
+        None => return false,
+    };
+
+    let proof = MultiPointProof {
         open_proof: IPAProof {
             L_vec: formatted_cl,
             R_vec: formatted_cr,
-            a: bytes32_to_scalar(formatted_final_evaluation),
+            a: scalar_final_evaluation,
         },
-        g_x_comm: bytes32_to_element(formatted_d),
+        g_x_comm: g_x_comm,
     };
 
-    let depths_bytes = env.convert_byte_array(depths_extension_present_stems).unwrap();
-    let (formatted_extension_present, depths) = depths_bytes.iter().map(|&byte| byte_to_depth_extension_present(byte as u8)).unzip();
+    let depths_bytes = match env.convert_byte_array(depths_extension_present_stems) {
+            Ok(bytes) => bytes,
+            Err(_) => return false,
+    };
+    let (formatted_extension_present, depths): (Vec<ExtPresent>, Vec<u8>) = depths_bytes
+        .iter()
+        .map(|&byte| byte_to_depth_extension_present(byte as u8))
+        .unzip();
 
+    let formatted_other_stems = match convert_to_btree_set(&env, other_stems) {
+        Some(set) => set,
+        None => return false,
+    };
 
-    let verkleProof = VerkleProof {
+    let verkle_proof = VerkleProof {
         verification_hint: VerificationHint {
             depths: depths,
             extension_present: formatted_extension_present,
-            diff_stem_no_proof: convert_to_btree_set(&env, other_stems),
+            diff_stem_no_proof: formatted_other_stems,
         },
         comms_sorted: formatted_commitments,
-        proof: proof,
+        proof,
     };
 
-    let prestate_root_bytes = convert_byte_array_to_fixed_array(&env, prestate_root);
+    let prestate_root_bytes = match convert_byte_array_to_fixed_array(&env, prestate_root).and_then(|bytes| bytes32_to_element(bytes)) {
+        Some(element) => element,
+        None => return false,
+    };
 
-    let (bool,updateHint) = verkleProof.check(formatted_keys, formatted_current_values, bytes32_to_element(prestate_root_bytes));
-
+    let (bool,_update_hint) = verkle_proof.check(formatted_keys, formatted_current_values, prestate_root_bytes);
     bool
 }

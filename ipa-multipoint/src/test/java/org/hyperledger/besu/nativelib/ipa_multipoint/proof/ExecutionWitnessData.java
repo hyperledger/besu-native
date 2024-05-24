@@ -1,8 +1,10 @@
 package org.hyperledger.besu.nativelib.ipa_multipoint.proof;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+
 
 public class ExecutionWitnessData {
 
@@ -90,7 +92,6 @@ public class ExecutionWitnessData {
         public String depthExtensionPresent;
         @JsonProperty("commitmentsByPath")
         public List<String> commitmentsByPath;
-
         @JsonProperty("d")
         public String d;
         @JsonProperty("ipaProof")
