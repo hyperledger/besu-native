@@ -68,7 +68,7 @@ public class BLS12G1MultiExpPrecompiledContractTest {
 
     Stopwatch timer = Stopwatch.createStarted();
     Bls12381.G1Result res = null;
-    for(int i = 0; i < 1; i++) {
+    for(int i = 0; i < 100; i++) {
       res = Bls12381.g1MultiExp(testInput);
     }
 

@@ -22,7 +22,7 @@ plugins {
 dependencies {
   implementation 'net.java.dev.jna:jna:5.12.1'
   implementation  'tech.pegasys:jblst:0.3.11'
-  implementation 'com.google.guava:guava:31.1-jre'
+  testImplementation 'com.google.guava:guava:31.1-jre'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
   testImplementation 'org.assertj:assertj-core:3.22.0'
