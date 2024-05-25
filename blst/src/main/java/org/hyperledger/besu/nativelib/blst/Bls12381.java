@@ -1,6 +1,6 @@
 package org.hyperledger.besu.nativelib.blst;
 
-import com.google.common.base.Stopwatch;
+//import com.google.common.base.Stopwatch;
 import supranational.blst.P1;
 import supranational.blst.P1_Affine;
 import supranational.blst.P2;
@@ -13,8 +13,8 @@ public class Bls12381 {
 
   record G1MultiInput(G1MulInput[] multiInputs) {
     static G1MultiInput unpad(byte[] packedG1MultiExpr) {
-      Stopwatch sw = Stopwatch.createStarted();
-      if (packedG1MultiExpr.length % 160 != 0 && packedG1MultiExpr.length > 0) {
+//      Stopwatch sw = Stopwatch.createStarted();
+      if (packedG1MultiExpr.length % 160 != 0 || packedG1MultiExpr.length == 0) {
         throw new RuntimeException(
             "BLST_ERROR: invalid input parameters, invalid input length for G1 MultiExpr");
       }
@@ -29,7 +29,7 @@ public class Bls12381 {
         System.arraycopy(packedG1MultiExpr, i * 160 + 128, sBytes, 0, 32);
         Scalar s = new Scalar().from_bendian(sBytes);
         mulInputs[i] = new G1MulInput(g1, s);
-        System.err.printf("\t\t%s %d multiExpr input parse\n", sw, i);
+//        System.err.printf("\t\t%s %d multiExpr input parse\n", sw, i);
       }
       return new G1MultiInput(mulInputs);
     }
@@ -212,10 +212,10 @@ public class Bls12381 {
     Scalar s;
 
     try {
-      Stopwatch sw = Stopwatch.createStarted();
-      System.err.printf("\t%s starting multiExpr parse\n", sw);
+//      Stopwatch sw = Stopwatch.createStarted();
+//      System.err.printf("\t%s starting multiExpr parse\n", sw);
       var g1MultiInput = G1MultiInput.unpad(packedG1MultiExpr);
-      System.err.printf("\t%s completed multiExpr parse\n", sw);
+//      System.err.printf("\t%s completed multiExpr parse\n", sw);
 
       var a = new P1_Affine(g1MultiInput.multiInputs[0].g1);
       if (!a.in_group()) {
@@ -227,7 +227,7 @@ public class Bls12381 {
 
       // multiply
       P1 res = p1.mult(s);
-      System.err.printf("\t%s first multiExpr mul\n", sw);
+//      System.err.printf("\t%s first multiExpr mul\n", sw);
 
       for (int i = 1; i < g1MultiInput.multiInputs.length; i++) {
         a = new P1_Affine(g1MultiInput.multiInputs[i].g1);
@@ -237,18 +237,18 @@ public class Bls12381 {
         }
         p1 = a.to_jacobian();
         s = g1MultiInput.multiInputs[i].s;
-        System.err.printf("\t%s %d first multiExpr mul\n", sw, i);
+//        System.err.printf("\t%s %d first multiExpr mul\n", sw, i);
         res = res.add(p1.mult(s));
-        System.err.printf("\t%s %d first multiExpr sum\n", sw, i);
+//        System.err.printf("\t%s %d first multiExpr sum\n", sw, i);
       }
 
       // convert result to affine and return
       var g1Unpadded = res.to_affine().serialize();
-      System.err.printf("\t%s final multiExpr sum\n", sw);
+//      System.err.printf("\t%s final multiExpr sum\n", sw);
       return new G1Result(G1Output.pad(g1Unpadded), Optional.empty());
 
     } catch (Exception ex) {
-      return new G1Result(null, Optional.of(ex.getMessage()));
+      return new G1Result(null, Optional.ofNullable(ex.getMessage()));
     }
   }
 
