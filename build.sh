@@ -342,6 +342,31 @@ EOF
 
 }
 
+build_blst() {
+  cat <<EOF
+  #############################
+  # build Supranational BLSt ##
+  #############################
+EOF
+
+  echo "building blst for ${OSARCH}"
+  cd "$SCRIPTDIR/blst/supranational
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/blst/supranational/libblst*" || true
+  mkdir -p "$SCRIPTDIR/blst/supranational/build/${OSARCH}/lib"
+
+  if [[ "$OSTYPE" == "darwin"* ]];  then
+    # lipo_lib
+    echo "TODO: build lib lib blst for ${OSARCH}"
+  else
+    # shared lib
+    echo "TODO: build shared lib blst for ${OSARCH}"
+  fi
+
+}
+
+
 build_blake2bf
 build_secp256k1
 build_altbn128
@@ -350,6 +375,7 @@ build_bls12_381
 build_ipa_multipoint
 build_secp256r1
 build_gnark
+build_blst
 
 
 build_jars
