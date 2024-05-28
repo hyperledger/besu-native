@@ -31,7 +31,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class BLS12G2AddPrecompiledContractTest {
+public class BLS12G2MulPrecompiledContractTest {
 
   @Parameterized.Parameter(0)
   public String input;
@@ -46,7 +46,7 @@ public class BLS12G2AddPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                BLS12G2AddPrecompiledContractTest.class.getResourceAsStream("g2_add.csv"), UTF_8))
+                BLS12G2MulPrecompiledContractTest.class.getResourceAsStream("g2_mul.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -67,10 +67,10 @@ public class BLS12G2AddPrecompiledContractTest {
     Stopwatch timer = Stopwatch.createStarted();
     Bls12381.G2Result res = null;
     for(int i = 0; i < 1000; i++) {
-      res = Bls12381.g2Add(testInput);
+      res = Bls12381.g2Mul(testInput);
     }
 
-    System.err.println("time taken for 1000x blst G2Add: " + timer);
+    System.err.println("time taken for 1000x blst G2Mul: " + timer);
 
     if (res.optError().isPresent()) {
       assertThat(notes).isNotEmpty();
