@@ -73,6 +73,7 @@ public class BLS12G1AddPrecompiledContractTest {
     System.err.println("time taken for 1000x blst G1Add: " + timer);
 
     if (res.optError().isPresent()) {
+      assertThat(notes).isNotEmpty();
       assertThat(res.optError().get()).contains(notes);
       assertThat(res.g1Out()).isNull();
     } else {
