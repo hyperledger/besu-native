@@ -4,11 +4,19 @@ import com.google.common.base.Stopwatch;
 import supranational.blst.P1;
 import supranational.blst.P1_Affine;
 import supranational.blst.P2;
+import supranational.blst.P2_Affine;
+import supranational.blst.Pairing;
 import supranational.blst.Scalar;
 
 import java.util.Optional;
 
 public class Bls12381 {
+
+  static final byte[] PAIRING_FALSE = new byte[32];
+  static final byte[] PAIRING_TRUE = new byte[32];
+  static {
+    PAIRING_TRUE[31] = 0x01;
+  }
 
   record G1MulInput(byte[] g1, Scalar s) {
     static G1MulInput unpad(byte[] packedG1Mul) {
@@ -156,6 +164,31 @@ public class Bls12381 {
   public record G2Result(G2Output g2Out, Optional<String> optError) {
   }
 
+  public record PairingInput(byte [] g1, byte[] g2) {
+    static PairingInput[] parseMany(byte [] packedPairingInput) {
+      if (packedPairingInput.length % 384 != 0 || packedPairingInput.length == 0) {
+        throw new RuntimeException(
+            "BLST_ERROR: invalid input parameters, invalid input length for pairing");
+      }
+      final int len = packedPairingInput.length / 384;
+      final PairingInput[] res = new PairingInput[len];
+      for (int i = 0; i< len ; i++) {
+        byte [] g1 = new byte[96];
+        System.arraycopy(packedPairingInput, i * 384 + 16, g1, 0, 48);
+        System.arraycopy(packedPairingInput, i * 384 + 80, g1, 48, 48);
+
+        byte [] g2 = new byte[192];
+        System.arraycopy(packedPairingInput, i * 384 + 128 + 16, g2, 48, 48);
+        System.arraycopy(packedPairingInput, i * 384 + 128 + 80, g2, 0, 48);
+        System.arraycopy(packedPairingInput, i * 384 + 128 + 144, g2, 144, 48);
+        System.arraycopy(packedPairingInput, i * 384 + 128 + 208, g2, 96, 48);
+        res[i] = new PairingInput(g1, g2);
+      }
+      return res;
+    }
+  }
+
+  public record PairingResult(byte[] result, Optional<String> optError){}
 
   public static final Boolean ENABLED = init();
 
@@ -377,5 +410,40 @@ public class Bls12381 {
     // convert result to affine and return
     var g2Unpadded = res.to_affine().serialize();
     return new G2Result(G2Output.pad(g2Unpadded), Optional.empty());
+  }
+
+  public static PairingResult blsPairing(byte[] packedPairing) {
+    try {
+      final PairingInput[] pairs = PairingInput.parseMany(packedPairing);
+      P1_Affine p1;
+      P2_Affine p2;
+      Pairing res = new Pairing(true, "");
+      for (int i = 0; i < pairs.length; i++) {
+        p1 = new P1_Affine(pairs[i].g1);
+        if (!p1.in_group()) {
+          return new PairingResult(PAIRING_FALSE,
+              Optional.of("BLST_ERROR: G1 Point is not in the expected subgroup"));
+        }
+        p2 = new P2_Affine(pairs[i].g2);
+        if (!p2.in_group()) {
+          return new PairingResult(PAIRING_FALSE,
+              Optional.of("BLST_ERROR: G2 Point is not in the expected subgroup"));
+        }
+        res.raw_aggregate(p2, p1);
+      }
+      res.commit();
+      return new PairingResult(
+          res.finalverify() ? PAIRING_TRUE : PAIRING_FALSE, Optional.empty());
+    } catch (Exception ex) {
+      return new PairingResult(PAIRING_FALSE, Optional.of(ex.getMessage()));
+    }
+  }
+
+  public static G1Output mapFpToG1(byte[] packedFp1) {
+    return null;
+  }
+
+  public static G2Output mapFp2ToG2(byte[] packedFp2) {
+    return null;
   }
 }
