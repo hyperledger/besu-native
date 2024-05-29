@@ -216,10 +216,10 @@ public class Bls12381 {
     P1 p1a, p1b;
     try {
       var g1AddInput = G1AddInput.unpadPair(packedG1Affines);
-      p1a = new P1_Affine(g1AddInput.g1a).to_jacobian();
-      p1b = new P1_Affine(g1AddInput.g1b).to_jacobian();
+      p1a = new P1(g1AddInput.g1a);
+      p1b = new P1(g1AddInput.g1b);
     } catch (Exception ex) {
-      return new G1Result(null, Optional.of(ex.getMessage()));
+      return new G1Result(null, Optional.ofNullable(ex.getMessage()));
     }
 
     // add
@@ -244,15 +244,14 @@ public class Bls12381 {
     Scalar s;
     try {
       var g1MulInput = G1MulInput.unpad(packedG1Mul);
-      var a = new P1_Affine(g1MulInput.g1);
-      if (!a.in_group()) {
+      p1 = new P1(g1MulInput.g1);
+      if (!p1.in_group()) {
         return new G1Result(null,
             Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
-      p1 = a.to_jacobian();
       s = g1MulInput.s;
     } catch (Exception ex) {
-      return new G1Result(null, Optional.of(ex.getMessage()));
+      return new G1Result(null, Optional.ofNullable(ex.getMessage()));
     }
 
     // multiply
@@ -280,24 +279,22 @@ public class Bls12381 {
     try {
       var g1MultiInput = G1MulInput.unpadMany(packedG1MultiExpr);
 
-      var a = new P1_Affine(g1MultiInput[0].g1);
-      if (!a.in_group()) {
+      p1 = new P1(g1MultiInput[0].g1);
+      if (!p1.in_group()) {
         return new G1Result(null,
             Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
-      p1 = a.to_jacobian();
       s = g1MultiInput[0].s;
 
       // multiply
       P1 res = p1.mult(s);
 
       for (int i = 1; i < g1MultiInput.length; i++) {
-        a = new P1_Affine(g1MultiInput[i].g1);
-        if (!a.in_group()) {
+        p1 = new P1(g1MultiInput[i].g1);
+        if (!p1.in_group()) {
           return new G1Result(null,
               Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
         }
-        p1 = a.to_jacobian();
         s = g1MultiInput[i].s;
         res = res.add(p1.mult(s));
       }
@@ -329,7 +326,7 @@ public class Bls12381 {
       p2a = new P2(g2AddInput.g2a);
       p2b = new P2(g2AddInput.g2b);
     } catch (Exception ex) {
-      return new G2Result(null, Optional.of(ex.getMessage()));
+      return new G2Result(null, Optional.ofNullable(ex.getMessage()));
     }
 
     // add
@@ -361,7 +358,7 @@ public class Bls12381 {
       }
 
     } catch (Exception ex) {
-      return new G2Result(null, Optional.of(ex.getMessage()));
+      return new G2Result(null, Optional.ofNullable(ex.getMessage()));
     }
 
     // multiply
@@ -404,7 +401,7 @@ public class Bls12381 {
         res = res.add(p2.mult(g2MulInput[i].s));
       }
     } catch (Exception ex) {
-      return new G2Result(null, Optional.of(ex.getMessage()));
+      return new G2Result(null, Optional.ofNullable(ex.getMessage()));
     }
 
     // convert result to affine and return
@@ -435,15 +432,45 @@ public class Bls12381 {
       return new PairingResult(
           res.finalverify() ? PAIRING_TRUE : PAIRING_FALSE, Optional.empty());
     } catch (Exception ex) {
-      return new PairingResult(PAIRING_FALSE, Optional.of(ex.getMessage()));
+      return new PairingResult(PAIRING_FALSE, Optional.ofNullable(ex.getMessage()));
     }
   }
 
-  public static G1Output mapFpToG1(byte[] packedFp1) {
-    return null;
+  public static G1Result mapFpToG1(byte[] packedFp1) {
+    try {
+      if (!(packedFp1.length == 64)) {
+        throw new RuntimeException(
+            "BLST_ERROR: invalid input parameters, invalid input length for mapFpToG1");
+      }
+      byte[] fp1 = new byte[48];
+      System.arraycopy(packedFp1, 16, fp1, 0, 48);
+      P1 res = new P1().encode_to(fp1);
+
+      // convert result to affine and return
+      var g1Unpadded = res.to_affine().serialize();
+      return new G1Result(G1Output.pad(g1Unpadded), Optional.empty());
+    } catch(Exception ex) {
+      return new G1Result(null, Optional.ofNullable(ex.getMessage()));
+    }
   }
 
-  public static G2Output mapFp2ToG2(byte[] packedFp2) {
-    return null;
+  public static G2Result mapFp2ToG2(byte[] packedFp2) {
+    try {
+      if (!(packedFp2.length == 128)) {
+        throw new RuntimeException(
+            "BLST_ERROR: invalid input parameters, invalid input length for mapFp2ToG2");
+      }
+     byte[] fp2 = new byte[96];
+      System.arraycopy(packedFp2, 16, fp2, 48, 48);
+      System.arraycopy(packedFp2, 80, fp2, 0, 48);
+      P2 res = new P2().hash_to(fp2);
+
+      // convert result to affine and return
+      var g2Unpadded = res.to_affine().serialize();
+      return new G2Result(G2Output.pad(g2Unpadded), Optional.empty());
+
+    } catch(Exception ex) {
+      return new G2Result(null, Optional.ofNullable(ex.getMessage()));
+    }
   }
 }
