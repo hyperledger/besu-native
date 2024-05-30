@@ -15,7 +15,6 @@
  */
 package org.hyperledger.besu.nativelib.blst;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Streams;
 import com.google.common.io.CharStreams;
 import org.apache.tuweni.bytes.Bytes;
@@ -74,13 +73,8 @@ public class BLS12PairingPrecompiledContractTest {
         .map(Bytes::fromHexString)
         .orElse(Bytes.EMPTY);
 
-    Stopwatch timer = Stopwatch.createStarted();
     Bls12381.PairingResult res = null;
-    for(int i = 0; i < 100; i++) {
-      res = Bls12381.blsPairing(testInput);
-    }
-
-    System.err.println("time taken for 100x blst Pairing: " + timer);
+    res = Bls12381.blsPairing(testInput);
 
     if (res.optError().isPresent()) {
       assertThat(notes).isNotEmpty();
