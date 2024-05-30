@@ -442,9 +442,10 @@ public class Bls12381 {
         throw new RuntimeException(
             "BLST_ERROR: invalid input parameters, invalid input length for mapFpToG1");
       }
-      byte[] fp1 = new byte[48];
+      byte[] fp1 = new byte[96];
       System.arraycopy(packedFp1, 16, fp1, 0, 48);
-      P1 res = new P1().encode_to(fp1);
+
+      P1 res = new P1().map_to(fp1);
 
       // convert result to affine and return
       var g1Unpadded = res.to_affine().serialize();
@@ -461,9 +462,9 @@ public class Bls12381 {
             "BLST_ERROR: invalid input parameters, invalid input length for mapFp2ToG2");
       }
      byte[] fp2 = new byte[96];
-      System.arraycopy(packedFp2, 16, fp2, 48, 48);
-      System.arraycopy(packedFp2, 80, fp2, 0, 48);
-      P2 res = new P2().hash_to(fp2);
+      System.arraycopy(packedFp2, 16, fp2, 0, 48);
+      System.arraycopy(packedFp2, 80, fp2, 48, 48);
+      P2 res = new P2().map_to(fp2);
 
       // convert result to affine and return
       var g2Unpadded = res.to_affine().serialize();
