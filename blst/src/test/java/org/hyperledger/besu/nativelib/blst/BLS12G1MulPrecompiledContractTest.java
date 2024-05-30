@@ -15,7 +15,6 @@
  */
 package org.hyperledger.besu.nativelib.blst;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
@@ -64,13 +63,8 @@ public class BLS12G1MulPrecompiledContractTest {
         .map(Bytes::fromHexString)
         .orElse(Bytes.EMPTY);
 
-    Stopwatch timer = Stopwatch.createStarted();
     Bls12381.G1Result res = null;
-    for(int i = 0; i < 1000; i++) {
-      res = Bls12381.g1Mul(testInput);
-    }
-
-    System.err.println("time taken for 1000x blst G1Mul: " + timer);
+    res = Bls12381.g1Mul(testInput);
 
     if (res.optError().isPresent()) {
       assertThat(notes).isNotEmpty();

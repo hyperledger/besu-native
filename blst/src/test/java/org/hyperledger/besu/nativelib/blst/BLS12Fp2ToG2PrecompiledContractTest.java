@@ -15,7 +15,6 @@
  */
 package org.hyperledger.besu.nativelib.blst;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
@@ -64,13 +63,8 @@ public class BLS12Fp2ToG2PrecompiledContractTest {
         .map(Bytes::fromHexString)
         .orElse(Bytes.EMPTY);
 
-    Stopwatch timer = Stopwatch.createStarted();
     Bls12381.G2Result res = null;
-    for(int i = 0; i < 100; i++) {
-      res = Bls12381.mapFp2ToG2(testInput);
-    }
-
-    System.err.println("time taken for 100x blst mapFpToG1: " + timer);
+    res = Bls12381.mapFp2ToG2(testInput);
 
     if (res.optError().isPresent()) {
       assertThat(notes).isNotEmpty();
