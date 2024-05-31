@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.nativelib.ipamultipoint.LibIpaMultipoint;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +20,15 @@ public class VerifyProofTest {
 
     static {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    @Test
+    public void TestVerifyPreStateRootValidFor1() throws IOException {
+        final InputStream inputStream = VerifyProofTest.class.getResourceAsStream("/valid_block_1.json");
+        final ExecutionWitnessData executionWitnessData = objectMapper.readValue(inputStream, new TypeReference<>() {
+        });
+        final Bytes prestateRoot = Bytes.fromHexString("0x1fbf85345a3cbba9a6d44f991b721e55620a22397c2a93ee8d5011136ac300ee");
+        assertThat(verifyPreState(executionWitnessData, prestateRoot)).isTrue();
     }
 
     @Test
@@ -63,33 +70,27 @@ public class VerifyProofTest {
     private boolean verifyPreState(final ExecutionWitnessData executionWitnessData, final Bytes preStateRoot){
         final List<byte[]> allStemsKeys = new ArrayList<>();
         final List<byte[]> allCurrentValues = new ArrayList<>();
-        final List<byte[]> allNewValues = new ArrayList<>();
         executionWitnessData.executionWitness.stateDiff.forEach(stateDiff -> {
             Bytes stem = Bytes.fromHexString(stateDiff.stem);
             stateDiff.suffixDiffs.forEach(suffixDiff -> {
                 allStemsKeys.add(Bytes.concatenate(stem,Bytes.of(suffixDiff.suffix)).toArrayUnsafe());
                 allCurrentValues.add(((suffixDiff.currentValue==null)?Bytes.EMPTY:Bytes.fromHexString(suffixDiff.currentValue)).toArrayUnsafe());
-                allNewValues.add(((suffixDiff.newValue==null)?Bytes.EMPTY:Bytes.fromHexString(suffixDiff.newValue)).toArrayUnsafe());
             });
         });
-        final byte[][] commitmentsByPath = convertListToByte2DArray(executionWitnessData.executionWitness.verkleProof.commitmentsByPath);
-        final byte[][] allCl = convertListToByte2DArray(executionWitnessData.executionWitness.verkleProof.ipaProof.cl);
-        final byte[][] allCr = convertListToByte2DArray(executionWitnessData.executionWitness.verkleProof.ipaProof.cr);
-        final byte[][] allOtherStems = convertListToByte2DArray(executionWitnessData.executionWitness.verkleProof.otherStems);
+        final byte[][] commitmentsByPath = toArray(executionWitnessData.executionWitness.verkleProof.commitmentsByPath);
+        final byte[][] allCl = toArray(executionWitnessData.executionWitness.verkleProof.ipaProof.cl);
+        final byte[][] allCr = toArray(executionWitnessData.executionWitness.verkleProof.ipaProof.cr);
+        final byte[][] allOtherStems = toArray(executionWitnessData.executionWitness.verkleProof.otherStems);
         final byte[] d = Bytes.fromHexString(executionWitnessData.executionWitness.verkleProof.d).toArrayUnsafe();
         final byte[] depthExtensionPresent = Bytes.fromHexString(executionWitnessData.executionWitness.verkleProof.depthExtensionPresent).toArrayUnsafe();
         final byte[] finalEvaluation = Bytes.fromHexString(executionWitnessData.executionWitness.verkleProof.ipaProof.finalEvaluation).toArrayUnsafe();
 
-        return LibIpaMultipoint.verifyPreStateRoot(allStemsKeys.toArray(byte[][]::new), allCurrentValues.toArray(byte[][]::new), allNewValues.toArray(byte[][]::new), commitmentsByPath, allCl, allCr, allOtherStems, d, depthExtensionPresent, finalEvaluation, preStateRoot.toArrayUnsafe());
+        return LibIpaMultipoint.verifyPreStateRoot(allStemsKeys.toArray(byte[][]::new), allCurrentValues.toArray(byte[][]::new), commitmentsByPath, allCl, allCr, allOtherStems, d, depthExtensionPresent, finalEvaluation, preStateRoot.toArrayUnsafe());
     }
 
 
-    private static byte[][] convertListToByte2DArray(List<String> list) {
-        byte[][] array = new byte[list.size()][];
-        for (int i = 0; i < list.size(); i++) {
-            array[i] = Bytes.fromHexString(list.get(i)).toArrayUnsafe();
-        }
-        return array;
+    private byte[][] toArray(final List<String> elt){
+        return elt.stream().map(Bytes::fromHexString).map(Bytes::toArrayUnsafe).toArray(byte[][]::new);
     }
 
 }

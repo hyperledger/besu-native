@@ -110,34 +110,33 @@ public class LibIpaMultipoint {
   public static native byte[] hashMany(byte[] commitments);
 
   /**
-   * Verifies a multi-point proof.
+   * Verifies the Verkle proof against the specified pre-state root
    * <p>
-   * This method interfaces with a native Rust implementation to verify a Verkle trie multi-point proof.
-   * It checks the proof against the provided prestate root
+   * This method interfaces with a native Rust implementation to verify a Verkle proof
+   * against the specified pre-state root.
    * </p>
    *
-   * @param allStemsKeys An array of byte arrays representing the keys for all stems.
-   * @param allCurrentValues An array of byte arrays representing the current values associated with the keys.
-   * @param allNewValues An array of byte arrays representing the new values.
-   * @param commitmentsByPath An array of byte arrays representing the commitments along the path in the Verkle trie.
-   * @param allCl An array of byte arrays representing the left commitments in the IPA proof.
-   * @param allCr An array of byte arrays representing the right commitments in the IPA proof.
-   * @param allOtherStems An array of byte arrays representing the others stems that are present.
-   * @param d A byte array representing the aggregated commitment to the polynomial D in the IPA proof.
-   * @param depthsExtensionPresentStems A byte array representing the depths and extension presence for each stem.
-   * @param finalEvaluation A byte array representing the final evaluation point in the IPA proof.
-   * @param prestateRoot A byte array representing the root of the prestate to be verified against.
+   * @param keys accessed or modified keys
+   * @param currentValues current values associated with the keys.
+   * @param commitmentsByPath commitments along the path in the Verkle trie.
+   * @param cl left commitments in the IPA proof.
+   * @param cr right commitments in the IPA proof.
+   * @param otherStems others stems that are present.
+   * @param d aggregated commitment to the polynomial D in the IPA proof.
+   * @param depthsExtensionPresentStems depths and extension presence for each stem.
+   * @param finalEvaluation final evaluation point in the IPA proof.
+   * @param prestateRoot root of the prestate to be verified against.
+   * @return true if prestate root is correct
    */
-  public static native boolean verifyPreStateRoot(byte[][] allStemsKeys,
-                                               byte[][] allCurrentValues,
-                                               byte[][] allNewValues,
-                                               byte[][] commitmentsByPath,
-                                               byte[][] allCl,
-                                               byte[][] allCr,
-                                               byte[][] allOtherStems,
-                                               byte[] d,
-                                               byte[] depthsExtensionPresentStems,
-                                               byte[] finalEvaluation,
-                                               byte[] prestateRoot);
+  public static native boolean verifyPreStateRoot(byte[][] keys,
+                                                  byte[][] currentValues,
+                                                  byte[][] commitmentsByPath,
+                                                  byte[][] cl,
+                                                  byte[][] cr,
+                                                  byte[][] otherStems,
+                                                  byte[] d,
+                                                  byte[] depthsExtensionPresentStems,
+                                                  byte[] finalEvaluation,
+                                                  byte[] prestateRoot);
 
 }

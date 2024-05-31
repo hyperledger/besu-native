@@ -282,7 +282,6 @@ pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaM
 pub extern "system" fn Java_org_hyperledger_besu_nativelib_ipamultipoint_LibIpaMultipoint_verifyPreStateRoot(
     env: JNIEnv, _class: JClass<'_>, stems_keys: jobjectArray,
                                      current_values: jobjectArray ,
-                                     _new_values: jobjectArray,
                                      commitments_by_path : jobjectArray,
                                      cl : jobjectArray,
                                      cr : jobjectArray,
