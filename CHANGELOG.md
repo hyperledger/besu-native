@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.8.5
+* ipa-multipoint : add verkle proof verification (#169)
+
 # 0.8.4
 
 * BLS12-381: Add subgroup checks to BLS-12 mul amd multiexp precompiles (#166)
@@ -22,7 +25,6 @@
 * FIX: javadoc issues [#125](https://github.com/hyperledger/besu-native/pull/125)
 * ENH: adds ipa-multipoint library with Pedersen primitives [#123](https://github.com/hyperledger/besu-native/pull/123)
 * Bump github.com/consensys/gnark-crypto in /gnark/gnark-jni [#122](https://github.com/hyperledger/besu-native/pull/122)
-
 
 # 0.8.2
 
