@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.8.5
+* ipa-multipoint : add verkle proof verification (#169)
+
 # 0.8.4
 
 * BLS12-381: Add subgroup checks to BLS-12 mul amd multiexp precompiles (#166)
