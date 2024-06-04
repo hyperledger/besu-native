@@ -71,7 +71,7 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     // marshal the resulting point and enocde directly to the output buffer
     ret := result.Marshal()
     g1AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 
 }
 
@@ -106,7 +106,7 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g1AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 }
 
 //export eip2537blsG1MultiExp
@@ -158,7 +158,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g1AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 }
 
 //export eip2537blsG2Add
@@ -194,7 +194,7 @@ func eip2537blsG2Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     ret := result.Marshal()
     g2AffineEncode(ret, javaOutputBuf)
 
-    return 1
+    return 0
 
 }
 
@@ -227,7 +227,7 @@ func eip2537blsG2Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g2AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 
 }
 
@@ -280,7 +280,7 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g2AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 }
 
 //export eip2537blsPairing
@@ -336,7 +336,7 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen
         output[31]=0x01
     }
 
-    return 1
+    return 0
 
 }
 
@@ -362,7 +362,7 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g1AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 }
 
 //export eip2537blsMapFp2ToG2
@@ -387,7 +387,7 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, output
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g2AffineEncode(ret, javaOutputBuf)
-    return 1
+    return 0
 }
 
 

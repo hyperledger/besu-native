@@ -335,37 +335,13 @@ EOF
 
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
   go build -buildmode=c-shared -o libgnark_eip_2537.$LIBRARY_EXTENSION gnark-eip-2537.go
+  go build -buildmode=c-shared -o libgnark_eip_196.$LIBRARY_EXTENSION gnark-eip-196.go
 
   mkdir -p "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
   cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
   cp libgnark_eip_2537.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
-
+  cp libgnark_eip_196.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
 }
-
-build_blst() {
-  cat <<EOF
-  #############################
-  # build Supranational BLSt ##
-  #############################
-EOF
-
-  echo "building blst for ${OSARCH}"
-  cd "$SCRIPTDIR/blst/supranational
-
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/blst/supranational/libblst*" || true
-  mkdir -p "$SCRIPTDIR/blst/supranational/build/${OSARCH}/lib"
-
-  if [[ "$OSTYPE" == "darwin"* ]];  then
-    # lipo_lib
-    echo "TODO: build lib lib blst for ${OSARCH}"
-  else
-    # shared lib
-    echo "TODO: build shared lib blst for ${OSARCH}"
-  fi
-
-}
-
 
 build_blake2bf
 build_secp256k1
@@ -375,7 +351,6 @@ build_bls12_381
 build_ipa_multipoint
 build_secp256r1
 build_gnark
-build_blst
 
 
 build_jars

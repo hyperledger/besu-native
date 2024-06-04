@@ -73,7 +73,7 @@ public class BLS12PairingPrecompiledContractTest {
 
     int res = LibGnarkEIP2537.eip2537blsPairing(input, output, input.length, output.length);
 
-    if (res != 1) {
+    if (res != 0) {
       var errBytes = Bytes.wrap(output);
       // trim trailing zeros from output error response and convert to String:
       var err = new String(errBytes
