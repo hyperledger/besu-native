@@ -1,6 +1,5 @@
 package org.hyperledger.besu.nativelib.blst;
 
-import com.google.common.base.Stopwatch;
 import supranational.blst.P1;
 import supranational.blst.P1_Affine;
 import supranational.blst.P2;
@@ -10,13 +9,22 @@ import supranational.blst.Scalar;
 
 import java.util.Optional;
 
+/**
+ * This class implements BLS12-381 using JBLST and BLST, and therefore does not strictly need to be
+ * in besu-native.
+ *
+ * TODO: map_to_g1 and map_to_g2 are not currently available in blst bindings, and are
+ *       commented out for now.
+ */
 public class Bls12381 {
 
   static final byte[] PAIRING_FALSE = new byte[32];
   static final byte[] PAIRING_TRUE = new byte[32];
+
   static {
     PAIRING_TRUE[31] = 0x01;
   }
+
 
   record G1MulInput(byte[] g1, Scalar s) {
     static G1MulInput unpad(byte[] packedG1Mul) {
@@ -41,7 +49,7 @@ public class Bls12381 {
       int length = packedG1MultiExpr.length / 160;
       G1MulInput[] mulInputs = new G1MulInput[length];
 
-      for (int i =0 ; i < length; i++) {
+      for (int i = 0; i < length; i++) {
         byte[] g1 = new byte[96];
         System.arraycopy(packedG1MultiExpr, i * 160 + 16, g1, 0, 48);
         System.arraycopy(packedG1MultiExpr, i * 160 + 80, g1, 48, 48);
@@ -54,6 +62,7 @@ public class Bls12381 {
     }
 
   }
+
 
   record G1AddInput(byte[] g1a, byte[] g1b) {
     static G1AddInput unpadPair(byte[] packedG1Affine) {
@@ -71,6 +80,7 @@ public class Bls12381 {
     }
   }
 
+
   public record G1Output(byte[] padded) {
     static G1Output pad(byte[] unpadded) {
       if (unpadded.length != 96) {
@@ -83,10 +93,12 @@ public class Bls12381 {
     }
   }
 
+
   public record G1Result(G1Output g1Out, Optional<String> optError) {
   }
 
-  record G2MulInput(byte[] g2, Scalar s){
+
+  record G2MulInput(byte[] g2, Scalar s) {
     static G2MulInput unpadPair(byte[] packedG2Mul) {
       if (packedG2Mul.length != 288) {
         throw new RuntimeException(
@@ -103,7 +115,7 @@ public class Bls12381 {
       return new G2MulInput(g2, s);
     }
 
-    static G2MulInput[] unpadMany(byte[] packedG2MultiExpr){
+    static G2MulInput[] unpadMany(byte[] packedG2MultiExpr) {
       if (packedG2MultiExpr.length % 288 != 0 || packedG2MultiExpr.length == 0) {
         throw new RuntimeException(
             "BLST_ERROR: invalid input parameters, invalid input length for G2 MultiExpr");
@@ -111,7 +123,7 @@ public class Bls12381 {
       int length = packedG2MultiExpr.length / 288;
       G2MulInput[] mulInputs = new G2MulInput[length];
 
-      for (int i =0 ; i < length; i++) {
+      for (int i = 0; i < length; i++) {
         byte[] g2 = new byte[192];
         System.arraycopy(packedG2MultiExpr, i * 288 + 16, g2, 48, 48);
         System.arraycopy(packedG2MultiExpr, i * 288 + 80, g2, 0, 48);
@@ -126,6 +138,7 @@ public class Bls12381 {
     }
 
   }
+
 
   record G2AddInput(byte[] g2a, byte[] g2b) {
     static G2AddInput unpadPair(byte[] packedG2Affine) {
@@ -147,6 +160,7 @@ public class Bls12381 {
     }
   }
 
+
   public record G2Output(byte[] padded) {
     static G2Output pad(byte[] unpadded) {
       if (unpadded.length != 192) {
@@ -161,23 +175,25 @@ public class Bls12381 {
     }
   }
 
+
   public record G2Result(G2Output g2Out, Optional<String> optError) {
   }
 
-  public record PairingInput(byte [] g1, byte[] g2) {
-    static PairingInput[] parseMany(byte [] packedPairingInput) {
+
+  public record PairingInput(byte[] g1, byte[] g2) {
+    static PairingInput[] parseMany(byte[] packedPairingInput) {
       if (packedPairingInput.length % 384 != 0 || packedPairingInput.length == 0) {
         throw new RuntimeException(
             "BLST_ERROR: invalid input parameters, invalid input length for pairing");
       }
       final int len = packedPairingInput.length / 384;
       final PairingInput[] res = new PairingInput[len];
-      for (int i = 0; i< len ; i++) {
-        byte [] g1 = new byte[96];
+      for (int i = 0; i < len; i++) {
+        byte[] g1 = new byte[96];
         System.arraycopy(packedPairingInput, i * 384 + 16, g1, 0, 48);
         System.arraycopy(packedPairingInput, i * 384 + 80, g1, 48, 48);
 
-        byte [] g2 = new byte[192];
+        byte[] g2 = new byte[192];
         System.arraycopy(packedPairingInput, i * 384 + 128 + 16, g2, 48, 48);
         System.arraycopy(packedPairingInput, i * 384 + 128 + 80, g2, 0, 48);
         System.arraycopy(packedPairingInput, i * 384 + 128 + 144, g2, 144, 48);
@@ -188,7 +204,10 @@ public class Bls12381 {
     }
   }
 
-  public record PairingResult(byte[] result, Optional<String> optError){}
+
+  public record PairingResult(byte[] result, Optional<String> optError) {
+  }
+
 
   public static final Boolean ENABLED = init();
 
@@ -234,7 +253,7 @@ public class Bls12381 {
    * Multiply G1 affine by scalar, return the result.  Perform subgroup checks, per EIP-2537.
    *
    * @param packedG1Mul 160 byte array, comprising a G1 affine and 32 bit scalar.  Points are 48
-   *                        bytes, with each left padded with 16 bytes, totaling 64 bytes per point.
+   *                    bytes, with each left padded with 16 bytes, totaling 64 bytes per point.
    * @return g1Result
    */
   public static G1Result g1Mul(byte[] packedG1Mul) {
@@ -246,8 +265,7 @@ public class Bls12381 {
       var g1MulInput = G1MulInput.unpad(packedG1Mul);
       p1 = new P1(g1MulInput.g1);
       if (!p1.in_group()) {
-        return new G1Result(null,
-            Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
+        return new G1Result(null, Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
       s = g1MulInput.s;
     } catch (Exception ex) {
@@ -263,11 +281,11 @@ public class Bls12381 {
   }
 
   /**
-   * Multiply G1 affine/scalar pairs, sum, return the result.  Perform subgroup checks, per EIP-2537.
+   * Multiply G1 affine/scalar pairs, sum, return the result.  Perform subgroup checks, per
+   * EIP-2537.
    *
-   * @param packedG1MultiExpr byte array, comprising n G1 affine/scalar paris.
-   *                          Points are 48 bytes, with each left padded with 16 bytes,
-   *                          totaling 64 bytes per point.
+   * @param packedG1MultiExpr byte array, comprising n G1 affine/scalar paris. Points are 48 bytes,
+   *                          with each left padded with 16 bytes, totaling 64 bytes per point.
    * @return g1Result
    */
   public static G1Result g1MultiExp(byte[] packedG1MultiExpr) {
@@ -281,8 +299,7 @@ public class Bls12381 {
 
       p1 = new P1(g1MultiInput[0].g1);
       if (!p1.in_group()) {
-        return new G1Result(null,
-            Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
+        return new G1Result(null, Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
       s = g1MultiInput[0].s;
 
@@ -319,7 +336,6 @@ public class Bls12381 {
   public static G2Result g2Add(byte[] packedG2Affines) {
     // do not do subgroup checks on G2ADD according to EIP-2537 spec
     // get P2 points a and b from affine encoding as jacobian coords
-    Stopwatch sw = Stopwatch.createStarted();
     P2 p2a, p2b;
     try {
       var g2AddInput = G2AddInput.unpadPair(packedG2Affines);
@@ -341,7 +357,7 @@ public class Bls12381 {
    * Multiply G2 affine by scalar, return the result.  Perform subgroup checks, per EIP-2537.
    *
    * @param packedG2Mul 288 byte array, comprising a G2 affine and 32 bit scalar.  Points are 48
-   *                        bytes, with each left padded with 16 bytes, totaling 64 bytes per point.
+   *                    bytes, with each left padded with 16 bytes, totaling 64 bytes per point.
    * @return g2Result
    */
   public static G2Result g2Mul(byte[] packedG2Mul) {
@@ -353,8 +369,7 @@ public class Bls12381 {
       g2MulInput = G2MulInput.unpadPair(packedG2Mul);
       p2 = new P2(g2MulInput.g2);
       if (!p2.in_group()) {
-        return new G2Result(null,
-            Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
+        return new G2Result(null, Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
 
     } catch (Exception ex) {
@@ -370,10 +385,12 @@ public class Bls12381 {
   }
 
   /**
-   * Multiply G2 affine/scalar pairs, sum, return the result.  Perform subgroup checks, per EIP-2537.
+   * Multiply G2 affine/scalar pairs, sum, return the result.  Perform subgroup checks, per
+   * EIP-2537.
    *
    * @param packedG2MultiExpr byte array, comprising a G2 affine and scalar paris.  Points are 48
-   *                        bytes, with each left padded with 16 bytes, totaling 64 bytes per point.
+   *                          bytes, with each left padded with 16 bytes, totaling 64 bytes per
+   *                          point.
    * @return g2Result
    */
   public static G2Result g2MultiExpr(byte[] packedG2MultiExpr) {
@@ -385,11 +402,10 @@ public class Bls12381 {
       var g2MulInput = G2MulInput.unpadMany(packedG2MultiExpr);
       res = new P2(g2MulInput[0].g2).mult(g2MulInput[0].s);
       if (!res.in_group()) {
-        return new G2Result(null,
-            Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
+        return new G2Result(null, Optional.of("BLST_ERROR: Point is not in the expected subgroup"));
       }
 
-      for(int i = 1; i < g2MulInput.length; i++) {
+      for (int i = 1; i < g2MulInput.length; i++) {
         // multiply
 
         p2 = new P2(g2MulInput[i].g2);
@@ -429,12 +445,14 @@ public class Bls12381 {
         res.raw_aggregate(p2, p1);
       }
       res.commit();
-      return new PairingResult(
-          res.finalverify() ? PAIRING_TRUE : PAIRING_FALSE, Optional.empty());
+      return new PairingResult(res.finalverify() ? PAIRING_TRUE : PAIRING_FALSE, Optional.empty());
     } catch (Exception ex) {
       return new PairingResult(PAIRING_FALSE, Optional.ofNullable(ex.getMessage()));
     }
   }
+
+  /*
+     TODO: Disabled until blst library bindings include map_to_g*
 
   public static G1Result mapFpToG1(byte[] packedFp1) {
     try {
@@ -474,4 +492,5 @@ public class Bls12381 {
       return new G2Result(null, Optional.ofNullable(ex.getMessage()));
     }
   }
+  */
 }
