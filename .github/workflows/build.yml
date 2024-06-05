@@ -67,7 +67,7 @@ jobs:
           name: gnark native build artifacts
           path: gnark/build/
   native-build-linux-arm64:
-    runs-on: [self-hosted, Linux, ARM64]
+    runs-on: besu-arm64
     env:
       SKIP_GRADLE: true
     steps:
