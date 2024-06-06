@@ -128,6 +128,8 @@ public class AltBN128PairingPrecompiledContractTest {
 
     // assert there is an error
     assertThat(errorLength.getValue()).isNotEqualTo(0);
+    String errorStr = new String(error, 0, errorLength.getValue());
+    assertThat(errorStr).isEqualTo("invalid point: subgroup check failed");
     // assert there is no output
     assertThat(outputLength.getValue()).isEqualTo(0);
   }

@@ -126,6 +126,8 @@ public class AltBN128PairingPrecompiledContractTest {
 
     // assert there is an error
     assertThat(errorLength.getValue()).isNotEqualTo(0);
+    String errorString = new String(error, 0, errorLength.getValue());
+    assertThat(errorString).isEqualTo("invalid input parameters, G2 point is not in the expected subgroup");
     // assert there is no output
     assertThat(outputLength.getValue()).isEqualTo(0);
   }

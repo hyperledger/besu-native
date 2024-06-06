@@ -13,9 +13,10 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.blst;
+package org.hyperledger.besu.nativelib.bls12_381;
 
 import com.google.common.io.CharStreams;
+import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,14 +24,13 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class BLS12G1AddPrecompiledContractTest {
+public class AltBN128G1AddPrecompiledContractTest {
 
   @Parameterized.Parameter(0)
   public String input;
@@ -45,7 +45,7 @@ public class BLS12G1AddPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                BLS12G1AddPrecompiledContractTest.class.getResourceAsStream("g1_add.csv"), UTF_8))
+                AltBN128G1AddPrecompiledContractTest.class.getResourceAsStream("eip196_g1_add.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -57,21 +57,30 @@ public class BLS12G1AddPrecompiledContractTest {
       // skip the header row
       return;
     }
-    byte[] testInput = Bytes.fromHexString(this.input).toArrayUnsafe();
-    final Bytes expectedComputation = Optional.ofNullable(expectedResult)
-        .filter(expected -> !expected.isBlank())
-        .map(Bytes::fromHexString)
-        .orElse(Bytes.EMPTY);
+    final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    Bls12381.G1Result res = null;
-    res = Bls12381.g1Add(testInput);
+    final byte[] output = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final IntByReference outputLength = new IntByReference();
+    final byte[] error = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
+    final IntByReference errorLength = new IntByReference();
 
-    if (res.optError().isPresent()) {
+    LibEthPairings.eip196_perform_operation(
+        LibEthPairings.EIP196_ADD_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output,
+        outputLength,
+        error,
+        errorLength);
+
+    final Bytes expectedComputation =
+        expectedResult == null ? null : Bytes.fromHexString(expectedResult);
+    if (errorLength.getValue() > 0) {
       assertThat(notes).isNotEmpty();
-      assertThat(res.optError().get()).contains(notes);
-      assertThat(res.g1Out()).isNull();
+      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).contains(notes);
+      assertThat(outputLength.getValue()).isZero();
     } else {
-      final Bytes actualComputation = Bytes.wrap(res.g1Out().padded());
+      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
   }
