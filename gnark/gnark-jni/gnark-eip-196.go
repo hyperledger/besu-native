@@ -12,7 +12,6 @@ import (
 	"math/big"
 	"math/rand"
 	"reflect"
-	"time"
 	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bn254"
     "github.com/consensys/gnark-crypto/ecc/bn254/fp"
@@ -52,7 +51,8 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
     // generate p0 g1 affine
-    p0, err := g1AffineDecodeOnCurve(input[:64])
+    var p0 bn254.G1Affine
+    err := p0.Unmarshal(input[:64])
 
     if err != nil {
         copy(output, err.Error())
@@ -60,7 +60,8 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     }
 
     // generate p0 g1 affine
-    p1, err := g1AffineDecodeOnCurve(input[64:])
+    var p1 bn254.G1Affine
+    err = p1.Unmarshal(input[64:])
 
     if err != nil {
         copy(output, err.Error())
@@ -68,7 +69,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     }
 
     // Use the Add method to combine points
-    result := p0.Add(p0, p1)
+    result := p0.Add(&p0, &p1)
 
     // marshal the resulting point and enocde directly to the output buffer
     ret := result.Marshal()
@@ -91,7 +92,8 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     input := (*[EIP196PreallocateForG1 + EIP196PreallocateForScalar]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
     // generate p0 g1 affine
-    p0, err := g1AffineDecodeOnCurve(input[:64])
+    var p0 bn254.G1Affine
+    err := p0.Unmarshal(input[:64])
 
     if err != nil {
         copy(output, err.Error())
@@ -103,7 +105,7 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     scalar.SetBytes(input[64:96])
 
     // multiply g1 point by scalar
-    result := p0.ScalarMultiplication(p0, scalar)
+    result := p0.ScalarMultiplication(&p0, scalar)
 
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
@@ -115,17 +117,13 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     var inputLen = int(cInputLen)
     output := castOutputBuffer(javaOutputBuf, outputLen)
-    startTime := time.Now()
-    fmt.Printf("start time: %v\n", time.Since(startTime))
-    fmt.Printf("output len: %d   output buffer size: %d\n", outputLen, len(output))
 
-    if inputLen < (EIP196PreallocateForG2 + EIP196PreallocateForG1) {
-        fmt.Printf("error invalid input parameters, too short\n")
-        copy(output, "invalid input parameters, invalid number of pairs\x00")
-        return -1
+    if inputLen == 0 {
+        output[31]=0x01
+        return 0
     }
+
     if inputLen % (EIP196PreallocateForG2 + EIP196PreallocateForG1) != 0 {
-        fmt.Printf("error invalid input parameters, not a multiple of pairing size\n")
         copy(output, "invalid input parameters, invalid input length for pairing\x00")
         return -1
     }
@@ -140,30 +138,31 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
 
     for i := 0 ; i < pairCount ; i++ {
 
-        // get g1
-        g1, err := g1AffineDecodeOnCurve(input[i*192:i*192+64])
+        // g1 x and y are the first 64 bytes of each 192 byte pair
+        var g1 bn254.G1Affine
+        err := g1.Unmarshal(input[i*192:i*192+64])
+
         if err != nil {
-            fmt.Printf("g1 point %d : %s\n", i, err.Error());
             copy(output, err.Error())
             return -1
         }
 
-        // get g2
-        g2, err := g2AffineDecodeOnCurve(input[i*192+64:(i+1)*192])
+        // g2 points are latter 128 bytes of each 192 byte pair
+        var g2 bn254.G2Affine
+        err = g2.Unmarshal(input[i*192+64:(i+1)*192])
+
         if err != nil {
-            fmt.Printf("g2 point on %d : %s\n", i, err.Error());
             copy(output, err.Error())
             return -1
         }
 
         // collect g1, g2 points
-        g1Points[i] = *g1
-        g2Points[i] = *g2
+        g1Points[i] = g1
+        g2Points[i] = g2
     }
 
     isOne, err := bn254.PairingCheck(g1Points, g2Points)
     if err != nil {
-        fmt.Printf("failed pairing for point array size %d : %s\n", len(g1Points), err.Error());
         copy(output, err.Error())
         return -1
     }
@@ -177,27 +176,9 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
 
 }
 
-func g1AffineDecodeOnCurve(input []byte) (*bn254.G1Affine, error) {
-    var g1x, g1y fp.Element
-    g1x.Unmarshal(input[:32])
-    g1y.Unmarshal(input[32:])
-    // construct g1affine directly rather than unmarshalling
-    g1 := &bn254.G1Affine{X: g1x, Y: g1y}
-
-    if (!g1.IsInSubGroup()) {
-        return nil, ErrSubgroupCheckFailed
-    }
-    if (!g1.IsOnCurve()) {
-        return nil, ErrPointOnCurveCheckFailed
-    }
-
-    return g1, nil;
-}
-
 func g1AffineEncode(g1Point []byte, output *C.char) (error) {
     // Check if point is not nil
     if g1Point == nil || len(g1Point) != 64 {
-        fmt.Printf("error point cannot be nil")
         return errors.New("point cannot be nil")
     }
 
@@ -208,22 +189,6 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
     C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))), unsafeG1Ptr, 64)
 
     return nil
-}
-
-func g2AffineDecodeOnCurve(input []byte) (*bn254.G2Affine, error) {
-    var g2 bn254.G2Affine
-    g2.X.A0.Unmarshal(input[0:32])
-    g2.X.A1.Unmarshal(input[32:64])
-    g2.Y.A0.Unmarshal(input[64:96])
-    g2.Y.A1.Unmarshal(input[96:128])
-
-    if (!g2.IsInSubGroup()) {
-        return nil, ErrSubgroupCheckFailed
-    }
-    if (!g2.IsOnCurve()) {
-        return nil, ErrPointOnCurveCheckFailed
-    }
-    return &g2, nil;
 }
 
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
