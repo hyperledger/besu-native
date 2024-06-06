@@ -56,7 +56,6 @@ public class LibGnarkEIP196 {
         throw new RuntimeException("Not Implemented EIP-196 operation " + op);
     }
 
-
     if (ret != 0) {
       var outputBytes = Bytes.wrap(output);
       var outputLen = outputBytes.size() - outputBytes.numberOfTrailingZeroBytes();

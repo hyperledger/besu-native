@@ -36,6 +36,9 @@ var zeroSlice = make([]byte, 16)
 func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     var inputLen = int(cInputLen)
 
+    if inputLen == 0 {
+        return 0
+    }
     if outputLen != EIP196PreallocateForResult {
         return -1
     }
@@ -53,7 +56,6 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     // generate p0 g1 affine
     var p0 bn254.G1Affine
     err := p0.Unmarshal(input[:64])
-
     if err != nil {
         copy(output, err.Error())
         return -1
@@ -81,6 +83,10 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 //export eip196altbn128G1Mul
 func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
     var inputLen = int(cInputLen)
+
+    if inputLen == 0 {
+        return 0
+    }
 
     output := castOutputBuffer(javaOutputBuf, outputLen)
     if inputLen != (EIP196PreallocateForG1 + EIP196PreallocateForScalar){
