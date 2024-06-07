@@ -15,7 +15,6 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
@@ -60,9 +59,9 @@ public class BLS12G1AddPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference errorLength = new IntByReference();
 
     LibGnarkEIP2537.eip2537_perform_operation(
@@ -83,5 +82,6 @@ public class BLS12G1AddPrecompiledContractTest {
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
-    }  }
+    }
+  }
 }

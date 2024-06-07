@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
@@ -61,22 +60,27 @@ public class BLS12G2AddPrecompiledContractTest {
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
     final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    final IntByReference outputLength = new IntByReference();
+    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    final IntByReference errorLength = new IntByReference();
 
-    int res = LibGnarkEIP2537.eip2537blsG2Add(input, output, input.length, output.length);
+    LibGnarkEIP2537.eip2537_perform_operation(
+        LibGnarkEIP2537.BLS12_G2ADD_OPERATION_SHIM_VALUE,
+        input,
+        input.length,
+        output,
+        outputLength,
+        error,
+        errorLength);
 
-    if (res != 0) {
-      var errBytes = Bytes.wrap(output);
-      // trim trailing zeros from output error response and convert to String:
-      var err = new String(errBytes
-          .slice(0, errBytes.size() - errBytes.numberOfTrailingZeroBytes())
-          .toArrayUnsafe());
-      assertThat(err).isEqualTo(notes);
+    final Bytes expectedComputation =
+        expectedResult == null ? null : Bytes.fromHexString(expectedResult);
+    if (errorLength.getValue() > 0) {
+      assertThat(notes).isNotEmpty();
+      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
+      assertThat(outputLength.getValue()).isZero();
     } else {
-      final Bytes expectedComputation =
-          expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-
-      final Bytes actualComputation = Bytes.wrap(output, 0, 256);
+      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
-  }
-}
+  }}

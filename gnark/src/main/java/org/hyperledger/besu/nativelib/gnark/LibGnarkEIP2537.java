@@ -76,6 +76,7 @@ public class LibGnarkEIP2537 implements Library {
         break;
       case BLS12_PAIR_OPERATION_SHIM_VALUE:
         ret = eip2537blsPairing(i, output, i_len, EIP2537_PREALLOCATE_FOR_RESULT_BYTES);
+        o_len.setValue(32);
         break;
       case BLS12_MAP_FP_TO_G1_OPERATION_SHIM_VALUE:
         ret = eip2537blsMapFpToG1(i, output, i_len, EIP2537_PREALLOCATE_FOR_RESULT_BYTES);

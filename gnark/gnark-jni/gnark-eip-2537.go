@@ -47,7 +47,6 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP2537PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
-//     fmt.Printf("convert input array time: %v\n", time.Since(startTime))
 
     // generate p0 g1 affine
     p0, err := g1AffineDecodeOnCurve(input[:128])
@@ -342,7 +341,6 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen
 
 //export eip2537blsMapFpToG1
 func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
     output := castOutputBuffer(javaOutputBuf, outputLen)
 
@@ -354,7 +352,6 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     // Convert input C pointers to Go slice
     input := (*[EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-    // TODO: DRY up
     var fp fp.Element
     fp.Unmarshal(input[16:64])
 
@@ -367,7 +364,6 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 
 //export eip2537blsMapFp2ToG2
 func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    //TODO: DRY up
     var inputLen = int(cInputLen)
     output := castOutputBuffer(javaOutputBuf, outputLen)
 

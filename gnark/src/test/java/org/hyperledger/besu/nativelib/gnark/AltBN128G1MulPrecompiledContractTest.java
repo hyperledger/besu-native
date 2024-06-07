@@ -64,15 +64,8 @@ public class AltBN128G1MulPrecompiledContractTest {
     final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference errorLength = new IntByReference();
 
-    LibGnarkEIP196.eip196_perform_operation(
-        LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
-
+    LibGnarkEIP196.eip196_perform_operation(LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE, input,
+        input.length, output, outputLength, error, errorLength);
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {

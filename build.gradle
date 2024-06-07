@@ -20,8 +20,6 @@ allprojects {
   targetCompatibility = 17
 
   repositories {
-    // temporary addition to enable local builds of v0.3.12 with g1/g2 mapping
-    mavenLocal()
     mavenCentral()
     maven {
       url "https://artifacts.consensys.net/public/maven/maven/"
