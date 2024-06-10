@@ -338,8 +338,6 @@ jobs:
         with:
           name: jars
           path: gnark/build/libs
-      - name: Debug
-        run: echo ${{ github.ref }}
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
         if: contains(github.ref, 'refs/heads/release-') || github.ref == 'refs/heads/main'
