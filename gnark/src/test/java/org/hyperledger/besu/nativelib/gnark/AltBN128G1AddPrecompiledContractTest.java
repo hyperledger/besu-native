@@ -61,7 +61,7 @@ public class AltBN128G1AddPrecompiledContractTest {
 
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
     LibGnarkEIP196.eip196_perform_operation(LibGnarkEIP196.EIP196_ADD_OPERATION_RAW_VALUE, input,

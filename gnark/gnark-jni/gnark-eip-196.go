@@ -19,6 +19,7 @@ import (
 
 const (
     EIP196PreallocateForResult = 256
+    EIP196PreallocateForError = 256
 	EIP196PreallocateForScalar = 32 // scalar int is 32 byte
 	EIP196PreallocateForFp = 32  // field elements are 32 bytes
 	EIP196PreallocateForG1 = EIP196PreallocateForFp * 2 // G1 points are encoded as 2 concatenated field elements
@@ -33,22 +34,16 @@ var ErrMalformedOutputBytes = errors.New("malformed output buffer parameter")
 var zeroSlice = make([]byte, 16)
 
 //export eip196altbn128G1Add
-func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    var inputLen = int(cInputLen)
+func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
+    inputLen := int(cInputLen)
 
-    if inputLen == 0 {
+    if inputLen < EIP196PreallocateForG1 {
+        // if we do not have complete input, return 0
         return 0
     }
-    if outputLen != EIP196PreallocateForResult {
-        return -1
-    }
-    // Convert output C pointers to Go slices
-    output := (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
 
-    if inputLen != 2*EIP196PreallocateForG1 {
-        copy(output, "invalid input parameters, invalid input length for G1 addition\x00")
-        return -1
-    }
+    // Convert error C pointers to Go slices
+    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
@@ -57,23 +52,26 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     var p0 bn254.G1Affine
     err := p0.Unmarshal(input[:64])
     if err != nil {
-        copy(output, err.Error())
-        return -1
+        copy(errorBuf, err.Error())
+        return 1
     }
 
-    // generate p0 g1 affine
+    if inputLen < 2*EIP196PreallocateForG1 {
+        // if we do not have complete input, return 0
+        return 0;
+    }
+    // generate p1 g1 affine
     var p1 bn254.G1Affine
     err = p1.Unmarshal(input[64:])
 
     if err != nil {
-        copy(output, err.Error())
-        return -1
+        copy(errorBuf, err.Error())
+        return 1
     }
-
     // Use the Add method to combine points
     result := p0.Add(&p0, &p1)
 
-    // marshal the resulting point and enocde directly to the output buffer
+    // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
     g1AffineEncode(ret, javaOutputBuf)
     return 0
@@ -81,17 +79,19 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 }
 
 //export eip196altbn128G1Mul
-func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    var inputLen = int(cInputLen)
+func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
+    inputLen := int(cInputLen)
 
     if inputLen == 0 {
         return 0
     }
 
-    output := castOutputBuffer(javaOutputBuf, outputLen)
-    if inputLen != (EIP196PreallocateForG1 + EIP196PreallocateForScalar){
-        copy(output, "invalid input parameters, invalid input length for G1 multiplication\x00")
-        return -1
+    // Convert error C pointers to Go slices
+    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
+
+    if inputLen < EIP196PreallocateForG1 {
+        // if we do not have complete input, return 0
+        return 0
     }
 
     // Convert input C pointers to Go slice
@@ -102,13 +102,17 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
     err := p0.Unmarshal(input[:64])
 
     if err != nil {
-        copy(output, err.Error())
-        return -1
+        copy(errorBuf, err.Error())
+        return 1
     }
 
     // Convert byte slice to *big.Int
+    scalarEndIndex := 96;
+    if (scalarEndIndex > int(cInputLen)) {
+      scalarEndIndex = int(cInputLen)
+    }
     scalar := big.NewInt(0)
-    scalar.SetBytes(input[64:96])
+    scalar.SetBytes(input[64:scalarEndIndex])
 
     // multiply g1 point by scalar
     result := p0.ScalarMultiplication(&p0, scalar)
@@ -120,9 +124,14 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputL
 }
 
 //export eip196altbn128Pairing
-func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outputLen C.int) C.int {
-    var inputLen = int(cInputLen)
-    output := castOutputBuffer(javaOutputBuf, outputLen)
+func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
+    inputLen := int(cInputLen)
+
+    // Convert error C pointers to Go slices
+    output := castBuffer(javaOutputBuf, EIP196PreallocateForResult)
+
+    // Convert error C pointers to Go slices
+    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
 
     if inputLen == 0 {
         output[31]=0x01
@@ -130,8 +139,8 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
     }
 
     if inputLen % (EIP196PreallocateForG2 + EIP196PreallocateForG1) != 0 {
-        copy(output, "invalid input parameters, invalid input length for pairing\x00")
-        return -1
+        copy(errorBuf, "invalid input parameters, invalid input length for pairing\x00")
+        return 1
     }
 
     // Convert input C pointers to Go slice
@@ -149,8 +158,8 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
         err := g1.Unmarshal(input[i*192:i*192+64])
 
         if err != nil {
-            copy(output, err.Error())
-            return -1
+            copy(errorBuf, err.Error())
+            return 1
         }
 
         // g2 points are latter 128 bytes of each 192 byte pair
@@ -158,8 +167,8 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
         err = g2.Unmarshal(input[i*192+64:(i+1)*192])
 
         if err != nil {
-            copy(output, err.Error())
-            return -1
+            copy(errorBuf, err.Error())
+            return 1
         }
 
         // collect g1, g2 points
@@ -169,7 +178,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen, outpu
 
     isOne, err := bn254.PairingCheck(g1Points, g2Points)
     if err != nil {
-        copy(output, err.Error())
+        copy(errorBuf, err.Error())
         return -1
     }
 
@@ -208,13 +217,8 @@ func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
     return slice
 }
 
-func castOutputBuffer(javaOutputBuf *C.char, outputLen C.int) []byte {
-    if outputLen != EIP196PreallocateForResult {
-        fmt.Printf("castOutputBuffer size mismatch %d and %d\n", EIP196PreallocateForG2, outputLen)
-
-        return nil
-    }
-    return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+func castBuffer(javaOutputBuf *C.char, length C.int) []byte {
+    return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:length:length]
 }
 
 func main() {

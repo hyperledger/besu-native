@@ -63,22 +63,15 @@ public class BLS12G1MultiExpPrecompiledContractTest {
 
     final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
-    LibGnarkEIP2537.eip2537_perform_operation(
-        LibGnarkEIP2537.BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+    LibGnarkEIP2537.eip2537_perform_operation(LibGnarkEIP2537.BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE,
+        input, input.length, output, outputLength, error, errorLength);
 
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
-      assertThat(notes).isNotEmpty();
       assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
       assertThat(outputLength.getValue()).isZero();
     } else {

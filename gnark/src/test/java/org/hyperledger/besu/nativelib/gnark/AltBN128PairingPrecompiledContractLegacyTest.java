@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class AltBN128PairingPrecompiledContractLegacyTest {
@@ -60,7 +61,7 @@ public class AltBN128PairingPrecompiledContractLegacyTest {
     final byte[] input = Bytes.concatenate(g1Point0, g2Point0, g1Point1, g2Point1).toArrayUnsafe();
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
     int ret = LibGnarkEIP196.eip196_perform_operation(
@@ -113,8 +114,8 @@ public class AltBN128PairingPrecompiledContractLegacyTest {
 
     final byte[] input = Bytes.concatenate(g1Point0, g2Point0, g1Point1, g2Point1).toArrayUnsafe();
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final IntByReference outputLength = new IntByReference(output.length);
+    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
     LibGnarkEIP196.eip196_perform_operation(

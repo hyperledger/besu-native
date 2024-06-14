@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
@@ -61,7 +62,7 @@ public class BLS12G2AddPrecompiledContractTest {
 
     final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
     LibGnarkEIP2537.eip2537_perform_operation(
@@ -76,11 +77,11 @@ public class BLS12G2AddPrecompiledContractTest {
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
-      assertThat(notes).isNotEmpty();
       assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
       assertThat(outputLength.getValue()).isZero();
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
     }
-  }}
+  }
+}
