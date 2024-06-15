@@ -49,7 +49,7 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != 2*EIP2537PreallocateForG1 {
         copy(errorBuf, "invalid input parameters, invalid input length for G1 addition\x00")
@@ -95,7 +95,7 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar){
         copy(errorBuf, "invalid input parameters, invalid input length for G1 multiplication\x00")
@@ -132,7 +132,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
     errorLen := int(cOutputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen < (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) {
         copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
@@ -192,7 +192,7 @@ func eip2537blsG2Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != 2 * EIP2537PreallocateForG2 {
         copy(errorBuf, "invalid input parameters, invalid input length for G2 addition\x00")
@@ -236,7 +236,7 @@ func eip2537blsG2Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != EIP2537PreallocateForG2 + EIP2537PreallocateForScalar {
         copy(errorBuf, "invalid input parameters, invalid input length for G2 multiplication\x00")
@@ -272,7 +272,7 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
     errorLen := int(cOutputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) {
         copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
@@ -328,10 +328,10 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInput
     errorLen := int(cOutputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     // Convert output C pointers to Go slices
-    output := (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:outputLen:outputLen]
+    output := castBuffer(javaOutputBuf, outputLen)
 
     if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
         copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
@@ -391,7 +391,7 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     errorLen := int(cOutputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != (EIP2537PreallocateForFp){
         copy(errorBuf, "invalid input parameters, invalid input length for Fp to G1 to curve mapping\x00")
@@ -428,7 +428,7 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
     errorLen := int(cOutputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := (*[EIP2537PreallocateForErrorBytes]byte)(unsafe.Pointer(javaErrorBuf))[:errorLen:errorLen]
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen != (2*EIP2537PreallocateForFp){
         copy(errorBuf, "invalid input parameters, invalid input length for Fp2 to G2 to curve mapping\x00")
@@ -649,6 +649,14 @@ func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
     header.Cap = length          // set the capacity of the slice
 
     return slice
+}
+
+func castBuffer(javaOutputBuf *C.char, length int) []byte {
+    bufSize := length
+    if bufSize < EIP2537PreallocateForResultBytes {
+      bufSize = EIP2537PreallocateForResultBytes
+    }
+    return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
 func main() {}

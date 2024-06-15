@@ -36,6 +36,7 @@ var zeroSlice = make([]byte, 16)
 //export eip196altbn128G1Add
 func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
     inputLen := int(cInputLen)
+    errorLen := int(cErrorLen)
 
     if inputLen < EIP196PreallocateForG1 {
         // if we do not have complete input, return 0
@@ -43,7 +44,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
@@ -81,13 +82,14 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
 //export eip196altbn128G1Mul
 func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
     inputLen := int(cInputLen)
+    errorLen := int(cErrorLen)
 
     if inputLen == 0 {
         return 0
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen < EIP196PreallocateForG1 {
         // if we do not have complete input, return 0
@@ -126,12 +128,14 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
 //export eip196altbn128Pairing
 func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
     inputLen := int(cInputLen)
+    outputLen := int(cOutputLen)
+    errorLen := int(cErrorLen)
 
     // Convert error C pointers to Go slices
-    output := castBuffer(javaOutputBuf, EIP196PreallocateForResult)
+    output := castBuffer(javaOutputBuf, outputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, EIP196PreallocateForError)
+    errorBuf := castBuffer(javaErrorBuf, errorLen)
 
     if inputLen == 0 {
         output[31]=0x01
@@ -217,8 +221,12 @@ func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
     return slice
 }
 
-func castBuffer(javaOutputBuf *C.char, length C.int) []byte {
-    return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:length:length]
+func castBuffer(javaOutputBuf *C.char, length int) []byte {
+    bufSize := length
+    if bufSize < EIP196PreallocateForResult {
+      bufSize = EIP196PreallocateForResult
+    }
+    return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
 func main() {
