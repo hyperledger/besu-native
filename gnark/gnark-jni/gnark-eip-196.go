@@ -58,9 +58,14 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     }
 
     if inputLen < 2*EIP196PreallocateForG1 {
-        // if we do not have complete input, return 0
+        // if incomplete input is all zero, return p0
+        if isAllZero(input[64:inputLen]) {
+            ret := p0.Marshal()
+            g1AffineEncode(ret, javaOutputBuf)
+        }
         return 0;
     }
+
     // generate p1 g1 affine
     var p1 bn254.G1Affine
     err = p1.Unmarshal(input[64:])
@@ -285,4 +290,14 @@ func GenerateRandomUint256() (*big.Int, error) {
 func Uint256ToStringBigEndian(number *big.Int) string {
 	bytes := number.FillBytes(make([]byte, 32))
 	return hex.EncodeToString(bytes)
+}
+
+// isAllZero checks if all elements in the byte slice are zero
+func isAllZero(data []byte) bool {
+    for _, b := range data {
+        if b != 0 {
+            return false
+        }
+    }
+    return true
 }
