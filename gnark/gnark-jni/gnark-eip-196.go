@@ -18,7 +18,7 @@ import (
 )
 
 const (
-    EIP196PreallocateForResult = 256
+    EIP196PreallocateForResult = 128
     EIP196PreallocateForError = 256
 	EIP196PreallocateForScalar = 32 // scalar int is 32 byte
 	EIP196PreallocateForFp = 32  // field elements are 32 bytes
@@ -38,13 +38,20 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     inputLen := int(cInputLen)
     errorLen := int(cErrorLen)
 
+
+    if (inputLen > 2*EIP196PreallocateForG1) {
+      // trunc if input too long
+      inputLen = 2*EIP196PreallocateForG1
+    }
+
     if inputLen < EIP196PreallocateForG1 {
         // if we do not have complete input, return 0
         return 0
     }
 
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, errorLen)
+    errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
+
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
@@ -89,16 +96,17 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     inputLen := int(cInputLen)
     errorLen := int(cErrorLen)
 
-    if inputLen == 0 {
-        return 0
-    }
-
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, errorLen)
+    errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
     if inputLen < EIP196PreallocateForG1 {
         // if we do not have complete input, return 0
         return 0
+    }
+
+    if (inputLen > EIP196PreallocateForG1 + EIP196PreallocateForScalar) {
+      // trunc if input too long
+      inputLen = EIP196PreallocateForG1 + EIP196PreallocateForScalar
     }
 
     // Convert input C pointers to Go slice
@@ -114,12 +122,15 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     }
 
     // Convert byte slice to *big.Int
-    scalarEndIndex := 96;
-    if (scalarEndIndex > int(cInputLen)) {
-      scalarEndIndex = int(cInputLen)
+    scalarBytes := input[64:]
+    if (96 > int(cInputLen)) {
+      // if the input is truncated, copy the bytes to the high order portion of the scalar
+      scalarBytes = make([]byte, 32)
+      copy(scalarBytes[:], input[64:int(cInputLen)])
     }
+
     scalar := big.NewInt(0)
-    scalar.SetBytes(input[64:scalarEndIndex])
+    scalar.SetBytes(scalarBytes[:])
 
     // multiply g1 point by scalar
     result := p0.ScalarMultiplication(&p0, scalar)
@@ -140,7 +151,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cI
     output := castBuffer(javaOutputBuf, outputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := castBuffer(javaErrorBuf, errorLen)
+    errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
     if inputLen == 0 {
         output[31]=0x01
@@ -232,6 +243,14 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
       bufSize = EIP196PreallocateForResult
     }
     return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
+}
+
+func castErrorBuffer(javaOutputBuf *C.char, length int) []byte {
+    bufSize := length
+    if bufSize < EIP196PreallocateForError {
+      bufSize = EIP196PreallocateForError
+    }
+    return (*[EIP196PreallocateForError]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
 func main() {

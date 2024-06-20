@@ -6,7 +6,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class LibGnarkEIP196 {
 
-  public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 256; // includes error string
+  public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 128;
   public static final int EIP196_PREALLOCATE_FOR_ERROR_BYTES = 256; // includes error string
   @SuppressWarnings("WeakerAccess")
   public static final byte EIP196_ADD_OPERATION_RAW_VALUE = 1;
