@@ -81,13 +81,13 @@ jar {
 
 task sourcesJar(type: Jar, dependsOn: classes) {
   archiveBaseName = 'besu-native-ipa-multipoint'
-  classifier = 'sources'
+  archiveClassifier = 'sources'
   from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
   archiveBaseName = 'besu-native-ipa-multipoint'
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 

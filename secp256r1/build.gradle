@@ -28,6 +28,14 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.22.0'
 }
 
+// Ensure that the compileTestJava task depends on the macArmLibCopy task
+tasks.named('compileTestJava').configure {
+    dependsOn tasks.named('macArmLibCopy')
+    dependsOn tasks.named('macLibCopy')
+    dependsOn tasks.named('linuxLibCopy')
+    dependsOn tasks.named('linuxArm64LibCopy')
+}
+
 task macArmLibCopy(type: Copy) {
     from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec.dylib'
     from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec_crypto.dylib'
@@ -72,13 +80,13 @@ jar {
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveBaseName = 'besu-native-secp256r1'
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveBaseName = 'besu-native-secp256r1'
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
