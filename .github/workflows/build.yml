@@ -20,9 +20,9 @@ jobs:
           sudo apt-get install -y autoconf build-essential libtool automake patchelf
           sudo apt autoremove -y
           # golang dependencies
-          wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
-          echo "4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768  go1.20.2.linux-amd64.tar.gz" | sha256sum -c || exit 1
-          tar -xzf go1.20.2.linux-amd64.tar.gz
+          wget https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
+          echo "ba79d4526102575196273416239cca418a651e049c2b099f3159db85e7bade7d go1.22.4.linux-amd64.tar.gz" | sha256sum -c || exit 1
+          tar -xzf go1.22.4.linux-amd64.tar.gz
           export GOROOT=$(pwd)/go
           export PATH=$GOROOT/bin:$PATH
           # rust dependencies
@@ -111,7 +111,7 @@ jobs:
           name: gnark native build artifacts
           path: gnark/build/
   native-build-macos:
-    runs-on: macos-11
+    runs-on: macos-13
     env:
       SKIP_GRADLE: true
     steps:
@@ -120,7 +120,7 @@ jobs:
           # secp256k1 dependencies
           brew install autoconf automake libtool
           # gnark dependencies
-          brew install go@1.20 || true
+          brew install go@1.22 || true
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
@@ -186,7 +186,7 @@ jobs:
           # secp256k1, gnark dependencies
           brew install autoconf automake libtool
           # gnark dependencies
-          brew install go@1.20 || true 
+          brew install go@1.22 || true 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
@@ -199,15 +199,15 @@ jobs:
         with:
           submodules: recursive
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: adopt
           java-version: 17
           cache: gradle
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version: '1.22'
       - name: Build
         run: |
           export HOMEBREW_BIN=${{ env.HOMEBREW_BIN }}
@@ -296,7 +296,7 @@ jobs:
           name: gnark native build artifacts
           path: gnark/build/
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: adopt
           java-version: 17
