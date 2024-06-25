@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.bls12_381;
+package org.hyperledger.besu.nativelib.gnark;
 
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
@@ -59,13 +59,13 @@ public class AltBN128PairingPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
-    LibEthPairings.eip196_perform_operation(
-        LibEthPairings.EIP196_PAIR_OPERATION_RAW_VALUE,
+    LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,
         input,
         input.length,
         output,

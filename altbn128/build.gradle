@@ -63,13 +63,13 @@ jar {
 
 task sourcesJar(type: Jar, dependsOn: classes) {
   archiveBaseName = 'besu-native-altbn128'
-  classifier = 'sources'
+  archiveClassifier = 'sources'
   from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
   archiveBaseName = 'besu-native-altbn128'
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 

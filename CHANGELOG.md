@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.9.0-SNAPSHOT
+* implement EIP-196 and EIP-2537 using gnark-crypto, bump to java 21 [#168](https://github.com/hyperledger/besu-native/pull/168)
+
 # 0.8.5
 * ipa-multipoint : add verkle proof verification (#169)
 

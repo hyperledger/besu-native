@@ -334,9 +334,13 @@ EOF
   fi
 
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
+  go build -buildmode=c-shared -o libgnark_eip_2537.$LIBRARY_EXTENSION gnark-eip-2537.go
+  go build -buildmode=c-shared -o libgnark_eip_196.$LIBRARY_EXTENSION gnark-eip-196.go
 
   mkdir -p "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
   cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
+  cp libgnark_eip_2537.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
+  cp libgnark_eip_196.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
 }
 
 build_blake2bf

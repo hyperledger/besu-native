@@ -74,13 +74,13 @@ test {
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveBaseName = 'besu-native-arithmetic'
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveBaseName = 'besu-native-arithmetic'
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 

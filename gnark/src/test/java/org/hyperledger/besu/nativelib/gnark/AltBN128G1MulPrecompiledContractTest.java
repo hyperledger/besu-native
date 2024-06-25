@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.bls12_381;
+package org.hyperledger.besu.nativelib.gnark;
 
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
@@ -30,7 +30,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class AltBN128PairingPrecompiledContractTest {
+public class AltBN128G1MulPrecompiledContractTest {
 
   @Parameterized.Parameter(0)
   public String input;
@@ -45,7 +45,7 @@ public class AltBN128PairingPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                AltBN128PairingPrecompiledContractTest.class.getResourceAsStream("eip196_pairing.csv"), UTF_8))
+                AltBN128G1MulPrecompiledContractTest.class.getResourceAsStream("eip196_g1_mul.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -59,24 +59,17 @@ public class AltBN128PairingPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
-    LibEthPairings.eip196_perform_operation(
-        LibEthPairings.EIP196_PAIR_OPERATION_RAW_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
-
+    LibGnarkEIP196.eip196_perform_operation(LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE, input,
+        input.length, output, outputLength, error, errorLength);
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
+      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).contains(notes);
       assertThat(outputLength.getValue()).isZero();
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());

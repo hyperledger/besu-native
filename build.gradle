@@ -16,10 +16,13 @@
 allprojects {
   apply plugin: 'java-library'
 
-  sourceCompatibility = 11
-  targetCompatibility = 11
+  sourceCompatibility = 21
+  targetCompatibility = 21
 
   repositories {
     mavenCentral()
+    maven {
+      url "https://artifacts.consensys.net/public/maven/maven/"
+    }
   }
 }

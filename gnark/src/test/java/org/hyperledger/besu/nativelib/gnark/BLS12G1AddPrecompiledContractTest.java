@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Besu Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package org.hyperledger.besu.nativelib.bls12_381;
+package org.hyperledger.besu.nativelib.gnark;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
@@ -30,7 +31,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class AltBN128PairingPrecompiledContractTest {
+public class BLS12G1AddPrecompiledContractTest {
 
   @Parameterized.Parameter(0)
   public String input;
@@ -45,7 +46,7 @@ public class AltBN128PairingPrecompiledContractTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                AltBN128PairingPrecompiledContractTest.class.getResourceAsStream("eip196_pairing.csv"), UTF_8))
+                BLS12G1AddPrecompiledContractTest.class.getResourceAsStream("g1_add.csv"), UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -59,19 +60,13 @@ public class AltBN128PairingPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
     final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibEthPairings.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
     final IntByReference errorLength = new IntByReference();
 
-    LibEthPairings.eip196_perform_operation(
-        LibEthPairings.EIP196_PAIR_OPERATION_RAW_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+      LibGnarkEIP2537.eip2537_perform_operation(LibGnarkEIP2537.BLS12_G1ADD_OPERATION_SHIM_VALUE,
+          input, input.length, output, outputLength, error, errorLength);
 
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
