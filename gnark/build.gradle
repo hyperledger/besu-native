@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
+    testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'io.tmio:tuweni-bytes:2.4.2'
     testImplementation 'junit:junit:4.13.2'
