@@ -81,6 +81,7 @@ public class BLS12MapFp2ToG2PrecompiledContractTest {
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
+      assertThat(notes).isEmpty();
     }
   }
 }
