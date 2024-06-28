@@ -2,7 +2,6 @@ package org.hyperledger.besu.nativelib.gnark;
 
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
-import org.apache.tuweni.bytes.Bytes;
 
 public class LibGnarkEIP196 {
 
@@ -61,15 +60,13 @@ public class LibGnarkEIP196 {
     }
 
     if (ret != 0) {
-      var errBytes = Bytes.wrap(err);
-      err_len.setValue(errBytes.size() - errBytes.numberOfTrailingZeroBytes());
+      err_len.setValue(LibGnarkUtils.findFirstTrailingZeroIndex(err));
       o_len.setValue(0);
     } else {
       err_len.setValue(0);
     }
     return ret;
   }
-
 
   public static native int eip196altbn128G1Add(
       byte[] input,

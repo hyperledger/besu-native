@@ -22,7 +22,7 @@ plugins {
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'com.google.guava:guava:31.1-jre'
-    testImplementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
+    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
