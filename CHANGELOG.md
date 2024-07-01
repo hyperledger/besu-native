@@ -1,6 +1,8 @@
 # Changelog
 
-# 0.9.1-SNAPSHOT
+# 0.9.1
+* remove tuweni-bytes dependency from gnark-crypto artifcat [#182](https://github.com/hyperledger/besu-native/pull/182)
+* fix for EIP-196 edge case [#185](https://github.com/hyperledger/besu-native/pull/185)
 
 # 0.9.0
 * implement EIP-196 and EIP-2537 using gnark-crypto, bump to java 21, gradle 8.8 [#168](https://github.com/hyperledger/besu-native/pull/168)
