@@ -81,6 +81,7 @@ public class AltBN128PairingPrecompiledContractTest {
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
+      assertThat(notes).isEmpty();
     }
   }
 }

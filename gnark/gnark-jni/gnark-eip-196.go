@@ -17,6 +17,10 @@ import (
     "github.com/consensys/gnark-crypto/ecc/bn254/fp"
 )
 
+var ErrMalformedPoint = errors.New("invalid input parameters, invalid point encoding")
+var ErrPointNotInField = errors.New("invalid input parameters, point not in field")
+var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curve")
+
 const (
     EIP196PreallocateForResult = 128
     EIP196PreallocateForError = 256
@@ -26,9 +30,14 @@ const (
 	EIP196PreallocateForG2 = EIP196PreallocateForG1 * 2 // G2 points are encoded as 2 concatenated G1 points
 )
 
-var ErrSubgroupCheckFailed = errors.New("invalid point: subgroup check failed")
-var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curve")
-var ErrMalformedOutputBytes = errors.New("malformed output buffer parameter")
+
+// bn254Modulus is the value 21888242871839275222246405745257275088696311157297823662689037894645226208583
+var bn254Modulus = new(big.Int).SetBytes([]byte{
+	0x30, 0x64, 0x4e, 0x72, 0xe1, 0x31, 0xa0, 0x29,
+	0xb8, 0x50, 0x45, 0xb6, 0x81, 0x81, 0x58, 0x5d,
+	0x97, 0x81, 0x6a, 0x91, 0x68, 0x71, 0xca, 0x8d,
+	0x3c, 0x20, 0x8c, 0x16, 0xd8, 0x7c, 0xfd, 0x47,
+})
 
 // Predefine a zero slice of length 16
 var zeroSlice = make([]byte, 16)
@@ -38,29 +47,37 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     inputLen := int(cInputLen)
     errorLen := int(cErrorLen)
 
-
     if (inputLen > 2*EIP196PreallocateForG1) {
       // trunc if input too long
       inputLen = 2*EIP196PreallocateForG1
     }
 
-    if inputLen < EIP196PreallocateForG1 {
-        // if we do not have complete input, return 0
-        return 0
-    }
-
     // Convert error C pointers to Go slices
     errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
+    // check we have input size sufficient for a G1Affine
+    if inputLen < EIP196PreallocateForG1 {
+
+        // if not, check the X point and return an error if it is in the field, edge case
+        if inputLen >= EIP196PreallocateForFp {
+            input := (*[EIP196PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:EIP196PreallocateForFp:EIP196PreallocateForFp]
+            if !checkInField(input[:EIP196PreallocateForFp]) {
+                copy(errorBuf, ErrPointNotInField.Error())
+                return 1
+            }
+        }
+        // otherwise if we do not have complete input, return 0
+        return 0
+    }
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
     // generate p0 g1 affine
-    var p0 bn254.G1Affine
-    err := p0.Unmarshal(input[:64])
+    p0, err := safeUnmarshal(input[:64])
+
     if err != nil {
-        copy(errorBuf, err.Error())
+        copy(errorBuf, "invalid input parameters, " + err.Error())
         return 1
     }
 
@@ -69,20 +86,24 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
         if isAllZero(input[64:inputLen]) {
             ret := p0.Marshal()
             g1AffineEncode(ret, javaOutputBuf)
+            return 0;
+        } else {
+          // else return an incomplete input error
+          copy(errorBuf, ErrMalformedPoint.Error())
+          return 1
         }
-        return 0;
     }
 
     // generate p1 g1 affine
-    var p1 bn254.G1Affine
-    err = p1.Unmarshal(input[64:])
+    p1, err := safeUnmarshal(input[64:])
 
     if err != nil {
-        copy(errorBuf, err.Error())
+        copy(errorBuf, "invalid input parameters, " + err.Error())
         return 1
     }
+
     // Use the Add method to combine points
-    result := p0.Add(&p0, &p1)
+    result := p0.Add(p0, p1)
 
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
@@ -100,7 +121,17 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
     if inputLen < EIP196PreallocateForG1 {
-        // if we do not have complete input, return 0
+
+        // check the X point and return an error if it is in the field, edge case
+        if inputLen >= EIP196PreallocateForFp {
+            input := (*[EIP196PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:EIP196PreallocateForFp:EIP196PreallocateForFp]
+            if !checkInField(input[:EIP196PreallocateForFp]) {
+                copy(errorBuf, ErrPointNotInField.Error())
+                return 1
+            }
+        }
+
+        // otherwise if we do not have complete input, return 0
         return 0
     }
 
@@ -226,6 +257,43 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
     return nil
 }
 
+func safeUnmarshal(input []byte) (*bn254.G1Affine, error) {
+    var g1 bn254.G1Affine
+    err := g1.X.SetBytesCanonical(input[:32])
+    if (err == nil) {
+        err := g1.Y.SetBytesCanonical(input[32:64])
+        if (err == nil) {
+            return &g1, nil
+        }
+    }
+    if (!g1.IsOnCurve()) {
+        return nil, ErrPointOnCurveCheckFailed
+    }
+
+    return nil, err
+}
+
+// checkInField checks that an element is in the field, not-in-field will normally
+// be caught during unmarshal, but here in case of no-op calls of a single parameter
+func checkInField(data []byte) bool {
+
+	// Convert the byte slice to a big.Int
+	elem := new(big.Int).SetBytes(data)
+
+	// Compare the value to the bn254Modulus
+	return bn254Modulus.Cmp(elem) == 1
+}
+
+// isAllZero checks if all elements in the byte slice are zero
+func isAllZero(data []byte) bool {
+    for _, b := range data {
+        if b != 0 {
+            return false
+        }
+    }
+    return true
+}
+
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
     var slice []byte
     // Obtain the slice header
@@ -251,9 +319,6 @@ func castErrorBuffer(javaOutputBuf *C.char, length int) []byte {
       bufSize = EIP196PreallocateForError
     }
     return (*[EIP196PreallocateForError]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
-}
-
-func main() {
 }
 
 // generate g1Add test data suitable for unit test input csv
@@ -311,12 +376,5 @@ func Uint256ToStringBigEndian(number *big.Int) string {
 	return hex.EncodeToString(bytes)
 }
 
-// isAllZero checks if all elements in the byte slice are zero
-func isAllZero(data []byte) bool {
-    for _, b := range data {
-        if b != 0 {
-            return false
-        }
-    }
-    return true
+func main() {
 }
