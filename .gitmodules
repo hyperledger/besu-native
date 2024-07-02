@@ -7,3 +7,6 @@
 [submodule "secp256r1/besu-native-ec"]
 	path = secp256r1/besu-native-ec
 	url = git@github.com:ConsenSys/besu-native-ec.git
+[submodule "constantine/constantine"]
+	path = constantine/constantine
+	url = https://github.com/mratsim/constantine.git
