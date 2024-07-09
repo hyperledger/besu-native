@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.9.2-SNAPSHOT
+
 # 0.9.1
 * remove tuweni-bytes dependency from gnark-crypto artifcat [#182](https://github.com/hyperledger/besu-native/pull/182)
 * fix for EIP-196 edge case [#185](https://github.com/hyperledger/besu-native/pull/185)
