@@ -50,7 +50,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     outputLen := (*int)(unsafe.Pointer(cOutputLen))
 
     // Convert error C pointers to Go slices
-    errorBuf := castErrorBufferEIP196(javaErrorBuf, *errorLen)
+    errorBuf := castErrorBufferEIP196(javaErrorBuf, errorLen)
 
     if (inputLen > 2*EIP196PreallocateForG1) {
         // trunc if input too long
@@ -108,7 +108,7 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     outputLen := (*int)(unsafe.Pointer(cOutputLen))
 
     // Convert error C pointers to Go slices
-    errorBuf := castErrorBufferEIP196(javaErrorBuf, *errorLen)
+    errorBuf := castErrorBufferEIP196(javaErrorBuf, errorLen)
 
     if inputLen < EIP196PreallocateForG1 {
         // if we do not have complete input, return 0
@@ -160,10 +160,10 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cI
     outputLen := (*int)(unsafe.Pointer(cOutputLen))
 
     // Convert error C pointers to Go slices
-    output := castBufferEIP196(javaOutputBuf, *outputLen)
+    output := castBufferEIP196(javaOutputBuf, outputLen)
 
     // Convert error C pointers to Go slices
-    errorBuf := castErrorBufferEIP196(javaErrorBuf, *errorLen)
+    errorBuf := castErrorBufferEIP196(javaErrorBuf, errorLen)
 
     *outputLen = 32
 
@@ -312,17 +312,17 @@ func castBufferToSliceEIP196(buf unsafe.Pointer, length int) []byte {
     return slice
 }
 
-func castBufferEIP196(javaOutputBuf *C.char, length int) []byte {
-    bufSize := length
-    if bufSize < EIP196PreallocateForResult {
+func castBufferEIP196(javaOutputBuf *C.char, length *int) []byte {
+    bufSize := *length
+    if bufSize != EIP196PreallocateForResult {
       bufSize = EIP196PreallocateForResult
     }
     return (*[EIP196PreallocateForResult]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
-func castErrorBufferEIP196(javaOutputBuf *C.char, length int) []byte {
-    bufSize := length
-    if bufSize < EIP196PreallocateForError {
+func castErrorBufferEIP196(javaOutputBuf *C.char, length *int) []byte {
+    bufSize := *length
+    if bufSize != EIP196PreallocateForError {
       bufSize = EIP196PreallocateForError
     }
     return (*[EIP196PreallocateForError]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
