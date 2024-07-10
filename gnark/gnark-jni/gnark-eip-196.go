@@ -18,6 +18,8 @@ import (
 )
 
 var ErrMalformedPoint = errors.New("invalid input parameters, invalid point encoding")
+var ErrInvalidInputLength = errors.New("invalid input parameters, invalid input length")
+var ErrInvalidInputPairingLength = errors.New("invalid input parameters, invalid input length for pairing")
 var ErrPointNotInField = errors.New("invalid input parameters, point not in field")
 var ErrPointOnCurveCheckFailed = errors.New("invalid point: point is not on curve")
 
@@ -47,31 +49,20 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     inputLen := int(cInputLen)
     errorLen := int(cErrorLen)
 
-    if (inputLen > 2*EIP196PreallocateForG1) {
-      // trunc if input too long
-      inputLen = 2*EIP196PreallocateForG1
-    }
-
     // Convert error C pointers to Go slices
     errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
-    // check we have input size sufficient for a G1Affine
-    if inputLen < EIP196PreallocateForG1 {
-
-        // if not, check the X point and return an error if it is in the field, edge case
-        if inputLen >= EIP196PreallocateForFp {
-            input := (*[EIP196PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:EIP196PreallocateForFp:EIP196PreallocateForFp]
-            if !checkInField(input[:EIP196PreallocateForFp]) {
-                copy(errorBuf, ErrPointNotInField.Error())
-                return 1
-            }
-        }
-        // otherwise if we do not have complete input, return 0
-        return 0
+    if (inputLen > 2*EIP196PreallocateForG1) {
+      copy(errorBuf, ErrInvalidInputLength.Error())
+      return 1
     }
 
     // Convert input C pointers to Go slices
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+    if (inputLen < EIP196PreallocateForG1) {
+        return 0
+    }
 
     // generate p0 g1 affine
     p0, err := safeUnmarshal(input[:64])
@@ -87,11 +78,9 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
             ret := p0.Marshal()
             g1AffineEncode(ret, javaOutputBuf)
             return 0;
-        } else {
-          // else return an incomplete input error
-          copy(errorBuf, ErrMalformedPoint.Error())
-          return 1
         }
+        copy(errorBuf, ErrInvalidInputLength.Error())
+        return 1
     }
 
     // generate p1 g1 affine
@@ -121,23 +110,14 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     errorBuf := castErrorBuffer(javaErrorBuf, errorLen)
 
     if inputLen < EIP196PreallocateForG1 {
-
-        // check the X point and return an error if it is in the field, edge case
-        if inputLen >= EIP196PreallocateForFp {
-            input := (*[EIP196PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:EIP196PreallocateForFp:EIP196PreallocateForFp]
-            if !checkInField(input[:EIP196PreallocateForFp]) {
-                copy(errorBuf, ErrPointNotInField.Error())
-                return 1
-            }
-        }
-
-        // otherwise if we do not have complete input, return 0
+        // if we do not have complete input, return 0
         return 0
     }
 
     if (inputLen > EIP196PreallocateForG1 + EIP196PreallocateForScalar) {
       // trunc if input too long
-      inputLen = EIP196PreallocateForG1 + EIP196PreallocateForScalar
+      copy(errorBuf, ErrInvalidInputLength.Error())
+      return 1
     }
 
     // Convert input C pointers to Go slice
@@ -190,7 +170,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cI
     }
 
     if inputLen % (EIP196PreallocateForG2 + EIP196PreallocateForG1) != 0 {
-        copy(errorBuf, "invalid input parameters, invalid input length for pairing\x00")
+        copy(errorBuf, ErrInvalidInputPairingLength.Error())
         return 1
     }
 
@@ -259,13 +239,24 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
 
 func safeUnmarshal(input []byte) (*bn254.G1Affine, error) {
     var g1 bn254.G1Affine
+
+    if (len(input) < 64) {
+        return nil, ErrMalformedPoint
+    }
+
+    if !checkInField(input[:32]) {
+        return nil, ErrPointOnCurveCheckFailed
+    }
+
     err := g1.X.SetBytesCanonical(input[:32])
+
     if (err == nil) {
         err := g1.Y.SetBytesCanonical(input[32:64])
         if (err == nil) {
             return &g1, nil
         }
     }
+
     if (!g1.IsOnCurve()) {
         return nil, ErrPointOnCurveCheckFailed
     }
