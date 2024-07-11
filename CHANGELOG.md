@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.9.3-SNAPSHOT
+
 # 0.9.2
 * Additional malformed input handling for EIP-196 [#188](https://github.com/hyperledger/besu-native/pull/188)
 
