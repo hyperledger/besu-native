@@ -1,6 +1,7 @@
 # Changelog
 
-# 0.9.2-SNAPSHOT
+# 0.9.2
+* Additional malformed input handling for EIP-196 [#188](https://github.com/hyperledger/besu-native/pull/188)
 
 # 0.9.1
 * remove tuweni-bytes dependency from gnark-crypto artifcat [#182](https://github.com/hyperledger/besu-native/pull/182)
