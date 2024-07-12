@@ -10,23 +10,72 @@ repositories {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
-    testImplementation 'net.java.dev.jna:jna:5.12.1'
-    implementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.assertj:assertj-core:3.22.0'
-    testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
-task compileNim(type: Exec) {
-    commandLine '/Users/nicks/.nimble/bin/nim', 'c', '--noMain', '-d:release', '--app:lib', '--out:build/libs/libconstantine_eip196.so', './constantine_eip196_bindings.nim'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
-task copyNimLib(type: Copy, dependsOn: compileNim) {
-    from 'build/libs/libconstantine_eip196.so'
-    into 'src/main/resources/native'
+//task runNimbleMakeLib(type: Exec) {
+//    description = 'Runs CTT_LTO=false nimble make_lib inside constantine folder'
+//    workingDir 'constantine'
+//    environment 'CTT_LTO', 'false'
+//    commandLine 'nimble', 'make_lib'
+//}
+
+task compileJavaSource(type: Exec) {
+    description = 'Compiles the Java source files'
+    commandLine 'javac', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
 }
 
-processResources.dependsOn copyNimLib
+task generateJNIHeader(type: Exec) {
+    description = 'Generates the JNI header file'
+    commandLine 'javac', '-h', 'constantine/constantine-jni/include', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
+}
+
+task compileNativeLibrary(type: Exec) {
+    description = 'Compiles the native library'
+    commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'constantine-jni/lib/libconstantine.jnilib', 'constantine-jni/src/main/c/ethereum_evm_precompiles.c', '-I', 'constantine/include', '-I', 'src/main/java/org/hyperledger/besu/nativelib/constantine', '-L', 'constantine-jni/lib', '-lconstantine'
+}
+
+task runJavaProgram(type: Exec) {
+    description = 'Runs the Java program'
+    commandLine 'java', '-Djava.library.path=constantine-jni/lib', 'org.hyperledger.besu.nativelib.constantine.LibConstantineEIP196'
+}
+
+compileNativeLibrary.dependsOn generateJNIHeader
+//generateJNIHeader.dependsOn compileJavaSource
+//compileJavaSource.dependsOn runNimbleMakeLib
+runJavaProgram.dependsOn compileNativeLibrary
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+task macArmLibCopy(type: Copy) {
+    from 'constantine-jni/lib/libconstantine.dylib'
+    into 'build/resources/main/darwin-aarch64'
+}
+
+task macLibCopy(type: Copy) {
+    from 'constantine-jni/lib/libconstantine.dylib'
+    into 'build/resources/main/darwin-x86-64'
+}
+
+task linuxLibCopy(type: Copy) {
+    from 'constantine-jni/lib/libconstantine.so'
+    into 'build/resources/main/linux-x86-64'
+}
+
+task linuxArm64LibCopy(type: Copy) {
+    from 'constantine-jni/lib/libconstantine.so'
+    into 'build/resources/main/linux-aarch64'
+}
+
+processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 jar {
     archiveBaseName = 'besu-native-constantine'
@@ -58,7 +107,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId "org.hyperledger.besu"
-            artifactId "constantine"
+            artifactId 'constantine'
             version "${project.version}"
 
             from components.java
@@ -67,7 +116,7 @@ publishing {
 
             pom {
                 name = "Besu Native - ${project.name}"
-                description = 'Constantine'
+                description = 'Adapter for native constantine library'
                 url = 'http://github.com/hyperledger/besu-native'
                 licenses {
                     license {
@@ -105,3 +154,13 @@ artifactory {
         }
     }
 }
+
+test {
+    useJUnit()
+}
+
+task runJavaTests(type: Test) {
+    description = 'Runs the Java tests'
+    include '**/*Test.class'
+}
+runJavaTests.dependsOn runJavaProgram

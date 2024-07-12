@@ -10,6 +10,8 @@ Cargo.lock
 
 .gradle
 
+*.DS_Store
+
 ## build files
 *.com
 *.class
