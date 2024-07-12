@@ -21,8 +21,9 @@ plugins {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
+    testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
-    implementation 'org.apache.tuweni:tuweni-bytes:2.2.0'
+    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.mockito:mockito-core:4.4.0'

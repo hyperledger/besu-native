@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys AG.
+ * Copyright Hyperledger Besu contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -81,6 +81,7 @@ public class AltBN128PairingPrecompiledContractTest {
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
       assertThat(actualComputation).isEqualTo(expectedComputation);
+      assertThat(notes).isEmpty();
     }
   }
 }
