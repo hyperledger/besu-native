@@ -113,30 +113,6 @@ EOF
     make -j $CORE_COUNT install
 }
 
-build_altbn128() {
-  cat <<EOF
-  ############################
-  ###### build altbn128 ######
-  ############################
-EOF
-
-  echo "building altbn128 for ${OSARCH}"
-  cd "$SCRIPTDIR/altbn128/sputnikvm_altbn128"
-
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/altbn128/build" || true
-  mkdir -p "$SCRIPTDIR/altbn128/build/${OSARCH}/lib"
-
-  cargo clean
-  if [[ "$OSTYPE" == "darwin"* ]];  then
-    lipo_lib "libeth_altbn128" ""
-  else
-    cargo build --lib --release
-  fi
-  mkdir -p "$SCRIPTDIR/altbn128/build/${OSARCH}/lib"
-  cp target/release/libeth_altbn128.* "$SCRIPTDIR/altbn128/build/${OSARCH}/lib"
-}
-
 build_arithmetic() {
   cat <<EOF
   ##############################
@@ -345,7 +321,6 @@ EOF
 
 build_blake2bf
 build_secp256k1
-build_altbn128
 build_arithmetic
 build_bls12_381
 build_ipa_multipoint
