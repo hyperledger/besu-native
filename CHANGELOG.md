@@ -1,7 +1,10 @@
 # Changelog
 
-# 0.9.3-SNAPSHOT
-* remove long-deprecated altbn128 
+# 0.9.4-SNAPSHOT
+
+# 0.9.3
+* remove long-deprecated altbn128 [#192](https://github.com/hyperledger/besu-native/pull/192)
+* fix eip-196 point padding in gnark-crypto [#191](https://github.com/hyperledger/besu-native/pull/191)
 
 # 0.9.2
 * Additional malformed input handling for EIP-196 [#188](https://github.com/hyperledger/besu-native/pull/188)
