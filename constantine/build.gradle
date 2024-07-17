@@ -10,6 +10,8 @@ repositories {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
+    testImplementation 'com.google.guava:guava:31.1-jre'
+    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
     testImplementation 'junit:junit:4.13.2'
 }
 
@@ -45,7 +47,8 @@ task runJavaTests(type: Test) {
     jvmArgs = ['-Djava.library.path=out/org/hyperledger/besu/nativelib/constantine']
 }
 
-compileNativeLibrary.dependsOn compileJavaSource
+compileJavaSource.dependsOn compileConstantineLib
+compileNativeLibrary.dependsOn compileConstantineLib
 runJavaTests.dependsOn compileNativeLibrary
 
 tasks.withType(JavaCompile) {
