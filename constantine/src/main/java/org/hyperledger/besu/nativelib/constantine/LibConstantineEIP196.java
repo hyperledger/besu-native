@@ -9,30 +9,34 @@ public class LibConstantineEIP196 {
     public native int ctt_eth_evm_bn254_g1mul(byte[] r, int r_len, byte[] inputs, int inputs_len);
     public native int ctt_eth_evm_bn254_pairingCheck(byte[] r, int r_len, byte[] inputs, int inputs_len);
 
-    public static void main(String[] args) {
-        LibConstantineEIP196 constInstance = new LibConstantineEIP196();
-
-        byte[] r = new byte[64];
-        byte[] inputs = new byte[128];
-        int status = constInstance.ctt_eth_evm_bn254_g1add(r, r.length, inputs, inputs.length);
-        System.out.println("ctt_eth_evm_bn254_g1add status: " + status + ", result: " + bytesToHex(r));
-
-        r = new byte[64];
-        inputs = new byte[96];
-        status = constInstance.ctt_eth_evm_bn254_g1mul(r, r.length, inputs, inputs.length);
-        System.out.println("ctt_eth_evm_bn254_g1mul status: " + status + ", result: " + bytesToHex(r));
-
-        r = new byte[32];
-        inputs = new byte[256];
-        status = constInstance.ctt_eth_evm_bn254_pairingCheck(r, r.length, inputs, inputs.length);
-        System.out.println("ctt_eth_evm_bn254_pairingCheck status: " + status + ", result: " + bytesToHex(r));
+    public static void loadNativeLibrary() {
+        System.loadLibrary("constantine");
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
+    public byte[] add(byte[] inputs) {
+        byte[] result = new byte[64];
+        int status = ctt_eth_evm_bn254_g1add(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ctt_eth_evm_bn254_g1add failed with status: " + status);
         }
-        return sb.toString();
+        return result;
+    }
+
+    public byte[] mul(byte[] inputs) {
+        byte[] result = new byte[64];
+        int status = ctt_eth_evm_bn254_g1mul(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ctt_eth_evm_bn254_g1mul failed with status: " + status);
+        }
+        return result;
+    }
+
+    public byte[] pairingCheck(byte[] inputs) {
+        byte[] result = new byte[32];
+        int status = ctt_eth_evm_bn254_pairingCheck(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ctt_eth_evm_bn254_pairingCheck failed with status: " + status);
+        }
+        return result;
     }
 }

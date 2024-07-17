@@ -19,37 +19,34 @@ java {
     }
 }
 
-//task runNimbleMakeLib(type: Exec) {
-//    description = 'Runs CTT_LTO=false nimble make_lib inside constantine folder'
-//    workingDir 'constantine'
-//    environment 'CTT_LTO', 'false'
-//    commandLine 'nimble', 'make_lib'
-//}
+task compileConstantineLib(type: Exec) {
+    description = 'Compiles the Constantine library'
+    workingDir = file('./constantine')
+    environment 'PATH', "${System.env.PATH}:${System.getenv('HOME')}/.nimble/bin"
+    environment 'CTT_LTO', 'false'
+    commandLine '/Users/nicks/.nimble/bin/nimble', 'make_lib'
+}
 
 task compileJavaSource(type: Exec) {
     description = 'Compiles the Java source files'
-    commandLine 'javac', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
-}
-
-task generateJNIHeader(type: Exec) {
-    description = 'Generates the JNI header file'
-    commandLine 'javac', '-h', 'constantine/constantine-jni/include', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
+    commandLine 'javac', '-d', 'out', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
 }
 
 task compileNativeLibrary(type: Exec) {
     description = 'Compiles the native library'
-    commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'constantine-jni/lib/libconstantine.jnilib', 'constantine-jni/src/main/c/ethereum_evm_precompiles.c', '-I', 'constantine/include', '-I', 'src/main/java/org/hyperledger/besu/nativelib/constantine', '-L', 'constantine-jni/lib', '-lconstantine'
+    commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.jnilib', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
 }
 
-task runJavaProgram(type: Exec) {
-    description = 'Runs the Java program'
-    commandLine 'java', '-Djava.library.path=constantine-jni/lib', 'org.hyperledger.besu.nativelib.constantine.LibConstantineEIP196'
+task runJavaTests(type: Test) {
+    description = 'Runs the Java tests'
+    useJUnit {
+        include '**/*Test.class'
+    }
+    jvmArgs = ['-Djava.library.path=out/org/hyperledger/besu/nativelib/constantine']
 }
 
-compileNativeLibrary.dependsOn generateJNIHeader
-//generateJNIHeader.dependsOn compileJavaSource
-//compileJavaSource.dependsOn runNimbleMakeLib
-runJavaProgram.dependsOn compileNativeLibrary
+compileNativeLibrary.dependsOn compileJavaSource
+runJavaTests.dependsOn compileNativeLibrary
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
@@ -158,9 +155,3 @@ artifactory {
 test {
     useJUnit()
 }
-
-task runJavaTests(type: Test) {
-    description = 'Runs the Java tests'
-    include '**/*Test.class'
-}
-runJavaTests.dependsOn runJavaProgram

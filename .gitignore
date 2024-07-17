@@ -19,3 +19,7 @@ Cargo.lock
 *.exe
 *.o
 *.so
+
+*.a
+*.dylib
+constantine/out
