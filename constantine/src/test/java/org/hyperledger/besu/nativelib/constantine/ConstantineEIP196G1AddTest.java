@@ -51,7 +51,7 @@ public class ConstantineEIP196G1AddTest {
         byte[] result = new byte[64];
         int status = constInstance.ctt_eth_evm_bn254_g1add(result, result.length, inputBytes, inputBytes.length);
 
-        Bytes expectedComputation = expectedResult == null ? Bytes.fromHexString("0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") : Bytes.fromHexString(expectedResult);
+        Bytes expectedComputation = expectedResult == null ? null : Bytes.fromHexString(expectedResult);
         if (status != 0) {
             assertNotNull("Notes should not be empty", notes);
             assertNotEquals("Status should not be success", 0, status);

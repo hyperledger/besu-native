@@ -21,7 +21,7 @@ java {
     }
 }
 
-task compileConstantineLib(type: Exec) {
+task makeConstantineLib(type: Exec) {
     description = 'Compiles the Constantine library'
     workingDir = file('./constantine')
     environment 'PATH', "${System.env.PATH}:${System.getenv('HOME')}/.nimble/bin"
@@ -36,7 +36,18 @@ task compileJavaSource(type: Exec) {
 
 task compileNativeLibrary(type: Exec) {
     description = 'Compiles the native library'
-    commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.jnilib', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
+
+    def osName = System.getProperty('os.name').toLowerCase()
+    def isMac = osName.contains('mac')
+    def isLinux = osName.contains('linux')
+
+    if (isMac) {
+        commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.jnilib', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
+    } else if (isLinux) {
+        commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/linux", '-fPIC', '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.so', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
+    } else {
+        throw new GradleException("Unsupported operating system: ${osName}")
+    }
 }
 
 task runJavaTests(type: Test) {
@@ -47,8 +58,8 @@ task runJavaTests(type: Test) {
     jvmArgs = ['-Djava.library.path=out/org/hyperledger/besu/nativelib/constantine']
 }
 
-compileJavaSource.dependsOn compileConstantineLib
-compileNativeLibrary.dependsOn compileConstantineLib
+compileJavaSource.dependsOn makeConstantineLib
+compileNativeLibrary.dependsOn compileJavaSource
 runJavaTests.dependsOn compileNativeLibrary
 
 tasks.withType(JavaCompile) {
