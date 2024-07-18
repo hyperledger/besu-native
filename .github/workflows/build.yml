@@ -29,9 +29,9 @@ jobs:
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
           # nim dependencies
-          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
-          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -135,9 +135,9 @@ jobs:
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
           # nim dependencies
-          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
-          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -206,9 +206,9 @@ jobs:
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
           # nim dependencies
-          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
-          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
