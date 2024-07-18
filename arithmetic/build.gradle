@@ -16,7 +16,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'com.jfrog.artifactory' version '4.20.0'
+    id 'com.jfrog.artifactory' version '5.2.3'
 }
 
 dependencies {

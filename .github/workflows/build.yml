@@ -40,10 +40,6 @@ jobs:
         run: ./build.sh
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: altbn128 native build artifacts
-          path: altbn128/build/
-      - uses: actions/upload-artifact@v3.1.0
-        with:
           name: arithmetic native build artifacts
           path: arithmetic/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -83,10 +79,6 @@ jobs:
       - name: Build
         run: |
           docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
-      - uses: actions/upload-artifact@v3.1.0
-        with:
-          name: altbn128 native build artifacts
-          path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: arithmetic native build artifacts
@@ -144,10 +136,6 @@ jobs:
           submodules: recursive
       - name: Build
         run: ./build.sh
-      - uses: actions/upload-artifact@v3.1.0
-        with:
-          name: altbn128 native build artifacts
-          path: altbn128/build/
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: arithmetic native build artifacts
@@ -230,10 +218,6 @@ jobs:
           ./build.sh
       - uses: actions/upload-artifact@v3.1.0
         with:
-          name: altbn128 native build artifacts
-          path: altbn128/build/
-      - uses: actions/upload-artifact@v3.1.0
-        with:
           name: arithmetic native build artifacts
           path: arithmetic/build/
       - uses: actions/upload-artifact@v3.1.0
@@ -271,11 +255,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - name: Download altbn128
-        uses: actions/download-artifact@v3
-        with:
-          name: altbn128 native build artifacts
-          path: altbn128/build/
       - name: Download arithmetic
         uses: actions/download-artifact@v3
         with:

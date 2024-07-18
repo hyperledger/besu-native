@@ -61,7 +61,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     input := (*[2*EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
     if (inputLen == 0) {
-        *outputLen = 0
+        *outputLen = EIP196PreallocateForG1
         return 0
     }
 
@@ -89,9 +89,15 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
         dryError(err, errorBuf, outputLen, errorLen)
         return 1
     }
+    var result *bn254.G1Affine
 
-    // Use the Add method to combine points
-    result := p0.Add(p0, p1)
+    if p1 == nil {
+        // if p1 is nil, just return p0
+        result = p0
+    } else {
+        // Use the Add method to combine points
+        result = p0.Add(p0, p1)
+    }
 
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
@@ -110,9 +116,9 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     // Convert error C pointers to Go slices
     errorBuf := castErrorBufferEIP196(javaErrorBuf, errorLen)
 
-    if inputLen < EIP196PreallocateForG1 {
-        // if we do not have complete input, return 0
-        *outputLen = 0
+    if inputLen == 0 {
+        // zero input returns 0
+        *outputLen = EIP196PreallocateForG1
         return 0
     }
 
@@ -132,8 +138,14 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
         return 1
     }
 
+    if inputLen < EIP196PreallocateForG1 + 1 {
+        // if there is not even a partial input scalar, return 0
+        *outputLen = EIP196PreallocateForG1
+        return 0
+    }
+
     // Convert byte slice to *big.Int
-    scalarBytes := input[64:]
+    scalarBytes := input[EIP196PreallocateForG1:]
     if (96 > int(cInputLen)) {
       // if the input is truncated, copy the bytes to the high order portion of the scalar
       scalarBytes = make([]byte, 32)
@@ -242,22 +254,35 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
 func safeUnmarshalEIP196(input []byte, offset int) (*bn254.G1Affine, error) {
     var g1 bn254.G1Affine
 
-    if (len(input) - offset < 64) {
-        return nil, ErrMalformedPointEIP196
-    }
+	var pointBytes []byte
 
-    if !checkInFieldEIP196(input[offset: offset + 32]) {
+	// If we effectively have _NO_ input, return empty
+	if len(input)-offset <= 0 {
+		return nil, nil
+	} else if len(input)-offset < 64 {
+		// If we have some input, but it is incomplete, pad with zero
+		pointBytes = make([]byte, 64)
+		shortLen := len(input) - offset
+		copy(pointBytes, input[offset:len(input)])
+		for i := shortLen; i < 64; i++ {
+			pointBytes[i] = 0
+		}
+	} else {
+		pointBytes = input[offset : offset+64]
+	}
+
+    if !checkInFieldEIP196(pointBytes[0:32]) {
         return nil, ErrPointNotInFieldEIP196
     }
 
-    err := g1.X.SetBytesCanonical(input[offset:offset + 32])
+    err := g1.X.SetBytesCanonical(pointBytes[0:32])
 
     if (err == nil) {
 
-        if !checkInFieldEIP196(input[offset + 32: offset + 64]) {
+        if !checkInFieldEIP196(pointBytes[32:64]) {
             return nil, ErrPointNotInFieldEIP196
         }
-        err := g1.Y.SetBytesCanonical(input[offset + 32:offset + 64])
+        err := g1.Y.SetBytesCanonical(pointBytes[32:64])
         if (err == nil) {
             if (!g1.IsOnCurve()) {
                 return nil, ErrPointOnCurveCheckFailedEIP196
