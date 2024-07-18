@@ -29,9 +29,9 @@ jobs:
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
           # nim dependencies
-          wget https://nim-lang.org/download/nim-2.0.4-linux_x64.tar.xz
-          tar -xJf nim-2.0.4-linux_x64.tar.xz
-          export PATH=$(pwd)/nim-2.0.4/bin:$PATH
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export PATH=$HOME/.nimble/bin:$PATH
+          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -83,10 +83,6 @@ jobs:
       - name: Build
         run: |
           docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
-          # nim dependencies
-          wget https://nim-lang.org/download/nim-2.0.4-linux_arm64.tar.xz
-          tar -xJf nim-2.0.4-linux_arm64.tar.xz
-          export PATH=$(pwd)/nim-2.0.4/bin:$PATH
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: altbn128 native build artifacts
@@ -139,7 +135,9 @@ jobs:
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
           # nim dependencies
-          brew install nim@2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export PATH=$HOME/.nimble/bin:$PATH
+          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -208,7 +206,9 @@ jobs:
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
           # nim dependencies
-          brew install nim@2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+          export PATH=$HOME/.nimble/bin:$PATH
+          choosenim 2.0.4
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
