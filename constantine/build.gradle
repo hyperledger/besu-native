@@ -26,7 +26,9 @@ task makeConstantineLib(type: Exec) {
     workingDir = file('./constantine')
     environment 'PATH', "${System.env.PATH}:${System.getenv('HOME')}/.nimble/bin"
     environment 'CTT_LTO', 'false'
-    commandLine "${System.getenv('HOME')}/.nimble/bin/nimble", 'make_lib'
+    commandLine "nimble", 'make_lib'
+    inputs.dir file('./constantine/constantine')
+    outputs.dir file('./constantine/lib')
 }
 
 task compileJavaSource(type: Exec) {
