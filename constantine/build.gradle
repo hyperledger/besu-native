@@ -86,6 +86,7 @@ task linuxLibCopy(type: Copy) {
 }
 
 task linuxArm64LibCopy(type: Copy) {
+    dependsOn compileNativeLibrary
     from 'constantine/lib/libconstantine.so'
     into 'build/resources/main/linux-aarch64'
 }
