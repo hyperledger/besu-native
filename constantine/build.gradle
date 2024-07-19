@@ -75,6 +75,7 @@ task macArmLibCopy(type: Copy) {
 }
 
 task macLibCopy(type: Copy) {
+    dependsOn compileNativeLibrary
     from 'constantine/lib/libconstantine.dylib'
     into 'build/resources/main/darwin-x86-64'
 }
