@@ -25,7 +25,7 @@ task makeConstantineLib(type: Exec) {
     description = 'Compiles the Constantine library'
     workingDir = file('./constantine')
     environment 'CTT_LTO', 'false'
-    commandLine "nimble", 'make_lib'
+    commandLine 'sh', '-c', "which nimble && nimble make_lib"
 }
 
 task compileJavaSource(type: Exec) {
