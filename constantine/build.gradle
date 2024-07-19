@@ -69,6 +69,7 @@ tasks.withType(JavaCompile) {
 }
 
 task macArmLibCopy(type: Copy) {
+    dependsOn compileNativeLibrary
     from 'constantine/lib/libconstantine.dylib'
     into 'build/resources/main/darwin-aarch64'
 }
