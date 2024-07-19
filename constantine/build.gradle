@@ -50,39 +50,39 @@ task compileNativeLibrary(type: Exec) {
     }
 }
 
-task runJavaTests(type: Test) {
+compileJavaSource.dependsOn makeConstantineLib
+compileNativeLibrary.dependsOn compileJavaSource
+
+tasks.named('test', Test) {
     description = 'Runs the Java tests'
     useJUnit {
         include '**/*Test.class'
     }
     jvmArgs = ['-Djava.library.path=out/org/hyperledger/besu/nativelib/constantine']
+    dependsOn compileNativeLibrary
 }
-
-compileJavaSource.dependsOn makeConstantineLib
-compileNativeLibrary.dependsOn compileJavaSource
-runJavaTests.dependsOn compileNativeLibrary
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
 task macArmLibCopy(type: Copy) {
-    from 'constantine-jni/lib/libconstantine.dylib'
+    from 'constantine/lib/libconstantine.dylib'
     into 'build/resources/main/darwin-aarch64'
 }
 
 task macLibCopy(type: Copy) {
-    from 'constantine-jni/lib/libconstantine.dylib'
+    from 'constantine/lib/libconstantine.dylib'
     into 'build/resources/main/darwin-x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
-    from 'constantine-jni/lib/libconstantine.so'
+    from 'constantine/lib/libconstantine.so'
     into 'build/resources/main/linux-x86-64'
 }
 
 task linuxArm64LibCopy(type: Copy) {
-    from 'constantine-jni/lib/libconstantine.so'
+    from 'constantine/lib/libconstantine.so'
     into 'build/resources/main/linux-aarch64'
 }
 
