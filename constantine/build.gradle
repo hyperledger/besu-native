@@ -81,6 +81,7 @@ task macLibCopy(type: Copy) {
 }
 
 task linuxLibCopy(type: Copy) {
+    dependsOn compileNativeLibrary
     from 'constantine/lib/libconstantine.so'
     into 'build/resources/main/linux-x86-64'
 }
