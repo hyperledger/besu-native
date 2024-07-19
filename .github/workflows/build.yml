@@ -290,6 +290,12 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - name: Install Nim
+        run: |
+          # nim dependencies
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+          export PATH=$HOME/.nimble/bin:$PATH
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
