@@ -25,24 +25,38 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+def osName = System.getProperty('os.name').toLowerCase()
+def osArch = System.getProperty('os.arch')
+def libDir
+
+if (osName.contains('mac') && osArch.contains('aarch64')) {
+    libDir = 'darwin-aarch64'
+} else if (osName.contains('mac')) {
+    libDir = 'darwin-x86-64'
+} else if (osName.contains('linux') && osArch.contains('aarch64')) {
+    libDir = 'linux-gnu-aarch64'
+} else {
+    libDir = 'linux-gnu-x86_64'
+}
+
 task macArmLibCopy(type: Copy) {
     from "build/darwin-aarch64/lib/libconstantine.jnilib"
-    into 'build/resources/main/lib'
+    into 'build/resources/main/lib/darwin-aarch64'
 }
 
 task macLibCopy(type: Copy) {
     from "build/darwin-x86-64/lib/libconstantine.jnilib"
-    into 'build/resources/main/lib'
+    into 'build/resources/main/lib/darwin-x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
     from "build/linux-gnu-x86_64/lib/libconstantine.so"
-    into 'build/resources/main/lib'
+    into 'build/resources/main/lib/linux-gnu-x86_64'
 }
 
 task linuxArm64LibCopy(type: Copy) {
     from "build/linux-gnu-aarch64/lib/libconstantine.so"
-    into 'build/resources/main/lib'
+    into 'build/resources/main/lib/linux-gnu-aarch64'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
@@ -58,7 +72,7 @@ tasks.named('test', Test) {
     useJUnit {
         include '**/*Test.class'
     }
-    jvmArgs = ['-Djava.library.path=build/resources/main/lib/']
+    jvmArgs = ["-Djava.library.path=build/resources/main/lib/${libDir}"]
     dependsOn compileJavaSource
 }
 
