@@ -26,26 +26,32 @@ tasks.withType(JavaCompile) {
 }
 
 task macArmLibCopy(type: Copy) {
-    from "constantine/build/macos-aarch64/lib/libconstantine.jnilib"
+    from "constantine/build/darwin-aarch64/lib/libconstantine.jnilib"
     into 'build/resources/main/lib'
 }
 
 task macLibCopy(type: Copy) {
-    from "constantine/build/macos-x86_64/lib/libconstantine.jnilib"
+    from "constantine/build/darwin-x86-64/lib/libconstantine.jnilib"
     into 'build/resources/main/lib'
 }
 
 task linuxLibCopy(type: Copy) {
-    from "constantine/build/linux-x86_64/lib/libconstantine.so"
+    from "constantine/build/linux-gnu-x86_64/lib/libconstantine.so"
     into 'build/resources/main/lib'
 }
 
 task linuxArm64LibCopy(type: Copy) {
-    from "constantine/build/linux-aarch64/lib/libconstantine.so"
+    from "constantine/build/linux-gnu-aarch64/lib/libconstantine.so"
     into 'build/resources/main/lib'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+
+task compileJavaSource(type: Exec) {
+    description = 'Compiles the Java source files'
+    commandLine 'javac', '-d', 'build', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
+    dependsOn linuxLibCopy, linuxArm64LibCopy, macLibCopy, macArmLibCopy
+}
 
 tasks.named('test', Test) {
     description = 'Runs the Java tests'
@@ -53,7 +59,7 @@ tasks.named('test', Test) {
         include '**/*Test.class'
     }
     jvmArgs = ['-Djava.library.path=build/resources/main/lib']
-    dependsOn linuxLibCopy, linuxArm64LibCopy, macLibCopy, macArmLibCopy
+    dependsOn compileJavaSource
 }
 
 jar {
