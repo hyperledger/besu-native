@@ -76,6 +76,12 @@ jobs:
     env:
       SKIP_GRADLE: true
     steps:
+      - name: Prepare
+        run: |
+          # nim dependencies
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+          export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
