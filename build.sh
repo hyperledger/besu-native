@@ -328,7 +328,7 @@ build_constantine() {
 
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/constantine/build" || true
-  mkdir -p "$SCRIPTDIR/constantine/build/"
+  mkdir -p "$SCRIPTDIR/constantine/build/${OSARCH}/lib"
 
   export PATH=$HOME/.nimble/bin:$PATH
 
@@ -340,7 +340,7 @@ build_constantine() {
 
   # Compile the native library
  if [[ "$OSTYPE" == "darwin"* ]]; then
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.jni" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.jnilib" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
    clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.so" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
  else
