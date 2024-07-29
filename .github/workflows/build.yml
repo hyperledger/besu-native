@@ -66,6 +66,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   native-build-linux-arm64:
     runs-on: besu-arm64
@@ -107,6 +111,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   native-build-macos:
     runs-on: macos-13
@@ -164,6 +172,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   native-build-m1:
     runs-on: macos-13-xlarge
@@ -244,6 +256,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   final-assembly:
     runs-on: ubuntu-20.04
@@ -290,12 +306,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
-      - name: Install Nim
-        run: |
-          # nim dependencies
-          export CHOOSENIM_CHOOSE_VERSION=2.0.4
-          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
-          export PATH=$HOME/.nimble/bin:$PATH
+      - name: Download constantine
+        uses: actions/download-artifact@v3
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
       - name: Set up Java
         uses: actions/setup-java@v4
         with:

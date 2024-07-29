@@ -319,6 +319,35 @@ EOF
   cp libgnark_eip_196.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
 }
 
+build_constantine() {
+  echo "#############################"
+  echo "####### build constantine ####"
+  echo "#############################"
+
+  cd "$SCRIPTDIR/constantine/constantine"
+
+  # delete old build dir, if exists
+  rm -rf "$SCRIPTDIR/constantine/build" || true
+  mkdir -p "$SCRIPTDIR/constantine/build/"
+
+  # Build the constantine library
+  export CTT_LTO=false
+  nimble make_lib
+
+  cd "$SCRIPTDIR/constantine/"
+
+  # Compile the native library
+ if [[ "$OSTYPE" == "darwin"* ]]; then
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.jni" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.so" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+ else
+   echo "Unsupported OS/architecture: ${OSARCH}"
+   exit 1
+ fi
+}
+
+
 build_blake2bf
 build_secp256k1
 build_arithmetic
@@ -326,6 +355,7 @@ build_bls12_381
 build_ipa_multipoint
 build_secp256r1
 build_gnark
+build_constantine
 
 
 build_jars

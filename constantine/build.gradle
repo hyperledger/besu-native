@@ -21,76 +21,40 @@ java {
     }
 }
 
-task makeConstantineLib(type: Exec) {
-    description = 'Compiles the Constantine library'
-    workingDir = file('./constantine')
-    environment 'PATH', "${System.env.PATH}:${System.getenv('HOME')}/.nimble/bin"
-    environment 'CTT_LTO', 'false'
-    commandLine "${System.getenv('HOME')}/.nimble/bin/nimble", 'make_lib'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
 
-task compileJavaSource(type: Exec) {
-    description = 'Compiles the Java source files'
-    commandLine 'javac', '-d', 'out', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
+task macArmLibCopy(type: Copy) {
+    from "constantine/build/macos-aarch64/lib/libconstantine.jnilib"
+    into 'build/resources/main/lib'
 }
 
-task compileNativeLibrary(type: Exec) {
-    description = 'Compiles the native library'
-
-    def osName = System.getProperty('os.name').toLowerCase()
-    def isMac = osName.contains('mac')
-    def isLinux = osName.contains('linux')
-
-    if (isMac) {
-        commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/darwin", '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.jnilib', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
-    } else if (isLinux) {
-        commandLine 'clang', '-I', "${System.env.JAVA_HOME}/include", '-I', "${System.env.JAVA_HOME}/include/linux", '-fPIC', '-shared', '-o', 'out/org/hyperledger/besu/nativelib/constantine/libconstantine.so', 'ethereum_evm_precompiles.c', '-Iconstantine/include', '-I.', '-Lconstantine/lib', '-lconstantine'
-    } else {
-        throw new GradleException("Unsupported operating system: ${osName}")
-    }
+task macLibCopy(type: Copy) {
+    from "constantine/build/macos-x86_64/lib/libconstantine.jnilib"
+    into 'build/resources/main/lib'
 }
 
-compileJavaSource.dependsOn makeConstantineLib
-compileNativeLibrary.dependsOn compileJavaSource
+task linuxLibCopy(type: Copy) {
+    from "constantine/build/linux-x86_64/lib/libconstantine.so"
+    into 'build/resources/main/lib'
+}
+
+task linuxArm64LibCopy(type: Copy) {
+    from "constantine/build/linux-aarch64/lib/libconstantine.so"
+    into 'build/resources/main/lib'
+}
+
+processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 tasks.named('test', Test) {
     description = 'Runs the Java tests'
     useJUnit {
         include '**/*Test.class'
     }
-    jvmArgs = ['-Djava.library.path=out/org/hyperledger/besu/nativelib/constantine']
-    dependsOn compileNativeLibrary
+    jvmArgs = ['-Djava.library.path=build/resources/main/lib']
+    dependsOn linuxLibCopy, linuxArm64LibCopy, macLibCopy, macArmLibCopy
 }
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-//task macArmLibCopy(type: Copy) {
-//    dependsOn compileNativeLibrary
-//    from 'constantine/lib/libconstantine.dylib'
-//    into 'build/resources/main/darwin-aarch64'
-//}
-//
-//task macLibCopy(type: Copy) {
-//    dependsOn compileNativeLibrary
-//    from 'constantine/lib/libconstantine.dylib'
-//    into 'build/resources/main/darwin-x86-64'
-//}
-//
-//task linuxLibCopy(type: Copy) {
-//    dependsOn compileNativeLibrary
-//    from 'constantine/lib/libconstantine.so'
-//    into 'build/resources/main/linux-x86-64'
-//}
-//
-//task linuxArm64LibCopy(type: Copy) {
-//    dependsOn compileNativeLibrary
-//    from 'constantine/lib/libconstantine.so'
-//    into 'build/resources/main/linux-aarch64'
-//}
-
-//processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 jar {
     archiveBaseName = 'besu-native-constantine'
