@@ -24,6 +24,7 @@ java {
 task makeConstantineLib(type: Exec) {
     description = 'Compiles the Constantine library'
     workingDir = file('./constantine')
+    environment 'PATH', "${System.env.PATH}:${System.getenv('HOME')}/.nimble/bin"
     environment 'CTT_LTO', 'false'
     commandLine "${System.getenv('HOME')}/.nimble/bin/nimble", 'make_lib'
 }
@@ -65,31 +66,31 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-task macArmLibCopy(type: Copy) {
-    dependsOn compileNativeLibrary
-    from 'constantine/lib/libconstantine.dylib'
-    into 'build/resources/main/darwin-aarch64'
-}
+//task macArmLibCopy(type: Copy) {
+//    dependsOn compileNativeLibrary
+//    from 'constantine/lib/libconstantine.dylib'
+//    into 'build/resources/main/darwin-aarch64'
+//}
+//
+//task macLibCopy(type: Copy) {
+//    dependsOn compileNativeLibrary
+//    from 'constantine/lib/libconstantine.dylib'
+//    into 'build/resources/main/darwin-x86-64'
+//}
+//
+//task linuxLibCopy(type: Copy) {
+//    dependsOn compileNativeLibrary
+//    from 'constantine/lib/libconstantine.so'
+//    into 'build/resources/main/linux-x86-64'
+//}
+//
+//task linuxArm64LibCopy(type: Copy) {
+//    dependsOn compileNativeLibrary
+//    from 'constantine/lib/libconstantine.so'
+//    into 'build/resources/main/linux-aarch64'
+//}
 
-task macLibCopy(type: Copy) {
-    dependsOn compileNativeLibrary
-    from 'constantine/lib/libconstantine.dylib'
-    into 'build/resources/main/darwin-x86-64'
-}
-
-task linuxLibCopy(type: Copy) {
-    dependsOn compileNativeLibrary
-    from 'constantine/lib/libconstantine.so'
-    into 'build/resources/main/linux-x86-64'
-}
-
-task linuxArm64LibCopy(type: Copy) {
-    dependsOn compileNativeLibrary
-    from 'constantine/lib/libconstantine.so'
-    into 'build/resources/main/linux-aarch64'
-}
-
-processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+//processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 jar {
     archiveBaseName = 'besu-native-constantine'
