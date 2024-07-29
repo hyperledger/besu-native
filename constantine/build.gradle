@@ -26,22 +26,22 @@ tasks.withType(JavaCompile) {
 }
 
 task macArmLibCopy(type: Copy) {
-    from "constantine/build/darwin-aarch64/lib/libconstantine.jnilib"
+    from "build/darwin-aarch64/lib/libconstantine.jnilib"
     into 'build/resources/main/lib'
 }
 
 task macLibCopy(type: Copy) {
-    from "constantine/build/darwin-x86-64/lib/libconstantine.jnilib"
+    from "build/darwin-x86-64/lib/libconstantine.jnilib"
     into 'build/resources/main/lib'
 }
 
 task linuxLibCopy(type: Copy) {
-    from "constantine/build/linux-gnu-x86_64/lib/libconstantine.so"
+    from "build/linux-gnu-x86_64/lib/libconstantine.so"
     into 'build/resources/main/lib'
 }
 
 task linuxArm64LibCopy(type: Copy) {
-    from "constantine/build/linux-gnu-aarch64/lib/libconstantine.so"
+    from "build/linux-gnu-aarch64/lib/libconstantine.so"
     into 'build/resources/main/lib'
 }
 
@@ -58,7 +58,7 @@ tasks.named('test', Test) {
     useJUnit {
         include '**/*Test.class'
     }
-    jvmArgs = ['-Djava.library.path=build/resources/main/lib']
+    jvmArgs = ['-Djava.library.path=build/resources/main/lib/']
     dependsOn compileJavaSource
 }
 
