@@ -330,6 +330,8 @@ build_constantine() {
   rm -rf "$SCRIPTDIR/constantine/build" || true
   mkdir -p "$SCRIPTDIR/constantine/build/"
 
+  export PATH=$HOME/.nimble/bin:$PATH
+
   # Build the constantine library
   export CTT_LTO=false
   nimble make_lib
