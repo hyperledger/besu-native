@@ -324,6 +324,12 @@ build_constantine() {
   echo "####### build constantine ####"
   echo "#############################"
 
+  # Skip if OSARCH is linux-gnu-aarch64
+  if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
+    echo "Skipping build for OSARCH: ${OSARCH}"
+    return
+  fi
+
   cd "$SCRIPTDIR/constantine/constantine"
 
   # delete old build dir, if exists
