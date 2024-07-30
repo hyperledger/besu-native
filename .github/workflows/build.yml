@@ -43,7 +43,7 @@ jobs:
             VERSION=$(grep "^version" gradle.properties | sed 's|^version=\(.*\)$|\1|g')
             echo "Query for version [$VERSION]"
             curl --head -L --silent --output /dev/null --fail "$ART_URL/$VERSION" &&  {
-              echo "ERROR: Binary arithmetic already exit for version [$VERSION]"
+              echo "ERROR: Binary arithmetic already exists for version [$VERSION]"
               echo "ERROR: Blocking publishing same version to the Besu Artiactory"
               echo "url $ART_URL/$VERSION"
               exit 1
