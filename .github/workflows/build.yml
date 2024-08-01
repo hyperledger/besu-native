@@ -32,6 +32,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      # Check whether gradle.properties version has been released already
+      # This prevents accidently publish same version
+      # Only check binary for arithmetic as all published together and arithmetic is the first
+      - name: Check existing release
+        run: |
+          # Check whether version contains SNAPSHOT
+          grep "^version" gradle.properties | grep -q SNAPSHOT || {
+            # Extract version from gradle.properties
+            VERSION=$(grep "^version" gradle.properties | sed 's|^version=\(.*\)$|\1|g')
+            echo "Query for version [$VERSION]"
+            curl --head -L --silent --output /dev/null --fail "$ART_URL/$VERSION" &&  {
+              echo "ERROR: Binary arithmetic already exists for version [$VERSION]"
+              echo "ERROR: Blocking republishing same version to the Besu Artifactory"
+              echo "url $ART_URL/$VERSION"
+              exit 1
+            }
+          }
+        env:
+          ART_URL: 'https://hyperledger.jfrog.io/artifactory/besu-maven/org/hyperledger/besu/arithmetic'
       - name: Build
         run: ./build.sh
       - uses: actions/upload-artifact@v3.1.0
