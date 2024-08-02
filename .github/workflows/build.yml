@@ -28,6 +28,10 @@ jobs:
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
+          # nim dependencies
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+          export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -81,6 +85,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
+
   native-build-linux-arm64:
     runs-on: besu-arm64
     env:
@@ -91,7 +100,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build
-        run:
+        run: |
           docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
       - uses: actions/upload-artifact@v3.1.0
         with:
@@ -121,6 +130,7 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+
   native-build-macos:
     runs-on: macos-13
     env:
@@ -139,6 +149,10 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
+          # nim dependencies
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+          export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -173,6 +187,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
+
   native-build-m1:
     runs-on: macos-13-xlarge
     env:
@@ -201,6 +220,10 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
+          # nim dependencies
+          export CHOOSENIM_CHOOSE_VERSION=2.0.4
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+          export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -248,6 +271,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
+
   final-assembly:
     runs-on: ubuntu-20.04
     needs:
@@ -293,6 +321,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - name: Download constantine
+        uses: actions/download-artifact@v3
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
