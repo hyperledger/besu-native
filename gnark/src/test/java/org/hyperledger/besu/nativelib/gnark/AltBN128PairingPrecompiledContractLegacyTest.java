@@ -130,7 +130,7 @@ public class AltBN128PairingPrecompiledContractLegacyTest {
     // assert there is an error
     assertThat(errorLength.getValue()).isNotEqualTo(0);
     String errorStr = new String(error, 0, errorLength.getValue());
-    assertThat(errorStr).isEqualTo("invalid input parameters, point is not on curve");
+    assertThat(errorStr).isEqualTo("invalid input parameters, point is not in subgroup");
     // assert there is no output
     assertThat(outputLength.getValue()).isEqualTo(0);
   }

@@ -20,7 +20,6 @@ import (
 var ErrMalformedPointEIP196 = errors.New("invalid point encoding")
 var ErrInvalidInputPairingLengthEIP196 = errors.New("invalid input parameters, invalid input length for pairing")
 var ErrPointNotInFieldEIP196 = errors.New("point not in field")
-var ErrPointOnCurveCheckFailedEIP196 = errors.New("point is not on curve")
 var ErrPointInSubgroupCheckFailedEIP196 = errors.New("point is not in subgroup")
 
 const (
@@ -282,7 +281,7 @@ func safeUnmarshalEIP196(g1 *bn254.G1Affine, input []byte, offset int) (error) {
         }
         err := g1.Y.SetBytesCanonical(pointBytes[32:64])
         if (err == nil) {
-            if (!g1.IsOnCurve()) {
+            if (!g1.IsInSubGroup()) {
                 return ErrPointInSubgroupCheckFailedEIP196
             }
             return nil
@@ -308,7 +307,7 @@ func safeUnmarshalG2EIP196(g2 *bn254.G2Affine, input []byte) (error) {
     g2.Y.A1.SetBytesCanonical(input[64:96])
     g2.Y.A0.SetBytesCanonical(input[96:128])
     if (!g2.IsInSubGroup()) {
-        return ErrPointOnCurveCheckFailedEIP196
+        return ErrPointInSubgroupCheckFailedEIP196
     }
 
     return nil
