@@ -20,7 +20,7 @@ import (
 var ErrMalformedPointEIP196 = errors.New("invalid point encoding")
 var ErrInvalidInputPairingLengthEIP196 = errors.New("invalid input parameters, invalid input length for pairing")
 var ErrPointNotInFieldEIP196 = errors.New("point not in field")
-var ErrPointOnCurveCheckFailedEIP196 = errors.New("point is not on curve")
+var ErrPointInSubgroupCheckFailedEIP196 = errors.New("point is not in subgroup")
 
 const (
     EIP196PreallocateForResult = 128
@@ -66,7 +66,9 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     }
 
     // generate p0 g1 affine
-    p0, err := safeUnmarshalEIP196(input, 0)
+    var p0 bn254.G1Affine
+
+    err := safeUnmarshalEIP196(&p0, input, 0)
 
     if err != nil {
         dryError(err, errorBuf, outputLen, errorLen)
@@ -83,7 +85,8 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
         }
     }
     // generate p1 g1 affine
-    p1, err := safeUnmarshalEIP196(input, 64)
+    var p1 bn254.G1Affine
+    err = safeUnmarshalEIP196(&p1, input, 64)
 
     if err != nil {
         dryError(err, errorBuf, outputLen, errorLen)
@@ -91,13 +94,8 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     }
     var result *bn254.G1Affine
 
-    if p1 == nil {
-        // if p1 is nil, just return p0
-        result = p0
-    } else {
-        // Use the Add method to combine points
-        result = p0.Add(p0, p1)
-    }
+    // Use the Add method to combine points
+    result = p0.Add(&p0, &p1)
 
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
@@ -131,7 +129,8 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     input := (*[EIP196PreallocateForG1 + EIP196PreallocateForScalar]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
     // generate p0 g1 affine
-    p0, err := safeUnmarshalEIP196(input, 0)
+    var p0 bn254.G1Affine
+    err := safeUnmarshalEIP196(&p0, input, 0)
 
     if err != nil {
         dryError(err, errorBuf, outputLen, errorLen)
@@ -156,7 +155,7 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     scalar.SetBytes(scalarBytes[:])
 
     // multiply g1 point by scalar
-    result := p0.ScalarMultiplication(p0, scalar)
+    result := p0.ScalarMultiplication(&p0, scalar)
 
     // marshal the resulting point and encode directly to the output buffer
     ret := result.Marshal()
@@ -201,7 +200,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cI
 
         // g1 x and y are the first 64 bytes of each 192 byte pair
         var g1 bn254.G1Affine
-        err := g1.Unmarshal(input[i*192:i*192+64])
+        err := safeUnmarshalEIP196(&g1, input[i*192:i*192+64], 0)
 
         if err != nil {
             dryError(err, errorBuf, outputLen, errorLen)
@@ -210,7 +209,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cI
 
         // g2 points are latter 128 bytes of each 192 byte pair
         var g2 bn254.G2Affine
-        err = g2.Unmarshal(input[i*192+64:(i+1)*192])
+        err = safeUnmarshalG2EIP196(&g2, input[i*192+64:(i+1)*192])
 
         if err != nil {
             dryError(err, errorBuf, outputLen, errorLen)
@@ -251,14 +250,12 @@ func g1AffineEncode(g1Point []byte, output *C.char) (error) {
     return nil
 }
 
-func safeUnmarshalEIP196(input []byte, offset int) (*bn254.G1Affine, error) {
-    var g1 bn254.G1Affine
-
+func safeUnmarshalEIP196(g1 *bn254.G1Affine, input []byte, offset int) (error) {
 	var pointBytes []byte
 
 	// If we effectively have _NO_ input, return empty
 	if len(input)-offset <= 0 {
-		return nil, nil
+		return nil
 	} else if len(input)-offset < 64 {
 		// If we have some input, but it is incomplete, pad with zero
 		pointBytes = make([]byte, 64)
@@ -272,7 +269,7 @@ func safeUnmarshalEIP196(input []byte, offset int) (*bn254.G1Affine, error) {
 	}
 
     if !checkInFieldEIP196(pointBytes[0:32]) {
-        return nil, ErrPointNotInFieldEIP196
+        return ErrPointNotInFieldEIP196
     }
 
     err := g1.X.SetBytesCanonical(pointBytes[0:32])
@@ -280,20 +277,42 @@ func safeUnmarshalEIP196(input []byte, offset int) (*bn254.G1Affine, error) {
     if (err == nil) {
 
         if !checkInFieldEIP196(pointBytes[32:64]) {
-            return nil, ErrPointNotInFieldEIP196
+            return ErrPointNotInFieldEIP196
         }
         err := g1.Y.SetBytesCanonical(pointBytes[32:64])
         if (err == nil) {
-            if (!g1.IsOnCurve()) {
-                return nil, ErrPointOnCurveCheckFailedEIP196
+            if (!g1.IsInSubGroup()) {
+                return ErrPointInSubgroupCheckFailedEIP196
             }
-            return &g1, nil
+            return nil
         }
     }
 
 
-    return nil, err
+    return err
 }
+
+func safeUnmarshalG2EIP196(g2 *bn254.G2Affine, input []byte) (error) {
+    if len(input) < EIP196PreallocateForG2 {
+      return ErrInvalidInputPairingLengthEIP196
+    }
+
+    if !(checkInFieldEIP196(input[0:32]) && checkInFieldEIP196(input[32:64]) &&
+        checkInFieldEIP196(input[64:96]) && checkInFieldEIP196(input[96:128])) {
+        return ErrPointNotInFieldEIP196
+    }
+
+    g2.X.A1.SetBytesCanonical(input[:32])
+    g2.X.A0.SetBytesCanonical(input[32:64])
+    g2.Y.A1.SetBytesCanonical(input[64:96])
+    g2.Y.A0.SetBytesCanonical(input[96:128])
+    if (!g2.IsInSubGroup()) {
+        return ErrPointInSubgroupCheckFailedEIP196
+    }
+
+    return nil
+}
+
 
 // checkInField checks that an element is in the field, not-in-field will normally
 // be caught during unmarshal, but here in case of no-op calls of a single parameter
