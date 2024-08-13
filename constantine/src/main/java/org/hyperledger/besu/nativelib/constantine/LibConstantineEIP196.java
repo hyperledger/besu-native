@@ -2,7 +2,7 @@ package org.hyperledger.besu.nativelib.constantine;
 
 public class LibConstantineEIP196 {
     static {
-        System.loadLibrary("constantine");
+        System.loadLibrary("constantineeip196");
     }
 
     public native int ctt_eth_evm_bn254_g1add(byte[] r, int r_len, byte[] inputs, int inputs_len);
@@ -10,7 +10,7 @@ public class LibConstantineEIP196 {
     public native int ctt_eth_evm_bn254_pairingCheck(byte[] r, int r_len, byte[] inputs, int inputs_len);
 
     public static void loadNativeLibrary() {
-        System.loadLibrary("constantine");
+        System.loadLibrary("constantineeip196");
     }
 
     public byte[] add(byte[] inputs) {

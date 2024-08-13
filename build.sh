@@ -346,9 +346,11 @@ build_constantine() {
 
   # Compile the native library
  if [[ "$OSTYPE" == "darwin"* ]]; then
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.jnilib" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+   cp "$SCRIPTDIR/constantine/constantine/lib/libconstantine.dylib" "$SCRIPTDIR/constantine/build/${OSARCH}/lib/"
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.jnilib" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantine.so" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+   cp "$SCRIPTDIR/constantine/constantine/lib/libconstantine.so" "$SCRIPTDIR/constantine/build/${OSARCH}/lib/"
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.so" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
  else
    echo "Unsupported OS/architecture: ${OSARCH}"
    exit 1
