@@ -1,0 +1,145 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.jfrog.artifactory' version '5.2.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.java.dev.jna:jna:5.12.1'
+    testImplementation 'com.google.guava:guava:31.1-jre'
+    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+def osName = System.getProperty('os.name').toLowerCase()
+def osArch = System.getProperty('os.arch')
+def libDir
+
+if (osName.contains('mac') && osArch.contains('aarch64')) {
+    libDir = 'darwin-aarch64'
+} else if (osName.contains('mac')) {
+    libDir = 'darwin-x86-64'
+} else if (osName.contains('linux') && osArch.contains('aarch64')) {
+    libDir = 'linux-gnu-aarch64'
+} else {
+    libDir = 'linux-gnu-x86_64'
+}
+
+task libCopy(type: Copy) {
+    from "build/${libDir}/lib/"
+    into "build/resources/main/lib/${libDir}"
+}
+
+processResources.dependsOn libCopy
+
+task compileJavaSource(type: Exec) {
+    description = 'Compiles the Java source files'
+    commandLine 'javac', '-d', 'build', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
+    dependsOn libCopy
+}
+
+tasks.named('test', Test) {
+    description = 'Runs the Java tests'
+    useJUnit {
+        include '**/*Test.class'
+    }
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/lib/${libDir}"
+    jvmArgs = ["-Djava.library.path=build/resources/main/lib/${libDir}"]
+    dependsOn compileJavaSource
+}
+
+jar {
+    archiveBaseName = 'besu-native-constantine'
+    includeEmptyDirs = false
+    manifest {
+        attributes(
+                'Specification-Title': archiveBaseName,
+                'Specification-Version': project.version,
+                'Implementation-Title': archiveBaseName,
+                'Implementation-Version': project.version,
+                'Automatic-Module-Name': 'org.hyperledger.besu.nativelib.constantine'
+        )
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = 'besu-native-constantine'
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveBaseName = 'besu-native-constantine'
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "org.hyperledger.besu"
+            artifactId 'constantine'
+            version "${project.version}"
+
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = "Besu Native - ${project.name}"
+                description = 'Adapter for native constantine library'
+                url = 'http://github.com/hyperledger/besu-native'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
+                    developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
+                    url = 'https://github.com/hyperledger/besu-native'
+                }
+            }
+        }
+    }
+}
+
+def artifactoryUser = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
+def artifactoryKey = project.hasProperty('artifactoryApiKey') ? project.property('artifactoryApiKey') : System.getenv('ARTIFACTORY_KEY')
+def artifactoryRepo = System.getenv('ARTIFACTORY_REPO') ?: 'besu-maven'
+def artifactoryOrg = System.getenv('ARTIFACTORY_ORG') ?: 'hyperledger'
+
+artifactory {
+    contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}"
+    publish {
+        repository {
+            repoKey = artifactoryRepo
+            username = artifactoryUser
+            password = artifactoryKey
+        }
+        defaults {
+            publications('mavenJava')
+            publishArtifacts = true
+            publishPom = true
+        }
+    }
+}
+
+test {
+    useJUnit()
+}
