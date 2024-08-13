@@ -1,6 +1,10 @@
 # Changelog
 
-# 0.9.4-SNAPSHOT
+# 0.9.5-SNAPSHOT
+
+# 0.9.4
+* initial support for Constantine, bn254 curve [#184](https://github.com/hyperledger/besu-native/pull/184)
+* clarify go stack release behavior in gnark-crypto [#197](https://github.com/hyperledger/besu-native/pull/197)
 
 # 0.9.3
 * remove long-deprecated altbn128 [#192](https://github.com/hyperledger/besu-native/pull/192)
