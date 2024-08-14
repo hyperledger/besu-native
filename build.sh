@@ -330,16 +330,16 @@ build_constantine() {
   rm -rf "$SCRIPTDIR/constantine/build" || true
   mkdir -p "$SCRIPTDIR/constantine/build/${OSARCH}/lib"
 
-  export PATH=$HOME/.nimble/bin:$PATH
-
   # Build the constantine library
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
     # Download and extract Nim
     wget https://github.com/nim-lang/nightlies/releases/download/2024-01-04-version-2-0-0acdce502ca39441bb7e4050efdf43bf03db075d/nim-2.0.3-linux_arm64.tar.xz
     tar -xf nim-2.0.3-linux_arm64.tar.xz
-    ./nim-2.0.3/bin/nimble make_lib
+    export PATH=$(pwd)/nim-2.0.3/bin:$PATH
+    nimble make_lib
   else
+    export PATH=$HOME/.nimble/bin:$PATH
     nimble make_lib
   fi
 
