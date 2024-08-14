@@ -336,6 +336,7 @@ build_constantine() {
     # Download and extract Nim
     wget https://github.com/nim-lang/nightlies/releases/download/2024-01-04-version-2-0-0acdce502ca39441bb7e4050efdf43bf03db075d/nim-2.0.3-linux_arm64.tar.xz
     tar -xf nim-2.0.3-linux_arm64.tar.xz
+    git config --global --add safe.directory /home/ubuntu/constantine/constantine
     export PATH=$(pwd)/nim-2.0.3/bin:$PATH
     nimble make_lib
   else
