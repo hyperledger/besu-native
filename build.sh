@@ -335,7 +335,10 @@ build_constantine() {
   # Build the constantine library
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
-    /home/runner/nimble/bin/nimble make_lib
+    # Download and extract Nim
+    wget https://github.com/nim-lang/nightlies/releases/download/2024-01-04-version-2-0-0acdce502ca39441bb7e4050efdf43bf03db075d/nim-2.0.3-linux_arm64.tar.xz
+    tar -xf nim-2.0.3-linux_arm64.tar.xz
+    ./nim-2.0.3/bin/nimble make_lib
   else
     nimble make_lib
   fi
