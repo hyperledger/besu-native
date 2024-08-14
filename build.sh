@@ -335,7 +335,7 @@ build_constantine() {
   # Build the constantine library
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
-    ~/.nimble/bin/nimble make_lib
+    /home/ubuntu/nimble/bin/nimble make_lib
   else
     nimble make_lib
   fi
