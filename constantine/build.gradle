@@ -39,17 +39,36 @@ if (osName.contains('mac') && osArch.contains('aarch64')) {
     libDir = 'linux-gnu-x86_64'
 }
 
-task libCopy(type: Copy) {
-    from "build/${libDir}/lib/"
-    into "build/resources/main/lib/${libDir}"
+task macArmLibCopy(type: Copy) {
+    from "build/darwin-aarch64/lib/libconstantine.dylib"
+    from "build/darwin-aarch64/lib/libconstantineeip196.jnilib"
+    into 'build/resources/main/lib/darwin-aarch64'
 }
 
-processResources.dependsOn libCopy
+task macLibCopy(type: Copy) {
+    from "build/darwin-x86-64/lib/libconstantine.dylib"
+    from "build/darwin-x86-64/lib/libconstantineeip196.jnilib"
+    into 'build/resources/main/lib/darwin-x86-64'
+}
+
+task linuxLibCopy(type: Copy) {
+    from "build/linux-gnu-x86_64/lib/libconstantine.so"
+    from "build/linux-gnu-x86_64/lib/libconstantineeip196.so"
+    into 'build/resources/main/lib/linux-gnu-x86_64'
+}
+
+task linuxArm64LibCopy(type: Copy) {
+    from "build/linux-gnu-aarch64/lib/libconstantine.so"
+    from "build/linux-gnu-aarch64/lib/libconstantineeip196.so"
+    into 'build/resources/main/lib/linux-gnu-aarch64'
+}
+
+processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 task compileJavaSource(type: Exec) {
     description = 'Compiles the Java source files'
     commandLine 'javac', '-d', 'build', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
-    dependsOn libCopy
+    dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 }
 
 tasks.named('test', Test) {
