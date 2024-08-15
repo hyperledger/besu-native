@@ -334,10 +334,10 @@ build_constantine() {
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
     # Download and extract Nim
-    wget https://github.com/nim-lang/nightlies/releases/download/2024-01-04-version-2-0-0acdce502ca39441bb7e4050efdf43bf03db075d/nim-2.0.3-linux_arm64.tar.xz
-    tar -xf nim-2.0.3-linux_arm64.tar.xz
+    wget https://github.com/nim-lang/nightlies/releases/download/2024-03-28-version-2-0-b47747d31844c6bd9af4322efe55e24fefea544c/nim-2.0.4-linux_arm64.tar.xz
+    tar -xf nim-2.0.4-linux_arm64.tar.xz
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
-    export PATH=$(pwd)/nim-2.0.3/bin:$PATH
+    export PATH=$(pwd)/nim-2.0.4/bin:$PATH
     nimble make_lib
   else
     export PATH=$HOME/.nimble/bin:$PATH
