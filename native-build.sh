@@ -13,4 +13,11 @@ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
 export PATH=$PATH:$CARGO_HOME/bin
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec/openssl
+wget https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-aarch64_bin.tar.gz
+tar -xzf openjdk-21.0.2_linux-aarch64_bin.tar.gz -C $HOME
+export JAVA_HOME=$HOME/jdk-21.0.2
+export PATH=$JAVA_HOME/bin:$PATH
+wget https://github.com/nim-lang/nightlies/releases/download/2024-03-28-version-2-0-b47747d31844c6bd9af4322efe55e24fefea544c/nim-2.0.4-linux_arm64.tar.xz
+tar -xf nim-2.0.4-linux_arm64.tar.xz
+git config --global --add safe.directory /home/ubuntu/constantine/constantine
 /home/ubuntu/build.sh
