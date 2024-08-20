@@ -13,4 +13,13 @@ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
 export PATH=$PATH:$CARGO_HOME/bin
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec/openssl
+# Test if Java is installed and print version
+if command -v java >/dev/null 2>&1; then
+    echo "Java is installed."
+    java -version
+    echo "JAVA_HOME is set to $JAVA_HOME"
+else
+    echo "Java is not installed."
+    exit 1
+fi
 /home/ubuntu/build.sh
