@@ -41,13 +41,14 @@ jobs:
       # Only check binary for arithmetic as all published together and arithmetic is the first
       - name: Check release published
         run: |
-          # Skip if version contain SNAPSHOT
-          grep "^version" gradle.properties | grep -q SNAPSHOT || {
+          # Only interested in release version
+          if [[ $(grep -E 'version=[0-9]+\.[0-9]+\.[0-9]+$' gradle.properties | wc -l) -ne 0 ]]
+          then
             # Extract version from gradle.properties
             VERSION=$(grep "^version" gradle.properties | sed 's|^version=\(.*\)$|\1|g')
             echo "Query for version [$VERSION]"
             RESPONSE_CODE=$(curl --head -L --silent --output /dev/null  --write-out %{http_code} "$ART_URL/$VERSION")
-            echo "DEBUG: Response code from curl command [$RESPONSE_CODE]"
+            echo "Response code for curl command [$RESPONSE_CODE]"
             if [[ $RESPONSE_CODE == "404" ]]
             then
               echo "Version [$VERSION] has not yet been published"
@@ -63,8 +64,11 @@ jobs:
                 echo "WARN: Failing job due to unknown status"
                 exit 1
               fi
+
             fi
-          }
+          else
+            echo "No validation as not a release version"
+          fi
         env:
           ART_URL: 'https://hyperledger.jfrog.io/artifactory/besu-maven/org/hyperledger/besu/arithmetic'
       - name: Build
