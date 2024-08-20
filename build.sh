@@ -339,6 +339,8 @@ build_constantine() {
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
     export PATH=$(pwd)/nim-2.0.4/bin:$PATH
     nimble make_lib
+    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+    export PATH=$JAVA_HOME/bin:$PATH
   else
     export PATH=$HOME/.nimble/bin:$PATH
     nimble make_lib
