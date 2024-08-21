@@ -307,6 +307,8 @@ EOF
     LIBRARY_EXTENSION=so
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
+    export GOROOT=$(brew --prefix go@1.22)/libexec
+    export PATH=$GOROOT/bin:$PATH
   fi
 
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
@@ -324,33 +326,45 @@ build_constantine() {
   echo "####### build constantine ####"
   echo "#############################"
 
-  # Skip if OSARCH is linux-gnu-aarch64
-  if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
-    echo "Skipping build for OSARCH: ${OSARCH}"
-    return
-  fi
-
   cd "$SCRIPTDIR/constantine/constantine"
 
   # delete old build dir, if exists
   rm -rf "$SCRIPTDIR/constantine/build" || true
   mkdir -p "$SCRIPTDIR/constantine/build/${OSARCH}/lib"
 
-  export PATH=$HOME/.nimble/bin:$PATH
+  # Check and modify config.nims if on x86_64
+  if [[ "$OSARCH" == "linux-gnu-x86_64" ]]; then
+    # Check if the config.nims already contains the necessary flags
+    if ! grep -q 'switch("passC", "-fPIC")' config.nims; then
+      {
+        echo 'when defined(linux):'
+        echo '  switch("passC", "-fPIC")'
+        echo '  switch("passL", "-fPIC")'
+      } >> config.nims
+    fi
+  fi
 
   # Build the constantine library
   export CTT_LTO=false
-  nimble make_lib
+  if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
+    # Download and extract Nim
+    wget https://github.com/nim-lang/nightlies/releases/download/2024-03-28-version-2-0-b47747d31844c6bd9af4322efe55e24fefea544c/nim-2.0.4-linux_arm64.tar.xz
+    tar -xf nim-2.0.4-linux_arm64.tar.xz
+    git config --global --add safe.directory /home/ubuntu/constantine/constantine
+    export PATH=$(pwd)/nim-2.0.4/bin:$PATH
+    nimble make_lib
+  else
+    export PATH=$HOME/.nimble/bin:$PATH
+    nimble make_lib
+  fi
 
   cd "$SCRIPTDIR/constantine/"
 
   # Compile the native library
  if [[ "$OSTYPE" == "darwin"* ]]; then
-   cp "$SCRIPTDIR/constantine/constantine/lib/libconstantine.dylib" "$SCRIPTDIR/constantine/build/${OSARCH}/lib/"
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.jnilib" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. constantine/lib/libconstantine.a
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-   cp "$SCRIPTDIR/constantine/constantine/lib/libconstantine.so" "$SCRIPTDIR/constantine/build/${OSARCH}/lib/"
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.so" ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib -lconstantine
+   gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib constantine/lib/libconstantine.a
  else
    echo "Unsupported OS/architecture: ${OSARCH}"
    exit 1

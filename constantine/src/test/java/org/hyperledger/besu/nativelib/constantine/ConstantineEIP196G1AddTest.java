@@ -45,11 +45,10 @@ public class ConstantineEIP196G1AddTest {
             // skip the header row
             return;
         }
-        LibConstantineEIP196 constInstance = new LibConstantineEIP196();
         byte[] inputBytes = Bytes.fromHexString(this.input).toArrayUnsafe();
 
         byte[] result = new byte[64];
-        int status = constInstance.ctt_eth_evm_bn254_g1add(result, result.length, inputBytes, inputBytes.length);
+        int status = LibConstantineEIP196.bn254_g1add(result, result.length, inputBytes, inputBytes.length);
 
         Bytes expectedComputation = expectedResult == null ? null : Bytes.fromHexString(expectedResult);
         if (status != 0) {

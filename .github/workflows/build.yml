@@ -8,7 +8,7 @@ on:
 
 jobs:
   native-build-linux-x86-64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       SKIP_GRADLE: true
     steps:
@@ -111,6 +111,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   native-build-macos:
     runs-on: macos-13
@@ -258,7 +262,7 @@ jobs:
           path: constantine/build/
 
   final-assembly:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - native-build-macos
       - native-build-m1
@@ -349,6 +353,10 @@ jobs:
         with:
           name: jars
           path: gnark/build/libs
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: jars
+          path: constantine/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
         if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
