@@ -332,6 +332,15 @@ build_constantine() {
   rm -rf "$SCRIPTDIR/constantine/build" || true
   mkdir -p "$SCRIPTDIR/constantine/build/${OSARCH}/lib"
 
+  # Modify config.nims if on x86_64
+  if [[ "$OSARCH" == "linux-gnu-x86_64" ]]; then
+    {
+      echo 'when defined(linux):'
+      echo '  switch("passC", "-fPIC")'
+      echo '  switch("passL", "-fPIC")'
+    } >> config.nims
+  fi
+
   # Build the constantine library
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
@@ -340,8 +349,7 @@ build_constantine() {
     tar -xf nim-2.0.4-linux_arm64.tar.xz
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
     export PATH=$(pwd)/nim-2.0.4/bin:$PATH
-    export NIMFLAGS="-d:release --passC:-fPIC --passL:-fPIC"
-    nimble make_lib
+    ~/.nimble/bin/nimble make_lib
   else
     export PATH=$HOME/.nimble/bin:$PATH
     nimble make_lib
@@ -361,15 +369,15 @@ build_constantine() {
 }
 
 
-build_blake2bf
-build_secp256k1
-build_arithmetic
-build_bls12_381
-build_ipa_multipoint
-build_secp256r1
-build_gnark
+#build_blake2bf
+#build_secp256k1
+#build_arithmetic
+#build_bls12_381
+#build_ipa_multipoint
+#build_secp256r1
+#build_gnark
 build_constantine
 
 
-build_jars
+#build_jars
 exit
