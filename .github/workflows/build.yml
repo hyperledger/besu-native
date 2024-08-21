@@ -111,6 +111,10 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/
 
   native-build-macos:
     runs-on: macos-13
