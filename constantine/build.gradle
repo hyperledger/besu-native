@@ -38,6 +38,7 @@ task macLibCopy(type: Copy) {
 task linuxLibCopy(type: Copy) {
     from "build/linux-gnu-x86_64/lib/libconstantineeip196.so"
     into 'build/resources/main/linux-gnu-x86_64'
+
 }
 
 task linuxArm64LibCopy(type: Copy) {
@@ -49,8 +50,11 @@ processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64Li
 
 tasks.named('test', Test) {
     description = 'Runs the Java tests'
-    def libDir = file('build/resources/main').listFiles().find { it.isDirectory() }?.name
-    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/${libDir}"
+    useJUnit {
+        include '**/*Test.class'
+    }
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
+
     dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 }
 
