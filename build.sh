@@ -332,13 +332,16 @@ build_constantine() {
   rm -rf "$SCRIPTDIR/constantine/build" || true
   mkdir -p "$SCRIPTDIR/constantine/build/${OSARCH}/lib"
 
-  # Modify config.nims if on x86_64
+  # Check and modify config.nims if on x86_64
   if [[ "$OSARCH" == "linux-gnu-x86_64" ]]; then
-    {
-      echo 'when defined(linux):'
-      echo '  switch("passC", "-fPIC")'
-      echo '  switch("passL", "-fPIC")'
-    } >> config.nims
+    # Check if the config.nims already contains the necessary flags
+    if ! grep -q 'switch("passC", "-fPIC")' config.nims; then
+      {
+        echo 'when defined(linux):'
+        echo '  switch("passC", "-fPIC")'
+        echo '  switch("passL", "-fPIC")'
+      } >> config.nims
+    fi
   fi
 
   # Build the constantine library
