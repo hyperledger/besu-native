@@ -307,6 +307,8 @@ EOF
     LIBRARY_EXTENSION=so
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
+    export GOROOT=$(brew --prefix go@1.22)/libexec
+    export PATH=$GOROOT/bin:$PATH
   fi
 
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
