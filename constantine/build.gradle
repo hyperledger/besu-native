@@ -47,6 +47,13 @@ task linuxArm64LibCopy(type: Copy) {
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
+tasks.named('test', Test) {
+    description = 'Runs the Java tests'
+    def libDir = file('build/resources/main').listFiles().find { it.isDirectory() }?.name
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/${libDir}"
+    dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+}
+
 jar {
     archiveBaseName = 'besu-native-constantine'
     includeEmptyDirs = false
