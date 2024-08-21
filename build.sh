@@ -349,7 +349,7 @@ build_constantine() {
     tar -xf nim-2.0.4-linux_arm64.tar.xz
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
     export PATH=$(pwd)/nim-2.0.4/bin:$PATH
-    ~/.nimble/bin/nimble make_lib
+    nimble make_lib
   else
     export PATH=$HOME/.nimble/bin:$PATH
     nimble make_lib
