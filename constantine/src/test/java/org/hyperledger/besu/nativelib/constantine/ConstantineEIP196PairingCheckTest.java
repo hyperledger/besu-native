@@ -44,11 +44,10 @@ public class ConstantineEIP196PairingCheckTest {
         if ("input".equals(input)) {
             return;
         }
-        LibConstantineEIP196 constInstance = new LibConstantineEIP196();
         byte[] inputBytes = Bytes.fromHexString(this.input).toArrayUnsafe();
 
         byte[] result = new byte[32];
-        int status = constInstance.ctt_eth_evm_bn254_pairingCheck(result, result.length, inputBytes, inputBytes.length);
+        int status = LibConstantineEIP196.bn254_pairingCheck(result, result.length, inputBytes, inputBytes.length);
 
         Bytes expectedComputation = expectedResult == null ? null : Bytes.fromHexString(expectedResult);
 

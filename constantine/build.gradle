@@ -25,61 +25,27 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-def osName = System.getProperty('os.name').toLowerCase()
-def osArch = System.getProperty('os.arch')
-def libDir
-
-if (osName.contains('mac') && osArch.contains('aarch64')) {
-    libDir = 'darwin-aarch64'
-} else if (osName.contains('mac')) {
-    libDir = 'darwin-x86-64'
-} else if (osName.contains('linux') && osArch.contains('aarch64')) {
-    libDir = 'linux-gnu-aarch64'
-} else {
-    libDir = 'linux-gnu-x86_64'
-}
-
 task macArmLibCopy(type: Copy) {
-    from "build/darwin-aarch64/lib/libconstantine.dylib"
-    from "build/darwin-aarch64/lib/libconstantineeip196.jnilib"
-    into 'build/resources/main/lib/darwin-aarch64'
+    from "build/darwin-aarch64/lib/libconstantineeip196.dylib"
+    into 'build/resources/main/darwin-aarch64'
 }
 
 task macLibCopy(type: Copy) {
-    from "build/darwin-x86-64/lib/libconstantine.dylib"
-    from "build/darwin-x86-64/lib/libconstantineeip196.jnilib"
-    into 'build/resources/main/lib/darwin-x86-64'
+    from "build/darwin-x86-64/lib/libconstantineeip196.dylib"
+    into 'build/resources/main/darwin-x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
-    from "build/linux-gnu-x86_64/lib/libconstantine.so"
     from "build/linux-gnu-x86_64/lib/libconstantineeip196.so"
-    into 'build/resources/main/lib/linux-gnu-x86_64'
+    into 'build/resources/main/linux-gnu-x86_64'
 }
 
 task linuxArm64LibCopy(type: Copy) {
-    from "build/linux-gnu-aarch64/lib/libconstantine.so"
     from "build/linux-gnu-aarch64/lib/libconstantineeip196.so"
-    into 'build/resources/main/lib/linux-gnu-aarch64'
+    into 'build/resources/main/linux-gnu-aarch64'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
-
-task compileJavaSource(type: Exec) {
-    description = 'Compiles the Java source files'
-    commandLine 'javac', '-d', 'build', 'src/main/java/org/hyperledger/besu/nativelib/constantine/LibConstantineEIP196.java'
-    dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
-}
-
-tasks.named('test', Test) {
-    description = 'Runs the Java tests'
-    useJUnit {
-        include '**/*Test.class'
-    }
-    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/lib/${libDir}"
-    jvmArgs = ["-Djava.library.path=build/resources/main/lib/${libDir}"]
-    dependsOn compileJavaSource
-}
 
 jar {
     archiveBaseName = 'besu-native-constantine'
