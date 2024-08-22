@@ -48,9 +48,17 @@ task linuxArm64LibCopy(type: Copy) {
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
+task printClasspath {
+    doLast {
+        println "Test classpath:"
+        tasks.test.classpath.each { println it }
+    }
+}
+
 test {
     //TODO: why is this necessary on x86_64?
     systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
+    dependsOn printClasspath
 }
 
 jar {
