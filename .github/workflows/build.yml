@@ -352,6 +352,15 @@ jobs:
           distribution: adopt
           java-version: 21
           cache: gradle
+      - name: Dump environment
+        run: |
+            echo $OSTYPE-`machine` && echo 'System.out.println(System.getProperty("os.name")+"-"+System.getProperty("os.arch"));' |jshell -
+      - name: Dump info on gnark libs
+        run: |
+          find gnark -name 'lib_gnark_eip_196*' |xargs file
+      - name: Dump info on constantine libs
+        run: |
+          find constantine -name 'libconstantine*' |xargs file
       - name: gradle build
         uses: gradle/gradle-build-action@v2.4.2
         with:
