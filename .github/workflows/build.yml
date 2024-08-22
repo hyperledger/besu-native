@@ -354,10 +354,10 @@ jobs:
           cache: gradle
       - name: Dump environment
         run: |
-            echo $OSTYPE-${OSTYPE%%[0-9.]*}-`arch` && echo 'System.out.println(System.getProperty("os.name")+"-"+System.getProperty("os.arch"));' |jshell -
+            echo $OSTYPE: ${OSTYPE%%[0-9.]*}-`arch` && echo 'System.out.println(System.getProperty("os.name")+"-"+System.getProperty("os.arch") + "\n" + System.getProperty("java.library.path"));' |jshell -
       - name: Dump info on gnark libs
         run: |
-          find . -name 'lib_gnark_eip_196*' |xargs -r file
+          find . -name 'libgnark_eip_196*' |xargs -r file
       - name: Dump info on constantine libs
         run: |
           find . -name 'libconstantine*' |xargs -r file
