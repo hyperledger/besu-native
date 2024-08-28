@@ -23,3 +23,5 @@ Cargo.lock
 *.a
 *.dylib
 constantine/out
+gnark/gnark-jni/*.h
+
