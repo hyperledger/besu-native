@@ -1,6 +1,10 @@
 # Changelog
 
-# 0.9.5-SNAPSHOT
+# Unreleased
+
+# 0.9.5
+* Optimizations in bn254 ECMUL [#207](https://github.com/hyperledger/besu-native/pull/207)
+* Linux aarch64 support for EIP196 constantine [#203](https://github.com/hyperledger/besu-native/pull/203)
 
 # 0.9.4
 * initial support for Constantine, bn254 curve [#184](https://github.com/hyperledger/besu-native/pull/184)
