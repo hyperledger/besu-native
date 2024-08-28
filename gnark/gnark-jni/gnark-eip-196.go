@@ -127,8 +127,9 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
     // Convert input C pointers to Go slice
     input := (*[EIP196PreallocateForG1 + EIP196PreallocateForScalar]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-    // inifinity check:
+    // infinity check:
     if isAllZeroEIP196(input, 0, 64) {
+        *outputLen = EIP196PreallocateForG1
         return 0
     }
 
