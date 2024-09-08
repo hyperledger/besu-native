@@ -362,9 +362,9 @@ build_constantine() {
 
   # Compile the native library
  if [[ "$OSTYPE" == "darwin"* ]]; then
-   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. constantine/lib/libconstantine.a
+   gcc -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -Lconstantine/lib/ -lconstantine
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-   gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantineeip196.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib constantine/lib/libconstantine.a
+   gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib constantine/lib/libconstantine.so
  else
    echo "Unsupported OS/architecture: ${OSARCH}"
    exit 1
@@ -372,15 +372,15 @@ build_constantine() {
 }
 
 
-build_blake2bf
-build_secp256k1
-build_arithmetic
-build_bls12_381
-build_ipa_multipoint
-build_secp256r1
-build_gnark
+#build_blake2bf
+#build_secp256k1
+#build_arithmetic
+#build_bls12_381
+#build_ipa_multipoint
+#build_secp256r1
+#build_gnark
 build_constantine
 
 
-build_jars
+#build_jars
 exit
