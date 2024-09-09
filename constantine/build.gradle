@@ -53,7 +53,7 @@ tasks.named('test', Test) {
     useJUnit {
         include '**/*Test.class'
     }
-    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/darwin-aarch64"
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
 
     dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 }
