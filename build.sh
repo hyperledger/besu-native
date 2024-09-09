@@ -364,7 +364,7 @@ build_constantine() {
  if [[ "$OSTYPE" == "darwin"* ]]; then
    gcc -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -Lconstantine/lib/ -lconstantine
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-   gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib constantine/lib/libconstantine.so
+   gcc -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -Lconstantine/lib/ -lconstantine
  else
    echo "Unsupported OS/architecture: ${OSARCH}"
    exit 1
