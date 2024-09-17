@@ -345,7 +345,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: constantine native build artifacts
-          path: constantine/build/main/resources
+          path: constantine/build/resources/main
       - name: Download constantine
         uses: actions/download-artifact@v3
         with:
