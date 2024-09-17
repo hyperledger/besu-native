@@ -55,9 +55,11 @@ task printClasspath {
     }
 }
 test {
-    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
-    systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
     dependsOn printClasspath, macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:./build/resources/main/linux-gnu-x86_64"
+    var x86LibLocation = file('./build/resources/main/linux-gnu-x86_64').absolutePath
+    print("x86 jna absolute path: " + x86LibLocation)
+    systemProperty 'jna.library.path', x86LibLocation
 }
 
 jar {
