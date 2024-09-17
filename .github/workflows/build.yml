@@ -352,10 +352,19 @@ jobs:
           distribution: adopt
           java-version: 21
           cache: gradle
+      - name: Dump environment
+        run: |
+          echo $OSTYPE: ${OSTYPE%%[0-9.]*}-`arch` && echo 'System.out.println(System.getProperty("os.name")+"-"+System.getProperty("os.arch") + "\n" + System.getProperty("java.library.path"));' |jshell -
+      - name: Dump info on constantine libs
+        run: |
+          find . -name 'libconstantine*' |xargs -r file
       - name: gradle build
         uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: --no-daemon --parallel build --scan
+      - name: Dump info on constantine libs
+        run: |
+          find . -name 'libconstantine*' |xargs -r file
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: jars
