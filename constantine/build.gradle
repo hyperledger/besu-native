@@ -49,7 +49,7 @@ task linuxArm64LibCopy(type: Copy) {
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 test {
-//    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
+    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
     systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
     dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 }
