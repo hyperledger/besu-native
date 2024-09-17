@@ -341,6 +341,11 @@ jobs:
         with:
           name: gnark native build artifacts
           path: gnark/build/
+      - name: Download constantine into build path
+        uses: actions/download-artifact@v3
+        with:
+          name: constantine native build artifacts
+          path: constantine/build/main/resources
       - name: Download constantine
         uses: actions/download-artifact@v3
         with:
