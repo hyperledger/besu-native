@@ -362,9 +362,11 @@ build_constantine() {
 
   # Compile the native library
  if [[ "$OSTYPE" == "darwin"* ]]; then
-   gcc -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib/ -lconstantine
+   # link against the static libconstantine.a so we do not have to deal with multiple libraries in jni/jna:
+   clang -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.dylib" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. constantine/lib/libconstantine.a
  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-   gcc -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib/ constantine/lib/libconstantine.so
+   # link against the static libconstantine.a so we do not have to deal with multiple libraries in jni/jna:
+   gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -fPIC -shared -o "$SCRIPTDIR/constantine/build/${OSARCH}/lib/libconstantinebindings.so" jna_ethereum_evm_precompiles.c -Iconstantine/include -I. -Lconstantine/lib constantine/lib/libconstantine.a
  else
    echo "Unsupported OS/architecture: ${OSARCH}"
    exit 1
