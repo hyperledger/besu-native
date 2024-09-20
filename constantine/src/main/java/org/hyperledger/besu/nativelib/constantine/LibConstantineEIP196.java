@@ -8,7 +8,7 @@ public class LibConstantineEIP196 {
     static {
         boolean enabled;
         try {
-            Native.register(LibConstantineEIP196.class, "constantineeip196");
+            Native.register(LibConstantineEIP196.class, "constantinebindings");
             enabled = true;
         } catch (final Throwable t) {
             t.printStackTrace();

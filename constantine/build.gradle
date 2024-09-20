@@ -26,35 +26,31 @@ tasks.withType(JavaCompile) {
 }
 
 task macArmLibCopy(type: Copy) {
-    from "build/darwin-aarch64/lib/libconstantineeip196.dylib"
+    from "build/darwin-aarch64/lib/libconstantinebindings.dylib"
     into 'build/resources/main/darwin-aarch64'
 }
 
 task macLibCopy(type: Copy) {
-    from "build/darwin-x86-64/lib/libconstantineeip196.dylib"
+    from "build/darwin-x86-64/lib/libconstantinebindings.dylib"
     into 'build/resources/main/darwin-x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
-    from "build/linux-gnu-x86_64/lib/libconstantineeip196.so"
+    from "build/linux-gnu-x86_64/lib/libconstantinebindings.so"
     into 'build/resources/main/linux-gnu-x86_64'
 
 }
 
 task linuxArm64LibCopy(type: Copy) {
-    from "build/linux-gnu-aarch64/lib/libconstantineeip196.so"
+    from "build/linux-gnu-aarch64/lib/libconstantinebindings.so"
     into 'build/resources/main/linux-gnu-aarch64'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
-tasks.named('test', Test) {
-    description = 'Runs the Java tests'
-    useJUnit {
-        include '**/*Test.class'
-    }
-    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
-
+test {
+//    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
+    systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
     dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 }
 

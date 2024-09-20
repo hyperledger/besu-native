@@ -27,7 +27,7 @@ public class LibConstantineEIP196Test {
 
     @Test
     public void testPairingCheck() {
-        byte[] inputs = new byte[0];  // Empty input
+        byte[] inputs = new byte[0];
 
         byte[] result = LibConstantineEIP196.pairingCheck(inputs);
         assertNotNull("Result array should not be null", result);
