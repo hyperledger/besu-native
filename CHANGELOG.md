@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 0.9.6
+* Support for EIP2537 Constantine Lib [#210](https://github.com/hyperledger/besu-native/pull/210)
+* Update lib256k1 to 0.5.1 [#213](https://github.com/hyperledger/besu-native/pull/213)
+
 # 0.9.5
 * Optimizations in bn254 ECMUL [#207](https://github.com/hyperledger/besu-native/pull/207)
 * Linux aarch64 support for EIP196 constantine [#203](https://github.com/hyperledger/besu-native/pull/203)
