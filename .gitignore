@@ -24,4 +24,4 @@ Cargo.lock
 *.dylib
 constantine/out
 gnark/gnark-jni/*.h
-
+*/bin
