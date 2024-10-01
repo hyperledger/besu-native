@@ -92,7 +92,7 @@ func GenerateRandomUint256() (*big.Int, error) {
 	return number, nil
 }
 
-// GenerateUniformRandomG2Point does a random scalar multiplication to generate a random point
+// RandomG2PointGenerator performs a random number scalar multiplication to generate a random point
 func RandomG2PointGenerator(from *bls12381.G2Jac) (*bls12381.G2Jac, error) {
 
     // Generate a random scalar
@@ -107,15 +107,6 @@ func RandomG2PointGenerator(from *bls12381.G2Jac) (*bls12381.G2Jac, error) {
     return &result, nil
 }
 
-// convert g2 jacobian form to g2 affine expected by bls precompiles
-func jacobianToAffine(from *bls12381.G2Jac) (*bls12381.G2Affine, error) {
-    // Convert to affine coordinates
-    var resultAffine bls12381.G2Affine
-    resultAffine.FromJacobian(from)
-
-    return &resultAffine, nil
-}
-
 // Uint256ToStringBigEndian serializes a 32-byte unsigned number to a string in big-endian format.
 func Uint256ToStringBigEndian(number *big.Int) string {
 	bytes := number.FillBytes(make([]byte, 32))
@@ -123,10 +114,10 @@ func Uint256ToStringBigEndian(number *big.Int) string {
 }
 
 // generate g1Add test data suitable for unit test input csv
-func generateTestDataForAdd() {
+func bn254GenerateTestDataForG1AddCSV(iter int) {
     // generate a point from a field element
 
-    for i := 0 ; i < 100; i++ {
+    for i := 0 ; i < iter; i++ {
         a := bn254fp.NewElement(rand.Uint64())
         b := bn254fp.NewElement(rand.Uint64())
         g := bn254.MapToG1(a)
@@ -168,6 +159,7 @@ func main() {
 		fmt.Println("\nAvailable commands:")
 		fmt.Println("\teip2537_g1msm <iter>  generate bls12-381 precompile G1 MSM input data for <iter> point/scalar combinations")
 		fmt.Println("\teip2537_g2msm <iter>  generate bls12-381 precompile G2 MSM input data for <iter> point/scalar combinations")
+		fmt.Println("\teip196_g1add <lines>  generate <lines> lines unit test CSV input for bn254 G1 add precompile")
 		fmt.Println("\teip196_g1mul <lines>  generate <lines> lines unit test CSV input for bn254 G1 mul precompile")
 		fmt.Println("\texit                  quit the test data generator app")
 		fmt.Print("Enter command: ")
@@ -206,6 +198,9 @@ func main() {
 		case "eip2537_g2msm":
 			fmt.Printf("\nGenerating bls12-381 G2 msm test point (%d iterations):\n", iterations)
 			blsGenerateTestDataForG2MSM(iterations)
+		case "eip196_g1add":
+			fmt.Printf("\nGenerating bn254 G1 add test data (%d lines):\n", iterations)
+			bn254GenerateTestDataForG1AddCSV(iterations)
 		case "eip196_g1mul":
 			fmt.Printf("\nGenerating bn254 G1 mul test data (%d lines):\n", iterations)
 			bn254GenerateTestDataForG1MulCSV(iterations)
