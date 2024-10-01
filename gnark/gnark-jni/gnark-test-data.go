@@ -159,8 +159,8 @@ func main() {
 		fmt.Println("\nAvailable commands:")
 		fmt.Println("\teip2537_g1msm <iter>  generate bls12-381 precompile G1 MSM input data for <iter> point/scalar combinations")
 		fmt.Println("\teip2537_g2msm <iter>  generate bls12-381 precompile G2 MSM input data for <iter> point/scalar combinations")
-		fmt.Println("\teip196_g1add <lines>  generate <lines> lines unit test CSV input for bn254 G1 add precompile")
-		fmt.Println("\teip196_g1mul <lines>  generate <lines> lines unit test CSV input for bn254 G1 mul precompile")
+		fmt.Println("\teip196_g1add <lines>  generate <lines> lines unit test CSV random input for bn254 G1 add precompile")
+		fmt.Println("\teip196_g1mul <lines>  generate <lines> lines unit test CSV random input for bn254 G1 mul precompile")
 		fmt.Println("\texit                  quit the test data generator app")
 		fmt.Print("Enter command: ")
 
