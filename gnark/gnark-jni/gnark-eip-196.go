@@ -5,12 +5,9 @@ package main
 */
 import "C"
 import (
-    cryptorand "crypto/rand"
-    "encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"reflect"
 	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -386,61 +383,6 @@ func castErrorBufferEIP196(javaOutputBuf *C.char, length *int) []byte {
       bufSize = EIP196PreallocateForError
     }
     return (*[EIP196PreallocateForError]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
-}
-
-// generate g1Add test data suitable for unit test input csv
-func generateTestDataForAdd() {
-    // generate a point from a field element
-
-    for i := 0 ; i < 100; i++ {
-        a := fp.NewElement(rand.Uint64())
-        b := fp.NewElement(rand.Uint64())
-        g := bn254.MapToG1(a)
-        gg := bn254.MapToG1(b)
-        fmt.Printf("%032x%032x",
-            g.Marshal(),
-            gg.Marshal())
-        res := g.Add(&g, &gg)
-        fmt.Printf(",%032x,500,\n", res.Marshal())
-    }
-}
-
-// generate g1Mul test data suitable for unit test input csv
-func generateTestDataForMul() {
-    // generate test data
-    //var p, res1, res2 bn254.G1Jac
-    var a = fp.NewElement(0)
-
-    for i := 0 ; i < 100 ; i++ {
-        a.SetRandom()
-        randScalar, _ := GenerateRandomUint256()
-
-        g := bn254.MapToG1(a)
-        fmt.Printf("%032x%s",
-          g.Marshal(),
-          Uint256ToStringBigEndian(randScalar))
-
-        res := g.ScalarMultiplication(&g, randScalar)
-        fmt.Printf(",%032x,40000,\n",
-          res.Marshal())
-    }
-}
-
-// GenerateRandomUint256 generates a random 32-byte unsigned number.
-func GenerateRandomUint256() (*big.Int, error) {
-	bytes := make([]byte, 32)
-	_, err := cryptorand.Read(bytes)
-	if err != nil {
-		return nil, err
-	}
-	number := new(big.Int).SetBytes(bytes)
-	return number, nil
-}
-
-// Uint256ToStringBigEndian serializes a 32-byte unsigned number to a string in big-endian format.
-func Uint256ToStringBigEndian(number *big.Int) string {
-	bytes := number.FillBytes(make([]byte, 32))
-	return hex.EncodeToString(bytes)
 }
 
 func main() {
