@@ -51,7 +51,9 @@ func blsGenerateTestDataForG1MSM(iter int) {
 // blsGenerateTestDataForMulG2 generates input data suitable for bls12-381 G2 multi-scalar multiplication.
 // iter specifcies the number of point/scalar combinations
 func blsGenerateTestDataForG2MSM(iter int) {
+    // use the generator point as the starting point:
     randomG2Jac := g2GeneratorPoint();
+
 	for i := 0; i < iter; i++ {
 
         // Generate random G2 affine
@@ -73,7 +75,7 @@ func blsGenerateTestDataForG2MSM(iter int) {
 	}
 }
 
-// fpElementToHex converts an fp.Element to a 64-byte zero-prepended hex string
+// blsFpElementToHex converts a 48 byte bls12-381 fp.Element to a 64-byte zero-prepended hex string
 func blsFpElementToHex(e blsfp.Element) string {
     // Convert fp.Element to big.Int
     bigInt := new(big.Int)
@@ -92,7 +94,7 @@ func GenerateRandomUint256() (*big.Int, error) {
 	return number, nil
 }
 
-// RandomG2PointGenerator performs a random number scalar multiplication to generate a random point
+// RandomG2PointGenerator performs a multiplication by a random scalar to generate a "random" point
 func RandomG2PointGenerator(from *bls12381.G2Jac) (*bls12381.G2Jac, error) {
 
     // Generate a random scalar
@@ -113,7 +115,7 @@ func Uint256ToStringBigEndian(number *big.Int) string {
 	return hex.EncodeToString(bytes)
 }
 
-// generate g1Add test data suitable for unit test input csv
+// generate g1Add test data cases suitable for unit test input csv
 func bn254GenerateTestDataForG1AddCSV(iter int) {
     // generate a point from a field element
 
