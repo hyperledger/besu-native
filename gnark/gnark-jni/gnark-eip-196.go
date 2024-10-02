@@ -6,12 +6,10 @@ package main
 import "C"
 import (
 	"errors"
-	"fmt"
 	"math/big"
 	"reflect"
 	"unsafe"
     "github.com/consensys/gnark-crypto/ecc/bn254"
-    "github.com/consensys/gnark-crypto/ecc/bn254/fp"
 )
 
 var ErrMalformedPointEIP196 = errors.New("invalid point encoding")
