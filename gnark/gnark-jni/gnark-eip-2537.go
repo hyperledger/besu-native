@@ -170,7 +170,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 }
 
 //export eip2537blsG1MultiExpParallel
-func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
+func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
     inputLen := int(cInputLen)
     errorLen := int(cOutputLen)
 
@@ -207,7 +207,7 @@ func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 
     var affineResult bls12381.G1Affine
     // leave nbTasks unset, allow golang to use available cpu cores as the parallelism limit
-    _, err := affineResult.MultiExp(g1Points, scalars, ecc.MultiExpConfig{})
+    _, err := affineResult.MultiExp(g1Points, scalars, ecc.MultiExpConfig{NbTasks: int(nbTasks)})
     if err != nil {
         copy(errorBuf, err.Error())
         return 1
@@ -340,7 +340,7 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 }
 
 //export eip2537blsG2MultiExpParallel
-func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
+func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
     inputLen := int(cInputLen)
     errorLen := int(cOutputLen)
 
@@ -377,7 +377,7 @@ func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 
     var affineResult bls12381.G2Affine
     // leave nbTasks unset, allow golang to use available cpu cores as the parallelism limit
-    _, err := affineResult.MultiExp(g2Points, scalars, ecc.MultiExpConfig{})
+    _, err := affineResult.MultiExp(g2Points, scalars, ecc.MultiExpConfig{NbTasks: int(nbTasks)})
     if err != nil {
         copy(errorBuf, err.Error())
         return 1
