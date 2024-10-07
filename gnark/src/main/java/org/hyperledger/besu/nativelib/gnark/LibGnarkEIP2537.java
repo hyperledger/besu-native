@@ -9,6 +9,9 @@ public class LibGnarkEIP2537 implements Library {
   @SuppressWarnings("WeakerAccess")
   public static final boolean ENABLED;
 
+  // zero implies 'default' degree of parallelism, which is the number of cpu cores available
+  private static int degreeOfMSMParallelism = 0;
+
   static {
     boolean enabled;
     try {
@@ -61,9 +64,10 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(128);
         break;
       case BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG1MultiExp(i, output, err, i_len,
+        ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
             EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
+            EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+            degreeOfMSMParallelism);
         o_len.setValue(128);
         break;
       case BLS12_G2ADD_OPERATION_SHIM_VALUE:
@@ -79,9 +83,10 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(256);
         break;
       case BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG2MultiExp(i, output, err, i_len,
+        ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
             EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
+            EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+            degreeOfMSMParallelism);
         o_len.setValue(256);
         break;
       case BLS12_PAIR_OPERATION_SHIM_VALUE:
@@ -134,6 +139,13 @@ public class LibGnarkEIP2537 implements Library {
       byte[] error,
       int inputSize, int output_len, int err_len);
 
+  public static native int eip2537blsG1MultiExpParallel(
+      byte[] input,
+      byte[] output,
+      byte[] error,
+      int inputSize, int output_len, int err_len,
+      int nbTasks);
+
   public static native int eip2537blsG2Add(
       byte[] input,
       byte[] output,
@@ -151,6 +163,13 @@ public class LibGnarkEIP2537 implements Library {
       byte[] output,
       byte[] error,
       int inputSize, int output_len, int err_len);
+
+  public static native int eip2537blsG2MultiExpParallel(
+      byte[] input,
+      byte[] output,
+      byte[] error,
+      int inputSize, int output_len, int err_len,
+      int nbTasks);
 
   public static native int eip2537blsPairing(
       byte[] input,
@@ -170,4 +189,7 @@ public class LibGnarkEIP2537 implements Library {
       byte[] error,
       int inputSize, int output_len, int err_len);
 
+  public static void setDegreeOfMSMParallelism(int nbTasks) {
+    degreeOfMSMParallelism = nbTasks;
+  }
 }
