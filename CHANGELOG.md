@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 0.9.7
+* bump to gnark-crypto 0.14.0 relase version [#212](https://github.com/hyperledger/besu-native/pull/212)
+* use multiExp with configurable parallelism in gnark-crypto bls12 MSM precompiles [#217](https://github.com/hyperledger/besu-native/pull/217)
+ 
 # 0.9.6
 * Support for EIP2537 Constantine Lib [#210](https://github.com/hyperledger/besu-native/pull/210)
 * Update lib256k1 to 0.5.1 [#213](https://github.com/hyperledger/besu-native/pull/213)
