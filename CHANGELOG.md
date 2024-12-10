@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 1.0.0
+* use latest commit from gnark-crypto with improved subgroup check performance [#221](https://github.com/hyperledger/besu-native/pull/221)
+* test data generator / helper for ECC inputs [#216](https://github.com/hyperledger/besu-native/pull/216)
+
 # 0.9.7
 * bump to gnark-crypto 0.14.0 relase version [#212](https://github.com/hyperledger/besu-native/pull/212)
 * use multiExp with configurable parallelism in gnark-crypto bls12 MSM precompiles [#217](https://github.com/hyperledger/besu-native/pull/217)
