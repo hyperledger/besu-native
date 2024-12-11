@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* remove matter-labs BLS12-381 implementation, in favor of gnark and constantine implementations [#225](https://github.com/hyperledger/besu-native/pull/225)
 
 # 1.0.0
 * use latest commit from gnark-crypto with improved subgroup check performance [#221](https://github.com/hyperledger/besu-native/pull/221)
