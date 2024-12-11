@@ -82,3 +82,19 @@ int ipa_multi_prove(byte* r, int r_len, const byte* inputs, int inputs_len) {
 int ipa_multi_verify(byte* r, int r_len, const byte* inputs, int inputs_len) {
     return (int) ipa_multi_verify(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
 }
+
+int ipa_deserialize(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) deserialize(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_serialize(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) serialize(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_map_to_scalar_field(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) mapToScalarField(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_batch_map_to_scalar_field(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) batchMapToScalarField(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}

@@ -23,6 +23,11 @@ public class LibConstantineVerkle {
     public static native int ipa_verify(byte[] r, int r_len, byte[] inputs, int inputs_len);
     public static native int ipa_multi_prove(byte[] r, int r_len, byte[] inputs, int inputs_len);
     public static native int ipa_multi_verify(byte[] r, int r_len, byte[] inputs, int inputs_len);
+    public static native int ipa_map_to_scalar_field(byte[] r, int r_len, byte[] inputs, int inputs_len);
+    public static native int ipa_batch_map_to_scalar_field(byte[] r, int r_len, byte[] inputs, int inputs_len);
+    public static native int ipa_serialize(byte[] r, int r_len, byte[] inputs, int inputs_len);
+    public static native int ipa_deserialize(byte[] r, int r_len, byte[] inputs, int inputs_len);
+
 
     // Add utility methods for easier access in Java
     public static byte[] commit(byte[] inputs) {
@@ -64,6 +69,42 @@ public class LibConstantineVerkle {
     public static byte[] multiVerify(byte[] inputs) {
         byte[] result = new byte[128];
         int status = ipa_multi_verify(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ipa_multi_verify failed with status: " + status);
+        }
+        return result;
+    }
+
+    public static byte[] mapToScalarField(byte[] inputs) {
+        byte[] result = new byte[128];
+        int status = ipa_map_to_scalar_field(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ipa_multi_verify failed with status: " + status);
+        }
+        return result;
+    }
+
+    public static byte[] batchMapToScalarField(byte[] inputs) {
+        byte[] result = new byte[128];
+        int status = ipa_batch_map_to_scalar_field(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ipa_multi_verify failed with status: " + status);
+        }
+        return result;
+    }
+
+    public static byte[] serialize(byte[] inputs) {
+        byte[] result = new byte[128];
+        int status = ipa_serialize(result, result.length, inputs, inputs.length);
+        if (status != 0) {
+            throw new RuntimeException("ipa_multi_verify failed with status: " + status);
+        }
+        return result;
+    }
+
+    public static byte[] deserialize(byte[] inputs) {
+        byte[] result = new byte[128];
+        int status = ipa_deserialize(result, result.length, inputs, inputs.length);
         if (status != 0) {
             throw new RuntimeException("ipa_multi_verify failed with status: " + status);
         }
