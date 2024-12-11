@@ -338,10 +338,6 @@ jobs:
       - uses: actions/upload-artifact@v3.1.0
         with:
           name: jars
-          path: altbn128/build/libs
-      - uses: actions/upload-artifact@v3.1.0
-        with:
-          name: jars
           path: arithmetic/build/libs
       - uses: actions/upload-artifact@v3.1.0
         with:
