@@ -1,0 +1,37 @@
+[workspace]
+resolver = "2"
+members = [
+    "constantine-rust/constantine-sys",
+    "constantine-rust/constantine-core",
+    "constantine-rust/constantine-halo2-zal",
+    "constantine-rust/constantine-ethereum-kzg",
+    "constantine-rust/constantine-ethereum-bls-sig",
+    "constantine-rust/constantine-ethereum-evm-precompiles",
+]
+
+# If Nim static library is compiled with Clang ThinLTO, enable it on Rust side
+# and add the following to ".cargo/config.toml"
+#
+#    [build]
+#    # https://doc.rust-lang.org/rustc/linker-plugin-lto.html
+#    rustflags="-Clinker-plugin-lto -Clinker=clang -Clink-arg=-fuse-ld=lld"
+#
+#
+# [profile.dev]
+# lto = "thin"
+#
+# [profile.test]
+# lto = "thin"
+#
+# [profile.release]
+# lto = "thin"
+#
+# [profile.bench]
+# lto = "thin"
+
+[profile.bench]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+codegen-units = 1
