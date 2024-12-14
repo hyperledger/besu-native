@@ -15,8 +15,6 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
-//
-
 import com.google.common.base.Stopwatch;
 import com.google.common.io.CharStreams;
 import org.apache.tuweni.bytes.Bytes;
@@ -35,9 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES;
 import static org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES;
 
-@Ignore(value = "This is exploratory to discover performance on various platforms")
+//@Ignore(value = "This is exploratory to discover performance on various platforms")
 @RunWith(Parameterized.class)
-public class BLS12G1MultiExpPrecompiledContractComparisonTest {
+public class BLS12G2MultiExpComparisonTest {
   @Parameterized.Parameter(0)
   public String input;
   @Parameterized.Parameter(1)
@@ -51,8 +49,8 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
   public static Iterable<String[]> parameters() throws IOException {
     return CharStreams.readLines(
             new InputStreamReader(
-                BLS12G1MultiExpPrecompiledContractComparisonTest.class
-                    .getResourceAsStream("g1_multiexp_pair_comparison.csv"),
+                BLS12G2MultiExpComparisonTest.class
+                    .getResourceAsStream("g2_multiexp_pair_comparison.csv"),
                 UTF_8))
         .stream()
         .map(line -> line.split(",", 4))
@@ -82,7 +80,7 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
     Stopwatch timer = Stopwatch.createStarted();
     for(int i = 0; i< 1000; i++) {
       // mul/add loop:
-      ret1 = LibGnarkEIP2537.eip2537blsG1MultiExp(input, output1, error1, input.length,
+      ret1 = LibGnarkEIP2537.eip2537blsG2MultiExp(input, output1, error1, input.length,
           EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
     }
 
@@ -90,7 +88,7 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
     timer.reset().start();
 
     for(int i = 0; i< 1000; i++) {
-      ret2 = LibGnarkEIP2537.eip2537blsG1MultiExpParallel(input, output2, error2, input.length,
+      ret2 = LibGnarkEIP2537.eip2537blsG2MultiExpParallel(input, output2, error2, input.length,
           EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
           /*degreeOfMSMParallelism = 1*/
           1);
@@ -99,7 +97,7 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
     timer.reset().start();
 
     for(int i = 0; i< 1000; i++) {
-      ret3 = LibGnarkEIP2537.eip2537blsG1MultiExpParallel(input, output3, error3, input.length,
+      ret3 = LibGnarkEIP2537.eip2537blsG2MultiExpParallel(input, output3, error3, input.length,
           EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
           /* degreeOfMSMParallelism uncapped*/
           0);
@@ -108,8 +106,8 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
 
     System.err.println(
         String.format(
-            "G1 MSM ret %d \tpair count: %d \tmulAdd: %d ms \t1task: %d ms \tuncapped:%d ms",
-            ret1, input.length / 160,
+            "G2 MSM ret %d \tpair count: %d \tmulAdd: %d ms \t1task: %d ms \tuncapped:%d ms",
+            ret1, input.length / 288,
             muladd.toMillis(),
             singleTaskPip.toMillis(),
             uncappedPip.toMillis()
@@ -128,10 +126,12 @@ public class BLS12G1MultiExpPrecompiledContractComparisonTest {
 
     if (error1Str.isEmpty()) {
       assertThat(error1Str).isEqualTo(notes);
+      assertThat(error2Str).isEqualTo(notes);
+      assertThat(error3Str).isEqualTo(notes);
     } else {
-      final Bytes actualComputation1 = Bytes.wrap(output1, 0, 128);
-      final Bytes actualComputation2 = Bytes.wrap(output2, 0, 128);
-      final Bytes actualComputation3 = Bytes.wrap(output3, 0, 128);
+      final Bytes actualComputation1 = Bytes.wrap(output1, 0, 256);
+      final Bytes actualComputation2 = Bytes.wrap(output2, 0, 256);
+      final Bytes actualComputation3 = Bytes.wrap(output3, 0, 256);
       assertThat(actualComputation1).isEqualTo(expectedComputation);
       assertThat(actualComputation2).isEqualTo(expectedComputation);
       assertThat(actualComputation3).isEqualTo(expectedComputation);
