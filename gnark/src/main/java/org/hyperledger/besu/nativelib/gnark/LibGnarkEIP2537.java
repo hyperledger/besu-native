@@ -64,11 +64,16 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(128);
         break;
       case BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
-            EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
-            degreeOfMSMParallelism);
-        o_len.setValue(128);
+        // for pair count <= 2, use straight add/mul loop:
+        if (i.length <= 192 * 2) {
+         ret =  eip2537blsG1MultiExp(i, output, err, i_len,
+             EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
+        } else {
+          ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
+              EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+              degreeOfMSMParallelism);
+          o_len.setValue(128);
+        }
         break;
       case BLS12_G2ADD_OPERATION_SHIM_VALUE:
         ret = eip2537blsG2Add(i, output, err, i_len,
@@ -83,11 +88,17 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(256);
         break;
       case BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
-            EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
-            degreeOfMSMParallelism);
-        o_len.setValue(256);
+        // for pair count <= 2, use straight add/mul loop:
+        if (i.length <= 288 * 2) {
+          ret =  eip2537blsG2MultiExp(i, output, err, i_len,
+              EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
+              EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
+        } else {
+          ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
+              EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+              degreeOfMSMParallelism);
+          o_len.setValue(256);
+        }
         break;
       case BLS12_PAIR_OPERATION_SHIM_VALUE:
         ret = eip2537blsPairing(i, output, err, i_len,
