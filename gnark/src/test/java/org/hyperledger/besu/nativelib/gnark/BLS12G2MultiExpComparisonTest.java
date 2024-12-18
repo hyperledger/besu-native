@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES;
 import static org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES;
 
-//@Ignore(value = "This is exploratory to discover performance on various platforms")
+@Ignore(value = "This is exploratory to discover performance on various platforms")
 @RunWith(Parameterized.class)
 public class BLS12G2MultiExpComparisonTest {
   @Parameterized.Parameter(0)
