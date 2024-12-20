@@ -1,7 +1,11 @@
 # Changelog
 
 # Unreleased
+
+# 1.1.0
 * remove matter-labs BLS12-381 implementation, in favor of gnark and constantine implementations [#225](https://github.com/hyperledger/besu-native/pull/225)
+* BLS12: Use mul/add rather than pippengers for low pair count G1/G2 MSM [#226](https://github.com/hyperledger/besu-native/pull/226)
+
 
 # 1.0.0
 * use latest commit from gnark-crypto with improved subgroup check performance [#221](https://github.com/hyperledger/besu-native/pull/221)
