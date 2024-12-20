@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 1.1.1
+bug fix release
+* Ensure output length is set for low pair count MSM [#231](https://github.com/hyperledger/besu-native/pull/231)
+
 # 1.1.0
 * remove matter-labs BLS12-381 implementation, in favor of gnark and constantine implementations [#225](https://github.com/hyperledger/besu-native/pull/225)
 * BLS12: Use mul/add rather than pippengers for low pair count G1/G2 MSM [#226](https://github.com/hyperledger/besu-native/pull/226)
