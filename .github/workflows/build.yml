@@ -397,22 +397,22 @@ jobs:
       - name: Download gnark
         uses: actions/download-artifact@v4
         with:
-          name: gnark -ative-build-artifacts-linux-x86-64
+          name: gnark-native-build-artifacts-linux-x86-64
           path: gnark/build/
       - name: Download gnark
         uses: actions/download-artifact@v4
         with:
-          name: gnark -ative-build-artifacts-linux-arm64
+          name: gnark-native-build-artifacts-linux-arm64
           path: gnark/build/
       - name: Download gnark
         uses: actions/download-artifact@v4
         with:
-          name: gnark -ative-build-artifacts-macos-x86-64
+          name: gnark-native-build-artifacts-macos-x86-64
           path: gnark/build/
       - name: Download gnark
         uses: actions/download-artifact@v4
         with:
-          name: gnark -ative-build-artifacts-macos-arm64
+          name: gnark-native-build-artifacts-macos-arm64
           path: gnark/build/
       - name: Download constantine
         uses: actions/download-artifact@v4
