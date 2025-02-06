@@ -8,7 +8,7 @@ on:
 
 jobs:
   native-build-linux-x86-64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     env:
       SKIP_GRADLE: true
     steps:
@@ -73,33 +73,33 @@ jobs:
           ART_URL: 'https://hyperledger.jfrog.io/artifactory/besu-maven/org/hyperledger/besu/arithmetic'
       - name: Build
         run: ./build.sh
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: arithmetic native build artifacts
+          name: arithmetic-native-build-artifacts-linux-x86-64
           path: arithmetic/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: blake2bf native build artifacts
+          name: blake2bf-native-build-artifacts-linux-x86-64
           path: blake2bf/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256k1 native build artifacts
+          name: secp256k1-native-build-artifacts-linux-x86-64
           path: secp256k1/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256r1 native build artifacts
+          name: secp256r1-native-build-artifacts-linux-x86-64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: ipa-multipoint native build artifacts
+          name: ipa-multipoint-native-build-artifacts-linux-x86-64
           path: ipa-multipoint/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: gnark native build artifacts
+          name: gnark-native-build-artifacts-linux-x86-64
           path: gnark/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: constantine native build artifacts
+          name: constantine-native-build-artifacts-linux-x86-64
           path: constantine/build/
 
   native-build-linux-arm64:
@@ -114,33 +114,34 @@ jobs:
       - name: Build
         run: |
           docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: arithmetic native build artifacts
+          name: arithmetic-native-build-artifacts-linux-arm64
           path: arithmetic/build/
-      - uses: actions/upload-artifact@v3.1.0
+#  blake2bf is not built for linux-arm64
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: blake2bf-native-build-artifacts-linux-arm64
+#          path: blake2bf/build/
+      - uses: actions/upload-artifact@v4
         with:
-          name: blake2bf native build artifacts
-          path: blake2bf/build/
-      - uses: actions/upload-artifact@v3.1.0
-        with:
-          name: secp256k1 native build artifacts
+          name: secp256k1-native-build-artifacts-linux-arm64
           path: secp256k1/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256r1 native build artifacts
+          name: secp256r1-native-build-artifacts-linux-arm64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: ipa-multipoint native build artifacts
+          name: ipa-multipoint-native-build-artifacts-linux-arm64
           path: ipa-multipoint/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: gnark native build artifacts
+          name: gnark-native-build-artifacts-linux-arm64
           path: gnark/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: constantine native build artifacts
+          name: constantine-native-build-artifacts-linux-arm64
           path: constantine/build/
 
   native-build-macos:
@@ -171,33 +172,33 @@ jobs:
           submodules: recursive
       - name: Build
         run: ./build.sh
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: arithmetic native build artifacts
+          name: arithmetic-native-build-artifacts-macos-x86-64
           path: arithmetic/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: blake2bf native build artifacts
+          name: blake2bf-native-build-artifacts-macos-x86-64
           path: blake2bf/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256k1 native build artifacts
+          name: secp256k1-native-build-artifacts-macos-x86-64
           path: secp256k1/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256r1 native build artifacts
+          name: secp256r1-native-build-artifacts-macos-x86-64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: ipa-multipoint native build artifacts
+          name: ipa-multipoint-native-build-artifacts-macos-x86-64
           path: ipa-multipoint/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: gnark native build artifacts
+          name: gnark-native-build-artifacts-macos-x86-64
           path: gnark/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: constantine native build artifacts
+          name: constantine-native-build-artifacts-macos-x86-64
           path: constantine/build/
 
   native-build-m1:
@@ -251,37 +252,38 @@ jobs:
           export HOMEBREW_BIN=${{ env.HOMEBREW_BIN }}
           export PATH=$HOMEBREW_BIN:$PATH
           ./build.sh
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: arithmetic native build artifacts
+          name: arithmetic-native-build-artifacts-macos-arm64
           path: arithmetic/build/
-      - uses: actions/upload-artifact@v3.1.0
+#  blake2bf is not built for macos-arm64
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: blake2bf-native-build-artifacts-macos-arm64
+#          path: blake2bf/build/
+      - uses: actions/upload-artifact@v4
         with:
-          name: blake2bf native build artifacts
-          path: blake2bf/build/
-      - uses: actions/upload-artifact@v3.1.0
-        with:
-          name: secp256k1 native build artifacts
+          name: secp256k1-native-build-artifacts-macos-arm64
           path: secp256k1/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: secp256r1 native build artifacts
+          name: secp256r1-native-build-artifacts-macos-arm64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: ipa-multipoint native build artifacts
+          name: ipa-multipoint-native-build-artifacts-macos-arm64
           path: ipa-multipoint/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: gnark native build artifacts
+          name: gnark-native-build-artifacts-macos-arm64
           path: gnark/build/
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: constantine native build artifacts
+          name: constantine-native-build-artifacts-macos-arm64
           path: constantine/build/
 
   final-assembly:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     needs:
       - native-build-macos
       - native-build-m1
@@ -291,39 +293,146 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
       - name: Download arithmetic
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: arithmetic native build artifacts
+          name: arithmetic-native-build-artifacts-linux-x86-64
+          path: arithmetic/build/
+      - name: Download arithmetic
+        uses: actions/download-artifact@v4
+        with:
+          name: arithmetic-native-build-artifacts-linux-arm64
+          path: arithmetic/build/
+      - name: Download arithmetic
+        uses: actions/download-artifact@v4
+        with:
+          name: arithmetic-native-build-artifacts-macos-x86-64
+          path: arithmetic/build/
+      - name: Download arithmetic
+        uses: actions/download-artifact@v4
+        with:
+          name: arithmetic-native-build-artifacts-macos-arm64
           path: arithmetic/build/
       - name: Download blake2bf
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: blake2bf native build artifacts
+          name: blake2bf-native-build-artifacts-linux-x86-64
           path: blake2bf/build/
-      - name: Download secp256k1
-        uses: actions/download-artifact@v3
+#  blake2bf is not built for linux-arm64
+#      - name: Download blake2bf
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: blake2bf-native-build-artifacts-linux-arm64
+#          path: blake2bf/build/
+      - name: Download blake2bf
+        uses: actions/download-artifact@v4
         with:
-          name: secp256k1 native build artifacts
+          name: blake2bf-native-build-artifacts-macos-x86-64
+          path: blake2bf/build/
+#  blake2bf is not built for macos-arm64
+#      - name: Download blake2bf
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: blake2bf-native-build-artifacts-macos-arm64
+#          path: blake2bf/build/
+      - name: Download secp256k1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256k1-native-build-artifacts-linux-x86-64
+          path: secp256k1/build/
+      - name: Download secp256k1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256k1-native-build-artifacts-linux-arm64
+          path: secp256k1/build/
+      - name: Download secp256k1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256k1-native-build-artifacts-macos-x86-64
+          path: secp256k1/build/
+      - name: Download secp256k1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256k1-native-build-artifacts-macos-arm64
           path: secp256k1/build/
       - name: Download secp256r1
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: secp256r1 native build artifacts
+          name: secp256r1-native-build-artifacts-linux-x86-64
+          path: secp256r1/besu-native-ec/release/
+      - name: Download secp256r1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256r1-native-build-artifacts-linux-arm64
+          path: secp256r1/besu-native-ec/release/
+      - name: Download secp256r1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256r1-native-build-artifacts-macos-x86-64
+          path: secp256r1/besu-native-ec/release/
+      - name: Download secp256r1
+        uses: actions/download-artifact@v4
+        with:
+          name: secp256r1-native-build-artifacts-macos-arm64
           path: secp256r1/besu-native-ec/release/
       - name: Download ipa-multipoint
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ipa-multipoint native build artifacts
+          name: ipa-multipoint-native-build-artifacts-linux-x86-64
+          path: ipa-multipoint/build/
+      - name: Download ipa-multipoint
+        uses: actions/download-artifact@v4
+        with:
+          name: ipa-multipoint-native-build-artifacts-linux-arm64
+          path: ipa-multipoint/build/
+      - name: Download ipa-multipoint
+        uses: actions/download-artifact@v4
+        with:
+          name: ipa-multipoint-native-build-artifacts-macos-x86-64
+          path: ipa-multipoint/build/
+      - name: Download ipa-multipoint
+        uses: actions/download-artifact@v4
+        with:
+          name: ipa-multipoint-native-build-artifacts-macos-arm64
           path: ipa-multipoint/build/
       - name: Download gnark
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: gnark native build artifacts
+          name: gnark-native-build-artifacts-linux-x86-64
+          path: gnark/build/
+      - name: Download gnark
+        uses: actions/download-artifact@v4
+        with:
+          name: gnark-native-build-artifacts-linux-arm64
+          path: gnark/build/
+      - name: Download gnark
+        uses: actions/download-artifact@v4
+        with:
+          name: gnark-native-build-artifacts-macos-x86-64
+          path: gnark/build/
+      - name: Download gnark
+        uses: actions/download-artifact@v4
+        with:
+          name: gnark-native-build-artifacts-macos-arm64
           path: gnark/build/
       - name: Download constantine
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: constantine native build artifacts
+          name: constantine-native-build-artifacts-linux-x86-64
+          path: constantine/build/
+      - name: Download constantine
+        uses: actions/download-artifact@v4
+        with:
+          name: constantine-native-build-artifacts-linux-arm64
+          path: constantine/build/
+      - name: Download constantine
+        uses: actions/download-artifact@v4
+        with:
+          name: constantine-native-build-artifacts-macos-x86-64
+          path: constantine/build/
+      - name: Download constantine
+        uses: actions/download-artifact@v4
+        with:
+          name: constantine-native-build-artifacts-macos-arm64
           path: constantine/build/
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -335,33 +444,33 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: --no-daemon --parallel build --scan
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-arithmetic
           path: arithmetic/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-blake2bf
           path: blake2bf/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-secp256k1
           path: secp256k1/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-secp256r1
           path: secp256r1/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-ipa-multipoint
           path: ipa-multipoint/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-gnark
           path: gnark/build/libs
-      - uses: actions/upload-artifact@v3.1.0
+      - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-constantine
           path: constantine/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
