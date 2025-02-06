@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 1.1.2
+Ubuntu 20.04 glibc support release
+* revert to ubuntu 20.04 for ci builds, update to gha 4.x for upload and download artifacts [#236](https://github.com/hyperledger/besu-native/pull/236)
+
 # 1.1.1
 bug fix release
 * Ensure output length is set for low pair count MSM [#231](https://github.com/hyperledger/besu-native/pull/231)
