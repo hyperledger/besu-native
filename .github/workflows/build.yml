@@ -446,31 +446,31 @@ jobs:
           arguments: --no-daemon --parallel build --scan
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-arithmetic
           path: arithmetic/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-blake2bf
           path: blake2bf/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-secp256k1
           path: secp256k1/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-secp256r1
           path: secp256r1/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-ipa-multipoint
           path: ipa-multipoint/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-gnark
           path: gnark/build/libs
       - uses: actions/upload-artifact@v4
         with:
-          name: jars
+          name: jars-constantine
           path: constantine/build/libs
       - name: gradle publish
         uses: gradle/gradle-build-action@v2
