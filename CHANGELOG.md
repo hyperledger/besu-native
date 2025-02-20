@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* bump gnark-crypto to 0.16.0, adds avx512 support and ARM assembly performance improvements
 
 # 1.1.2
 Ubuntu 20.04 glibc support release
