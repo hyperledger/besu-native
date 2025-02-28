@@ -1,5 +1,6 @@
 package org.hyperledger.besu.nativelib.constantine;
 
+import com.google.common.collect.Streams;
 import com.google.common.io.CharStreams;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
@@ -31,11 +32,20 @@ public class ConstantineEIP2537PairingCheckTest {
 
     @Parameterized.Parameters
     public static Iterable<String[]> parameters() throws IOException {
-        return CharStreams.readLines(
-                        new InputStreamReader(
-                                ConstantineEIP2537PairingCheckTest.class.getResourceAsStream("/pairing.csv"), UTF_8))
-                .stream()
-            .filter(line -> !line.startsWith("#"))
+        return
+            Streams.concat(
+                    CharStreams.readLines(
+                            new InputStreamReader(
+                                ConstantineEIP2537PairingCheckTest.class.getResourceAsStream("/pairing.csv"),
+                                UTF_8))
+                        .stream(),
+                    CharStreams.readLines(
+                            new InputStreamReader(
+                                ConstantineEIP2537PairingCheckTest.class.getResourceAsStream(
+                                    "/invalid_pairing.csv"),
+                                UTF_8))
+                        .stream())
+                .filter(line -> !line.startsWith("#"))
                 .map(line -> line.split(",", 4))
                 .collect(Collectors.toList());
     }
