@@ -35,6 +35,7 @@ public class ConstantineEIP2537PairingCheckTest {
                         new InputStreamReader(
                                 ConstantineEIP2537PairingCheckTest.class.getResourceAsStream("/pairing.csv"), UTF_8))
                 .stream()
+            .filter(line -> !line.startsWith("#"))
                 .map(line -> line.split(",", 4))
                 .collect(Collectors.toList());
     }
