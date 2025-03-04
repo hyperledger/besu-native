@@ -61,6 +61,14 @@ task linuxArm64LibCopy(type: Copy) {
 }
 processResources.dependsOn linuxArm64LibCopy
 
+task linuxRiscv64LibCopy(type: Copy) {
+    from 'build/linux-gnu-riscv64/lib/libgnark_jni.so'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.so'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.so'
+    into 'build/resources/main/linux-riscv64'
+}
+processResources.dependsOn linuxRiscv64LibCopy
+
 jar {
     archiveBaseName = 'besu-native-gnark'
     includeEmptyDirs = false

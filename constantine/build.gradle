@@ -49,9 +49,15 @@ task linuxArm64LibCopy(type: Copy) {
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
 
 test {
-//    environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
-    systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
-    dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+    // Check if the OS architecture is riscv64
+    if (System.getProperty("os.arch").equals("riscv64")) {
+        // Skip tests
+        enabled = false
+    } else {
+        // environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
+        systemProperty 'jna.library.path', file('build/resources/main/linux-gnu-x86_64').absolutePath
+        dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
+    }
 }
 
 jar {

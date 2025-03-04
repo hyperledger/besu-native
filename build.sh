@@ -66,8 +66,8 @@ build_blake2bf() {
   #############################
 EOF
 
-  # This version of arm blake is actually slower than java blake on arm
-  if [[ "$OSARCH" == "linux-gnu-aarch64" ]];  then
+  # This version of arm blake is actually slower than java blake on arm, probably also on riscv64
+  if [[ "$OSARCH" == "linux-gnu-aarch64" || "$OSARCH" == "linux-gnu-riscv64" ]];  then
     return
     #cd "$SCRIPTDIR/blake2bf/arm64"
   else if [[ "$OSARCH" == "darwin-aarch64" ]];  then
@@ -300,6 +300,12 @@ build_constantine() {
   echo "#############################"
   echo "####### build constantine ####"
   echo "#############################"
+  
+  # don't try to build constantine on riscv64
+  if [[ "$OSARCH" == "linux-gnu-riscv64" ]];  then
+    return
+  fi
+
 
   cd "$SCRIPTDIR/constantine/constantine"
 
