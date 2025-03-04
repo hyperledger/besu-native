@@ -61,3 +61,24 @@ int bls12381_mapFpToG1(byte* r, int r_len, const byte* inputs, int inputs_len) {
 int bls12381_mapFp2ToG2(byte* r, int r_len, const byte* inputs, int inputs_len) {
     return (int) ctt_eth_evm_bls12381_map_fp2_to_g2(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
 }
+
+// Verkle functions
+int ipa_commit(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) ipa_commit(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_prove(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) ipa_prove(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_verify(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) ipa_verify(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_multi_prove(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) ipa_multi_prove(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
+
+int ipa_multi_verify(byte* r, int r_len, const byte* inputs, int inputs_len) {
+    return (int) ipa_multi_verify(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
+}
