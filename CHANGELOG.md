@@ -2,6 +2,7 @@
 
 # Unreleased
 * bump gnark-crypto to 0.16.0, adds avx512 support and ARM assembly performance improvements
+* add riscv64 support for building besu-native, no CI support yet [#244](https://github.com/hyperledger/besu-native/pull/244)
 
 # 1.1.2
 Ubuntu 20.04 glibc support release

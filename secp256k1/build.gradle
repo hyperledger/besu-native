@@ -47,6 +47,12 @@ task linuxArm64LibCopy(type: Copy) {
 }
 processResources.dependsOn linuxArm64LibCopy
 
+task linuxRiscv64LibCopy(type: Copy) {
+  from 'build/linux-gnu-riscv64/lib/libsecp256k1.so'
+  into 'build/resources/main/linux-riscv64'
+}
+processResources.dependsOn linuxRiscv64LibCopy
+
 jar {
   archiveBaseName = 'besu-native-secp256k1'
   includeEmptyDirs = false

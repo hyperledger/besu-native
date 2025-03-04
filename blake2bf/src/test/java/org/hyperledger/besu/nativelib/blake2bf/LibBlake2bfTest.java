@@ -74,6 +74,7 @@ public class LibBlake2bfTest {
   @Test
   public void eip152TestCases() {
     Assume.assumeFalse(System.getProperty("os.arch").equals("aarch64"));
+    Assume.assumeFalse(System.getProperty("os.arch").equals("riscv64"));
     byte[] out = new byte[64];
     messageDigest.blake2bf_eip152(out, input);
     assertThat(out).isEqualTo(expected);
