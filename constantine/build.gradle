@@ -51,7 +51,7 @@ processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64Li
 test {
     // Check if the OS architecture is riscv64
     if (System.getProperty("os.arch").equals("riscv64")) {
-        // Skip tests
+        // Skip for riscv64 since we are not building constantine for riscv64 yet
         enabled = false
     } else {
         // environment 'LD_LIBRARY_PATH', "${System.env.LD_LIBRARY_PATH}:build/resources/main/linux-gnu-x86_64"
