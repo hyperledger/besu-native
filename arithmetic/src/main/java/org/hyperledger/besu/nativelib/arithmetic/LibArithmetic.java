@@ -16,8 +16,8 @@
 package org.hyperledger.besu.nativelib.arithmetic;
 
 import com.sun.jna.Library;
-import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibArithmetic implements Library {
 
@@ -28,7 +28,7 @@ public class LibArithmetic implements Library {
   static {
     boolean enabled;
     try {
-      Native.register(LibArithmetic.class, "eth_arithmetic");
+      BesuNativeLibraryLoader.registerJNA(LibArithmetic.class, "eth_arithmetic");
       enabled = true;
     } catch (final Exception t) {
       enabled = false;

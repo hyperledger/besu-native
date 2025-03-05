@@ -15,10 +15,11 @@
  */
 package org.hyperledger.besu.nativelib.ipamultipoint;
 
+import com.sun.jna.Library;
 import com.sun.jna.Native;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Java interface to ipa-multipoint, a rust library that supports computing polynomial commitments.
@@ -26,7 +27,7 @@ import java.io.IOException;
  * The library relies on the bandersnatch curve described at https://eprint.iacr.org/2021/1152.pdf.
  *
  */
-public class LibIpaMultipoint {
+public class LibIpaMultipoint implements Library {
 
   @SuppressWarnings("WeakerAccess")
   public static final boolean ENABLED;
@@ -34,10 +35,9 @@ public class LibIpaMultipoint {
   static {
     boolean enabled;
     try {
-      File lib = Native.extractFromResourcePath("ipa_multipoint_jni");
-      System.load(lib.getAbsolutePath());
+      BesuNativeLibraryLoader.loadJNI(LibIpaMultipoint.class, "ipa_multipoint_jni");
       enabled = true;
-    } catch (IOException e) {
+    } catch (Exception e) {
       enabled = false;
     }
     ENABLED = enabled;

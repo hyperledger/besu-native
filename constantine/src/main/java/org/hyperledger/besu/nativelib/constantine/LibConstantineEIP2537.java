@@ -1,6 +1,6 @@
 package org.hyperledger.besu.nativelib.constantine;
 
-import com.sun.jna.Native;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibConstantineEIP2537 {
     public static final boolean ENABLED;
@@ -8,7 +8,7 @@ public class LibConstantineEIP2537 {
     static {
         boolean enabled;
         try {
-            Native.register(LibConstantineEIP2537.class, "constantinebindings");
+            BesuNativeLibraryLoader.registerJNA(LibConstantineEIP2537.class, "constantinebindings");
             enabled = true;
         } catch (final Throwable t) {
             t.printStackTrace();

@@ -16,8 +16,7 @@
 package org.hyperledger.besu.nativelib.blake2bf;
 
 import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.Platform;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibBlake2bf implements Library {
   @SuppressWarnings("WeakerAccess")
@@ -26,7 +25,7 @@ public class LibBlake2bf implements Library {
   static {
     boolean enabled;
     try {
-      Native.register(LibBlake2bf.class, "blake2bf");
+      BesuNativeLibraryLoader.registerJNA(LibBlake2bf.class, "blake2bf");
       enabled = true;
     } catch (final Throwable t) {
       enabled = false;
