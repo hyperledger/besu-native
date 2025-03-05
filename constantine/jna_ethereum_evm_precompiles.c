@@ -61,3 +61,8 @@ int bls12381_mapFpToG1(byte* r, int r_len, const byte* inputs, int inputs_len) {
 int bls12381_mapFp2ToG2(byte* r, int r_len, const byte* inputs, int inputs_len) {
     return (int) ctt_eth_evm_bls12381_map_fp2_to_g2(r, (ptrdiff_t)r_len, inputs, (ptrdiff_t)inputs_len);
 }
+
+
+void keccak256(byte* result, byte* message, int message_len) {
+    ctt_keccak256_hash(result, message, (ptrdiff_t)message_len,0);
+}
