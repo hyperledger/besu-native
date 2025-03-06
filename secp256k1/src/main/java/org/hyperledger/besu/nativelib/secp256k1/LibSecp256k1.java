@@ -20,13 +20,13 @@ import java.security.SecureRandom;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibSecp256k1 implements Library {
 
@@ -53,7 +53,7 @@ public class LibSecp256k1 implements Library {
 
   private static PointerByReference createContext() {
     try {
-      Native.register(LibSecp256k1.class, "secp256k1");
+      BesuNativeLibraryLoader.registerJNA(LibSecp256k1.class, "secp256k1");
       final PointerByReference context =
           secp256k1_context_create(SECP256K1_CONTEXT_VERIFY | SECP256K1_CONTEXT_SIGN);
       if (Boolean.parseBoolean(System.getProperty("secp256k1.randomize", "true"))) {

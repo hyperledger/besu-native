@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
+    implementation project(':common')
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'io.tmio:tuweni-bytes:2.4.2'
@@ -33,7 +34,7 @@ task macArmLibCopy(type: Copy) {
     from 'build/darwin-aarch64/lib/libgnark_jni.dylib'
     from 'build/darwin-aarch64/lib/libgnark_eip_2537.dylib'
     from 'build/darwin-aarch64/lib/libgnark_eip_196.dylib'
-    into 'build/resources/main/darwin-aarch64'
+    into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
@@ -41,7 +42,7 @@ task macLibCopy(type: Copy) {
     from 'build/darwin-x86-64/lib/libgnark_jni.dylib'
     from 'build/darwin-x86-64/lib/libgnark_eip_2537.dylib'
     from 'build/darwin-x86-64/lib/libgnark_eip_196.dylib'
-    into 'build/resources/main/darwin-x86-64'
+    into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
@@ -49,7 +50,7 @@ task linuxLibCopy(type: Copy) {
     from 'build/linux-gnu-x86_64/lib/libgnark_jni.so'
     from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.so'
-    into 'build/resources/main/linux-x86-64'
+    into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
@@ -57,7 +58,7 @@ task linuxArm64LibCopy(type: Copy) {
     from 'build/linux-gnu-aarch64/lib/libgnark_jni.so'
     from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.so'
-    into 'build/resources/main/linux-aarch64'
+    into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
@@ -65,7 +66,7 @@ task linuxRiscv64LibCopy(type: Copy) {
     from 'build/linux-gnu-riscv64/lib/libgnark_jni.so'
     from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.so'
-    into 'build/resources/main/linux-riscv64'
+    into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 

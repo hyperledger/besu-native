@@ -282,7 +282,7 @@ EOF
     LIBRARY_EXTENSION=so
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
-    export GOROOT=$(brew --prefix go@1.23)/libexec
+    export GOROOT=$(brew --prefix go@1.24)/libexec
     export PATH=$GOROOT/bin:$PATH
   fi
 
