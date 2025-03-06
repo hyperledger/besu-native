@@ -24,13 +24,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class BesuNativeLibraryLoader {
-
-  // base path for lib/arch.  replace underscore with dash to conform to jar packaging
-  static final String LIBRARY_RESOURCE_ARCH_PATH =
-      "lib/" + System.getProperty("os.arch").replace("_", "-") + "/";
 
   /**
    * Wraps JNA with a prescriptive path, removing any platform naming inconsistencies
@@ -112,7 +109,18 @@ public class BesuNativeLibraryLoader {
   private static String asLibraryResourcePath(String libraryName) {
 
     final String platformNativeLibraryName = System.mapLibraryName(libraryName);
-    return LIBRARY_RESOURCE_ARCH_PATH + platformNativeLibraryName;
+    return safeArchLib(platformNativeLibraryName);
 
+  }
+
+  // deal with the variants that might be reported for x86-64
+  static String[] X86_VARIANTS = {"amd64", "x86_64", "x64", "ia32e", "EMT64T"};
+  private static String safeArchLib(String platformNativeLibraryName) {
+    String arch = System.getProperty("os.arch");
+
+    if (Arrays.asList(X86_VARIANTS).contains(arch)) {
+      arch = "x86-64";
+    }
+    return String.format("lib/%s/%s", arch, platformNativeLibraryName );
   }
 }
