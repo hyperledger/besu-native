@@ -13,8 +13,13 @@ You'll need to be sure that gcc, make, autoconf, automake, and libtool are insta
 building on Ubuntu or Debian, the following command will install these dependencies for you:
 
 ```
-sudo apt-get install build-essential automake autoconf libtool patchelf
+sudo apt-get install build-essential automake autoconf libtool patchelf nim
 ```
+
+Additionally you will need golang and rust.  Linux distributions do not typicall have the latest 
+versions of these platforms.  Check these for latest builds:
+https://www.rust-lang.org/tools/install
+https://go.dev/dl/
 
 ### OS X
 
@@ -31,9 +36,13 @@ brew install autoconf automake libtool
 
 TBD
 
+### Golang
+Golang needs to be installed to compile the gnark-based libraries.  You can fetch the latest golang distribution here:
+https://go.dev/dl/
+
 ### Rust
 
-Rust needs to be installed to compile the arithmetic and bls12-381 libraries. The default way to install it on Linux or OS X is:
+Rust needs to be installed to compile the arithmetic library. The default way to install it on Linux or OS X is:
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
