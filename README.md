@@ -13,13 +13,8 @@ You'll need to be sure that gcc, make, autoconf, automake, and libtool are insta
 building on Ubuntu or Debian, the following command will install these dependencies for you:
 
 ```
-sudo apt-get install build-essential automake autoconf libtool patchelf nim
+sudo apt-get install build-essential automake autoconf libtool patchelf
 ```
-
-Additionally you will need golang and rust.  Linux distributions do not typicall have the latest 
-versions of these platforms.  Check these for latest builds:
-https://www.rust-lang.org/tools/install
-https://go.dev/dl/
 
 ### OS X
 
@@ -35,6 +30,15 @@ brew install autoconf automake libtool
 ### Windows
 
 TBD
+
+
+## Language tools
+
+Additionally you will need golang, rust, and nim.  Distributions often do not have the latest
+versions of these languages.  Check for latest builds:
+https://www.rust-lang.org/tools/install
+https://go.dev/dl/
+https://nim-lang.org/install.html
 
 ### Golang
 
