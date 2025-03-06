@@ -37,8 +37,31 @@ brew install autoconf automake libtool
 TBD
 
 ### Golang
-Golang needs to be installed to compile the gnark-based libraries.  You can fetch the latest golang distribution here:
+
+Golang is required to compile the gnark-based libraries for all platforms and architectures.  
+
+On MacOs, homebrew has a working golang target, e.g.:
+
+`brew install go`
+
+on Linux, for most recent distributions there is typically a somewhat recent go package, e.g.
+`apt install go`
+
+You can fetch the latest golang distribution here:
 https://go.dev/dl/
+
+### Nim
+
+Nim is required to build Constantine.  Constantine is skipped on riscv64 architectures, so it is not needed for linux-riscv64.
+On MacOs, homebrew has a working nim target, e.g.:
+
+`brew install nim`
+
+on Linux, for most recent distributions there is typically a nim package, e.g. 
+`apt install nim`
+
+Otherwise see:
+https://nim-lang.org/install.html
 
 ### Rust
 
