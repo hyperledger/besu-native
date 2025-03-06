@@ -4,7 +4,7 @@ DEBIAN_FRONTEND=non-interactive apt-get install -y autoconf build-essential libt
 export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
 export PATH=$JAVA_HOME/bin:$PATH
 wget https://go.dev/dl/go1.24.1.linux-arm64.tar.gz
-echo "faec7f7f8ae53fda0f3d408f52182d942cc89ef5b7d3d9f23ff117437d4b2d2f  go1.24.1.linux-arm64.tar.gz" | sha256sum -c || exit 1
+echo "8df5750ffc0281017fb6070fba450f5d22b600a02081dceef47966ffaf36a3af  go1.24.1.linux-arm64.tar.gz" | sha256sum -c || exit 1
 tar -xzf go1.24.1.linux-arm64.tar.gz -C $HOME
 export GOPATH=$HOME/.go
 mkdir -p $GOPATH
