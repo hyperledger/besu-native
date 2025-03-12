@@ -15,29 +15,39 @@
 
 package org.hyperledger.besu.nativelib.secp256r1.besuNativeEC;
 
+import com.sun.jna.Library;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.KeyRecoveryResult.KeyRecoveryResultByValue;
 import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.SignResult.SignResultByValue;
 import org.hyperledger.besu.nativelib.secp256r1.besuNativeEC.VerifyResult.VerifyResultByValue;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
+public class BesuNativeEC implements Library {
+	public static final boolean ENABLED;
 
-public interface BesuNativeEC extends Library {
-	Library OPEN_SSL_LIB_CRYPTO = Native.load("besu_native_ec_crypto", Library.class);
-	BesuNativeEC INSTANCE = Native.load("besu_native_ec", BesuNativeEC.class);
+	static {
+		boolean enabled;
+		try {
+			BesuNativeLibraryLoader.registerJNA(Library.class, "besu_native_ec_crypto");
+			BesuNativeLibraryLoader.registerJNA(BesuNativeEC.class, "besu_native_ec");
+			enabled = true;
+		} catch (final Exception t) {
+			enabled = false;
+		}
+		ENABLED = enabled;
+	}
 
 	/**
 	 * Original signature : <code>key_recovery_result p256_key_recovery(const char[], const int, const char[], const char[], int)</code><br>
 	 */
-	KeyRecoveryResultByValue p256_key_recovery(byte[] data_hash, int data_hash_len, byte[] signature_r_hex, byte[] signature_s_hex, int signature_v);
+	public static native KeyRecoveryResultByValue p256_key_recovery(byte[] data_hash, int data_hash_len, byte[] signature_r_hex, byte[] signature_s_hex, int signature_v);
 
 	/**
 	 * Original signature : <code>sign_result p256_sign(const char[], const int, const char[], const char[])</code><br>
 	 */
-	SignResultByValue p256_sign(byte[] data_hash, int data_hash_length, byte[] private_key_data, byte[] public_key_data);
+	public static native SignResultByValue p256_sign(byte[] data_hash, int data_hash_length, byte[] private_key_data, byte[] public_key_data);
 
 	/**
 	 * Original signature : <code>verify_result p256_verify(const char[], const int, const char[], const char[], const char[])</code><br>
 	 */
-	VerifyResultByValue p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
+	public static native VerifyResultByValue p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
 }

@@ -1,7 +1,7 @@
 package org.hyperledger.besu.nativelib.gnark;
 
-import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
+import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibGnarkEIP196 {
 
@@ -17,7 +17,7 @@ public class LibGnarkEIP196 {
   static {
     boolean enabled;
     try {
-      Native.register(LibGnarkEIP196.class, "gnark_eip_196");
+      BesuNativeLibraryLoader.registerJNA(LibGnarkEIP196.class, "gnark_eip_196");
       enabled = true;
     } catch (final Throwable t) {
       t.printStackTrace();

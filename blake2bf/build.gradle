@@ -20,6 +20,7 @@ plugins {
 }
 
 dependencies {
+  implementation project(':common')
   implementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.assertj:assertj-core:3.22.0'
@@ -27,27 +28,27 @@ dependencies {
 
 task macAarch64LibCopy(type: Copy) {
   from 'build/darwin-aarch64/lib/libblake2bf.dylib'
-  into 'build/resources/main/darwin-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 
 processResources.dependsOn macAarch64LibCopy
 
 task macLibCopy(type: Copy) {
   from 'build/darwin-x86-64/lib/libblake2bf.dylib'
-  into 'build/resources/main/darwin-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libblake2bf.so'
-  into 'build/resources/main/linux-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libblake2bf.so'
-  into 'build/resources/main/linux-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 

@@ -20,13 +20,14 @@ plugins {
 }
 
 dependencies {
-    implementation 'net.java.dev.jna:jna:5.12.1'
+  implementation project(':common')
+  implementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'io.tmio:tuweni-bytes:2.4.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
-    testImplementation 'org.assertj:assertj-core:3.22.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+  testImplementation 'org.assertj:assertj-core:3.22.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
 
 test {
@@ -43,31 +44,31 @@ sourceSets {
 
 task macArmLibCopy(type: Copy) {
   from 'build/darwin-aarch64/lib/libipa_multipoint_jni.dylib'
-  into 'build/resources/main/darwin-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
   from 'build/darwin-x86-64/lib/libipa_multipoint_jni.dylib'
-  into 'build/resources/main/darwin-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libipa_multipoint_jni.so'
-  into 'build/resources/main/linux-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libipa_multipoint_jni.so'
-  into 'build/resources/main/linux-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
   from 'build/linux-gnu-riscv64/lib/libipa_multipoint_jni.so'
-  into 'build/resources/main/linux-riscv64'
+  into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 

@@ -20,36 +20,37 @@ plugins {
 }
 
 dependencies {
+  implementation project(':common')
   implementation 'net.java.dev.jna:jna:5.12.1'
 }
 
 task macArmLibCopy(type: Copy) {
   from 'build/darwin-aarch64/lib/libsecp256k1.dylib'
-  into 'build/resources/main/darwin-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
   from 'build/darwin-x86-64/lib/libsecp256k1.dylib'
-  into 'build/resources/main/darwin-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libsecp256k1.so'
-  into 'build/resources/main/linux-x86-64'
+  into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libsecp256k1.so'
-  into 'build/resources/main/linux-aarch64'
+  into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
   from 'build/linux-gnu-riscv64/lib/libsecp256k1.so'
-  into 'build/resources/main/linux-riscv64'
+  into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 
