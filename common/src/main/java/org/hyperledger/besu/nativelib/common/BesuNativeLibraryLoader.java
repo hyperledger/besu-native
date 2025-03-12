@@ -37,14 +37,14 @@ public class BesuNativeLibraryLoader {
    *  relies on the different operating systems to have different shared library object
    *  filenames.  E.g. .dylib vs .so vs .dll.
    */
-  public static void registerJNA(Class jniClass, String libraryName) {
+  public static void registerJNA(Class jnaClass, String libraryName) {
 
     try {
-      final Optional<Path> libPath = extract(jniClass, libraryName);
+      final Optional<Path> libPath = extract(jnaClass, libraryName);
 
       if (libPath.isPresent()) {
         NativeLibrary lib = NativeLibrary.getInstance(libPath.get().toString());
-        Native.register(jniClass, lib);
+        Native.register(jnaClass, lib);
       } else {
         throw new UnsatisfiedLinkError();
       }
@@ -77,17 +77,17 @@ public class BesuNativeLibraryLoader {
   }
 
 
-  private static Optional<Path> extract(Class jniClass, String libraryName) {
+  private static Optional<Path> extract(Class classResource, String libraryName) {
     final String platformNativeLibraryName = System.mapLibraryName(libraryName);
 
     // load from lib/arch.  replace underscore with dash to avoid platform arch naming oddities
     final String libraryResourcePath = asLibraryResourcePath(libraryName);
 
-    InputStream libraryResource = jniClass.getResourceAsStream(libraryResourcePath);
+    InputStream libraryResource = classResource.getResourceAsStream(libraryResourcePath);
 
     if (libraryResource == null) {
       // try absolute classpath reference for filesystem resources in case we are running tests:
-      libraryResource = jniClass.getResourceAsStream("/" + libraryResourcePath);
+      libraryResource = classResource.getResourceAsStream("/" + libraryResourcePath);
     }
 
     if (libraryResource != null) {
