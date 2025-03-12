@@ -335,6 +335,8 @@ build_constantine() {
     tar -xf nim-2.2.2-linux_arm64.tar.xz
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
     export PATH=$(pwd)/nim-2.2.2/bin:$PATH
+    # arm64 ASM is currently only for apple silicon processors, revisit in future releases of constantine:
+    export CTT_ASM=0
     nimble make_lib
   else
     export PATH=$HOME/.nimble/bin:$PATH
