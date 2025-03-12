@@ -329,10 +329,14 @@ build_constantine() {
   export CTT_LTO=false
   if [[ "$OSARCH" == "linux-gnu-aarch64" ]]; then
     # Download and extract Nim
-    wget https://github.com/nim-lang/nightlies/releases/download/2024-03-28-version-2-0-b47747d31844c6bd9af4322efe55e24fefea544c/nim-2.0.4-linux_arm64.tar.xz
-    tar -xf nim-2.0.4-linux_arm64.tar.xz
+    wget https://github.com/nim-lang/nightlies/releases/download/2025-02-14-version-2-2-6c34f62785263ad412f662f3e4e4bf8d8751d113/nim-2.2.2-linux_arm64.tar.xz
+    # verify download sha
+    echo "d983fadd58afd78b0dda5f690b03bf0ba2ee034e3476f4c62cbbe352ffc4656b nim-2.2.2-linux_arm64.tar.xz" | sha256sum -c || exit 1
+    tar -xf nim-2.2.2-linux_arm64.tar.xz
     git config --global --add safe.directory /home/ubuntu/constantine/constantine
-    export PATH=$(pwd)/nim-2.0.4/bin:$PATH
+    export PATH=$(pwd)/nim-2.2.2/bin:$PATH
+    # arm64 ASM is currently only for apple silicon processors, revisit in future releases of constantine:
+    export CTT_ASM=0
     nimble make_lib
   else
     export PATH=$HOME/.nimble/bin:$PATH

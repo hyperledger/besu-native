@@ -56,7 +56,7 @@ https://go.dev/dl/
 
 ### Nim
 
-Nim is required to build Constantine.  Constantine is skipped on riscv64 architectures, so it is not needed for linux-riscv64.
+Nim 2.2.x+ is required to build Constantine.  Constantine is skipped on riscv64 architectures, so it is not needed for linux-riscv64.
 On MacOs, homebrew has a working nim target, e.g.:
 
 `brew install nim`

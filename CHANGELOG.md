@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* bump constantine to v0.2.0 and nim to 2.2.2 [#246](https://github.com/hyperledger/besu-native/pull/246)
 * refactor library loading to conform arch names [#245](https://github.com/hyperledger/besu-native/pull/245)
 * bump gnark-crypto to 0.16.0, adds avx512 support and ARM assembly performance improvements [#240](https://github.com/hyperledger/besu-native/pull/240)
 * add riscv64 support for building besu-native, no CI support yet [#244](https://github.com/hyperledger/besu-native/pull/244)
