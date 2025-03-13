@@ -15,13 +15,15 @@
 
 plugins {
     id 'java-library'
+    id 'maven-publish'
+    id 'com.jfrog.artifactory' version '5.2.3'
 }
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
 }
 jar {
-    archiveBaseName = 'common'
+    archiveBaseName = 'besu-native-common'
     includeEmptyDirs = false
     manifest {
         attributes(
@@ -34,3 +36,67 @@ jar {
     }
 }
 
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = 'besu-native-common'
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveBaseName = 'besu-native-common'
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "org.hyperledger.besu"
+            artifactId 'besu-native-common'
+            version "${project.version}"
+
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = "Besu Native - ${project.name}"
+                description = 'Shared lib for besu-native implementations'
+                url = 'http://github.com/hyperledger/besu-native'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
+                    developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
+                    url = 'https://github.com/hyperledger/besu-native'
+                }
+            }
+        }
+    }
+}
+
+def artifactoryUser = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
+def artifactoryKey = project.hasProperty('artifactoryApiKey') ? project.property('artifactoryApiKey') : System.getenv('ARTIFACTORY_KEY')
+def artifactoryRepo = System.getenv('ARTIFACTORY_REPO') ?: 'besu-maven'
+def artifactoryOrg = System.getenv('ARTIFACTORY_ORG') ?: 'hyperledger'
+
+artifactory {
+    contextUrl = "https://hyperledger.jfrog.io/${artifactoryOrg}"
+    publish {
+        repository {
+            repoKey = artifactoryRepo
+            username = artifactoryUser
+            password = artifactoryKey
+        }
+        defaults {
+            publications('mavenJava')
+            publishArtifacts = true
+            publishPom = true
+        }
+    }
+}
