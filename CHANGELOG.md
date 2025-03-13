@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 1.2.1
+Errata release
+* include besu-native-common in published packages [#252](https://github.com/hyperledger/besu-native/pull/252)
+
 # 1.2.0
 Pectra mainnet support release
 * bump constantine to v0.2.0 and nim to 2.2.2 [#246](https://github.com/hyperledger/besu-native/pull/246)
