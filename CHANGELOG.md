@@ -2,6 +2,10 @@
 
 # Unreleased
 
+# 1.3.0
+Pectra ready mainnet support release
+* perf: reorder point checking in bls12-381 [#255](https://github.com/hyperledger/besu-native/pull/255)
+
 # 1.2.1
 Errata release
 * include besu-native-common in published packages [#252](https://github.com/hyperledger/besu-native/pull/252)
