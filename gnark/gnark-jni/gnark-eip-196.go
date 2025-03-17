@@ -10,8 +10,6 @@ import (
 	"unsafe"
 
 	"github.com/consensys/gnark-crypto/ecc/bn254"
-
-	"github.com/consensys/gnark-crypto/ecc/bn254"
 )
 
 var ErrMalformedPointEIP196 = errors.New("invalid point encoding")
