@@ -357,14 +357,7 @@ func dryError(err error, errorBuf []byte, outputLen, errorLen *int) {
 }
 
 func castBufferToSliceEIP196(buf unsafe.Pointer, length int) []byte {
-    var slice []byte
-    // Obtain the slice header
-    header := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
-    header.Data = uintptr(buf)   // point directly to the data
-    header.Len = length          // set the length of the slice
-    header.Cap = length          // set the capacity of the slice
-
-    return slice
+    return unsafe.Slice((*byte)(buf), length)
 }
 
 func castBufferEIP196(javaOutputBuf *C.char, length *int) []byte {
