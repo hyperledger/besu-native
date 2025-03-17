@@ -7,13 +7,13 @@ import "C"
 import (
 	"bytes"
 	"errors"
+	"math/big"
+	"unsafe"
+
 	"github.com/consensys/gnark-crypto/ecc"
-	"github.com/consensys/gnark-crypto/ecc/bls12-381"
+	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	"github.com/consensys/gnark-crypto/ecc/bls12-381/fp"
 	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
-	"math/big"
-	"reflect"
-	"unsafe"
 )
 
 const (
@@ -654,14 +654,7 @@ func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 }
 
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
-	var slice []byte
-	// Obtain the slice header
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
-	header.Data = uintptr(buf) // point directly to the data
-	header.Len = length        // set the length of the slice
-	header.Cap = length        // set the capacity of the slice
-
-	return slice
+	return unsafe.Slice((*byte)(buf), length)
 }
 
 func castBuffer(javaOutputBuf *C.char, length int) []byte {
