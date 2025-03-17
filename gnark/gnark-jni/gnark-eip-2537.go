@@ -710,13 +710,15 @@ func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381
 		return nil, err
 	}
 
-	// do explicit on-curve check first
-	if !g1.IsOnCurve() {
-		return nil, ErrPointOnCurveCheckFailed
-	}
-
-	// do explicit subgroup check
+	// do combined subgroup/curve check first:
 	if !g1.IsInSubGroup() {
+
+		// re-check point on curve to correctly attribute error
+		if !g1.IsOnCurve() {
+			return nil, ErrPointOnCurveCheckFailed
+		}
+
+		// otherwise return subgroup check fail
 		return nil, ErrSubgroupCheckFailed
 	}
 	return g1, nil
@@ -781,12 +783,16 @@ func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381
 	if err != nil {
 		return nil, err
 	}
-	if !g2.IsOnCurve() {
-		return nil, ErrPointOnCurveCheckFailed
-	}
 
-	// do explicit subgroup check
+	// do combined subgroup/curve check first:
 	if !g2.IsInSubGroup() {
+
+		// re-check point on curve to correctly attribute error
+		if !g2.IsOnCurve() {
+			return nil, ErrPointOnCurveCheckFailed
+		}
+
+		// otherwise return subgroup check fail
 		return nil, ErrSubgroupCheckFailed
 	}
 	return g2, nil
