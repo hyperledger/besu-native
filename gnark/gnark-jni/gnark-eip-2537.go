@@ -308,7 +308,6 @@ eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2
 - JNI:
 	- javaInputBuf must be at least n*(EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) bytes, where n is the number of point-scalar pairs
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
-
 */
 //export eip2537blsG2MultiExpParallel
 func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
