@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"reflect"
 	"unsafe"
-
 	"github.com/consensys/gnark-crypto/ecc/bn254"
 )
 
