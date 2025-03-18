@@ -6,9 +6,11 @@ package main
 import "C"
 import (
 	"errors"
+	"github.com/consensys/gnark-crypto/ecc/bn254"
 	"math/big"
 	"reflect"
 	"unsafe"
+
 	"github.com/consensys/gnark-crypto/ecc/bn254"
 )
 
