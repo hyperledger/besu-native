@@ -288,6 +288,7 @@ func _blsG2Add(input []byte) (*bls12381.G2Affine, error) {
 }
 
 /*
+
 eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2 points in parallel.
 
 - Input:
@@ -322,20 +323,18 @@ func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
 		return 1
 	}
-
 	if inputLen%(EIP2537PreallocateForG2+EIP2537PreallocateForScalar) != 0 {
 		copy(errorBuf, "invalid input parameters, invalid input length for G2 multiplication\x00")
 		return 1
 	}
+	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
 	// Compute G2 multi-scalar multiplication in parallel
 	result, err := _blsG2MultiExpParallel(input, int(nbTasks))
-
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
-
 
 	// Store the result of the G2 multi-scalar multiplication into the output buffer
 	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
@@ -426,7 +425,6 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInput
 	output := castBuffer(javaOutputBuf, outputLen)
 
 	// Validate input length and convert C pointer to input buffer into a Go slice
-
 	if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
 		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
 		return 1
@@ -435,7 +433,6 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInput
 		copy(errorBuf, "invalid input parameters, invalid input length for pairing\x00")
 		return 1
 	}
-
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
 	// Perform pairing check
@@ -476,7 +473,6 @@ func _blsPairing(input []byte) (bool, error) {
 		}
 
 		// Store decoded points
-
 		g1Points[i] = *g1
 		g2Points[i] = *g2
 	}
@@ -593,7 +589,6 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 		copy(errorBuf, "invalid input parameters, invalid input length for Fp2 to G2 to curve mapping\x00")
 		return 1
 	}
-
 	input := (*[2 * EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
 	// Map Fp2 field element to a G2 point
