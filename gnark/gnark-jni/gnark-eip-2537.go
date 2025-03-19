@@ -69,7 +69,7 @@ eip2537blsG1Add adds two G1 points together and returns a G1 Point.
 //export eip2537blsG1Add
 func eip2537blsG1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -140,7 +140,7 @@ eip2537blsG1MultiExp performs multi-scalar multiplication on multiple G1 points 
 //export eip2537blsG1MultiExp
 func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -252,7 +252,7 @@ eip2537blsG2Add adds two G2 points together and returns a G2 Point.
 //export eip2537blsG2Add
 func eip2537blsG2Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -320,7 +320,7 @@ eip2537blsG2MultiExp performs multi-scalar multiplication on multiple G2 points 
 //export eip2537blsG2MultiExp
 func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -432,7 +432,7 @@ eip2537blsPairing performs a pairing check on a collection of G1 and G2 point pa
 func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
 	outputLen := int(cOutputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error and output buffers into go slices
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -526,7 +526,7 @@ eip2537blsMapFpToG1 maps a field element to a point on the G1 curve.
 //export eip2537blsMapFpToG1
 func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
@@ -593,7 +593,7 @@ eip2537blsMapFp2ToG2 maps a field element in the quadratic extension field Fp^2 
 //export eip2537blsMapFp2ToG2
 func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
 	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
