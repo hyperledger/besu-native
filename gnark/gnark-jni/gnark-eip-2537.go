@@ -88,7 +88,7 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G1 addition into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG1(result, javaOutputBuf)
 }
 
 func _blsG1Add(input []byte) (*bls12381.G1Affine, error) {
@@ -157,7 +157,7 @@ func eip2537blsG1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G1 scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG1(result, javaOutputBuf)
 }
 
 func _blsG1Mul(input []byte) (*bls12381.G1Affine, error) {
@@ -227,7 +227,7 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the G1 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG1(result, javaOutputBuf)
 }
 
 func _blsG1MultiExp(input []byte) (*bls12381.G1Affine, error) {
@@ -313,7 +313,7 @@ func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	}
 
 	// Store the result of the G1 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG1(result, javaOutputBuf)
 }
 
 func _blsG1MultiExpParallel(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
@@ -388,7 +388,7 @@ func eip2537blsG2Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G2 addition into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG2(result, javaOutputBuf)
 }
 
 func _blsG2Add(input []byte) (*bls12381.G2Affine, error) {
@@ -455,7 +455,7 @@ func eip2537blsG2Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G2 scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG2(result, javaOutputBuf)
 }
 
 func _blsG2Mul(input []byte) (*bls12381.G2Affine, error) {
@@ -524,7 +524,7 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the G2 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG2(result, javaOutputBuf)
 }
 
 func _blsG2MultiExp(input []byte) (*bls12381.G2Affine, error) {
@@ -609,7 +609,7 @@ func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	}
 
 	// Store the result of the G2 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG2(result, javaOutputBuf)
 }
 
 func _blsG2MultiExpParallel(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
@@ -778,7 +778,7 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
 	}
 
 	// Store the result of the mapping into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG1(result, javaOutputBuf)
 }
 
 func _blsMapFpToG1(input []byte) (*bls12381.G1Affine, error) {
@@ -845,7 +845,7 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the mapping into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	return nonMontgomeryMarshalG2(result, javaOutputBuf)
 }
 
 func _blsMapFp2ToG2(input []byte) (*bls12381.G2Affine, error) {
@@ -1038,12 +1038,12 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 	}
 }
 
-func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []byte) C.int {
+func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char) C.int {
 	nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0)
 	return 0
 }
 
-func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char, errorBuf []byte) C.int {
+func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char) C.int {
 	nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0)
 	nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128)
 	return 0
