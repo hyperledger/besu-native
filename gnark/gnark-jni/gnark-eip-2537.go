@@ -178,10 +178,12 @@ func _blsG1MultiExp(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
 
 	// Decode points and scalars
 	for i := 0; i < exprCount; i++ {
-		_, err := g1AffineDecodeInSubGroupVal(&g1Points[i], input[i*160:(i*160)+128])
+		g1, err := g1AffineDecodeInSubGroup(input[i*160 : (i*160)+128])
 		if err != nil {
 			return nil, err
 		}
+
+		g1Points[i].Set(g1)
 		scalars[i].SetBytes(input[(i*160)+128 : (i+1)*160])
 	}
 
@@ -362,10 +364,12 @@ func _blsG2MultiExp(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
 
 	// Decode points and scalars
 	for i := 0; i < exprCount; i++ {
-		_, err := g2AffineDecodeInSubGroupVal(&g2Points[i], input[i*288:(i*288)+256])
+		g2Point, err := g2AffineDecodeInSubGroup(input[i*288 : (i*288)+256])
 		if err != nil {
 			return nil, err
 		}
+
+		g2Points[i].Set(g2Point)
 		scalars[i].SetBytes(input[(i*288)+256 : (i+1)*288])
 	}
 
@@ -694,25 +698,9 @@ func hasWrongG2Padding(input []byte) bool {
 // Returns the decoded G1 point if successful, or an error if the decoding fails
 // or the point is not on the curve or not in the correct subgroup.
 func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
-	var g1 bls12381.G1Affine
-	return g1AffineDecodeInSubGroupVal(&g1, input)
-}
-func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381.G1Affine, error) {
-	if hasWrongG1Padding(input) {
-		return nil, ErrMalformedPointPadding
-	}
-	err := g1.X.SetBytesCanonical(input[16:64])
+	g1, err := g1AffineDecodeOnCurve(input)
 	if err != nil {
 		return nil, err
-	}
-	err = g1.Y.SetBytesCanonical(input[80:128])
-	if err != nil {
-		return nil, err
-	}
-
-	// do explicit on-curve check first
-	if !g1.IsOnCurve() {
-		return nil, ErrPointOnCurveCheckFailed
 	}
 
 	// do explicit subgroup check
@@ -757,34 +745,10 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 // Returns the decoded G2 point if successful, or an error if the decoding fails
 // or the point is not on the curve or not in the correct subgroup.
 func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
-	var g2 bls12381.G2Affine
-	return g2AffineDecodeInSubGroupVal(&g2, input)
-}
-func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381.G2Affine, error) {
-	if hasWrongG2Padding(input) {
-		return nil, ErrMalformedPointPadding
-	}
-
-	err := g2.X.A0.SetBytesCanonical(input[16:64])
+	g2, err := g2AffineDecodeOnCurve(input)
 	if err != nil {
 		return nil, err
 	}
-	err = g2.X.A1.SetBytesCanonical(input[80:128])
-	if err != nil {
-		return nil, err
-	}
-	err = g2.Y.A0.SetBytesCanonical(input[144:192])
-	if err != nil {
-		return nil, err
-	}
-	err = g2.Y.A1.SetBytesCanonical(input[208:256])
-	if err != nil {
-		return nil, err
-	}
-	if !g2.IsOnCurve() {
-		return nil, ErrPointOnCurveCheckFailed
-	}
-
 	// do explicit subgroup check
 	if !g2.IsInSubGroup() {
 		return nil, ErrSubgroupCheckFailed
