@@ -637,23 +637,53 @@ func _blsMapFp2ToG2(input []byte) (*bls12381.G2Affine, error) {
 	return &result, nil
 }
 
-// Function to check if the first 16 bytes of a slice are zero
+// isZero checks if the first 16 bytes of a byte slice are all zeros.
+//
+// This function is used for padding verification in BLS12-381 point decoding.
+// EIP-2537 states that field elements are serialized as 48 bytes, but are expected to have
+// 16 bytes of leading zeros for 32-byte alignment.
+//
+// This function checks that the padding bytes are correctly set to zero.
 func isZero(slice []byte) bool {
 	return bytes.Equal(slice[:16], zeroSlice)
 }
 
+// hasWrongG1Padding returns true if the G1 element is not correctly padded.
+//
+// G1 elements can be represented using two 48 byte field elements (x, y). To be 32-byte
+// aligned, these two elements are zero padded by 16 bytes.
+//
+// This would look like the following: `16 zeroes + x + 16 zeroes + y`
+// where `x` and `y` are 48 bytes each
+//
+// This function checks that the zeroes are correctly placed.
 func hasWrongG1Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80])
 }
 
+// hasWrongG2Padding returns true if the G2 element is not correctly aligned.
+//
+// G2 elements can be represented in 96 bytes (2 fp elements for x, 2 fp elements for y).
+// However, to be 32 byte aligned, 16 bytes are used to pad each field element.
+//
+// This would look like the following:
+// `16 zeroes + x.a0 + 16 zeroes + x.a1 + 16 zeroes + y.a0 + 16 zeroes + y.a1`
+// where each field element is 48 bytes
+//
+// This function checks that the zeroes are correctly placed.
 func hasWrongG2Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80]) || !isZero(input[128:144]) || !isZero(input[192:208])
 }
+
+// g1AffineDecodeInSubGroup decodes a byte slice into a G1 affine point and verifies
+// that the point is on the curve and in the correct subgroup.
+//
+// Returns the decoded G1 point if successful, or an error if the decoding fails
+// or the point is not on the curve or not in the correct subgroup.
 func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 	var g1 bls12381.G1Affine
 	return g1AffineDecodeInSubGroupVal(&g1, input)
 }
-
 func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381.G1Affine, error) {
 	if hasWrongG1Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -679,6 +709,11 @@ func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381
 	return g1, nil
 }
 
+// g1AffineDecodeOnCurve decodes a byte slice into a G1 affine point and verifies
+// that the point is on the curve, without performing a subgroup check.
+//
+// Returns the decoded G1 point if successful, or an error if the decoding fails
+// or the point is not on the curve.
 func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	if hasWrongG1Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -703,11 +738,15 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
+// g2AffineDecodeInSubGroup decodes a byte slice into a G2 affine point and verifies
+// that the point is on the curve and in the correct subgroup.
+//
+// Returns the decoded G2 point if successful, or an error if the decoding fails
+// or the point is not on the curve or not in the correct subgroup.
 func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 	var g2 bls12381.G2Affine
 	return g2AffineDecodeInSubGroupVal(&g2, input)
 }
-
 func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381.G2Affine, error) {
 	if hasWrongG2Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -740,6 +779,11 @@ func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381
 	return g2, nil
 }
 
+// g2AffineDecodeOnCurve decodes a byte slice into a G2 affine point and verifies
+// that the point is on the curve, without performing a subgroup check.
+//
+// Returns the decoded G2 point if successful, or an error if the decoding fails
+// or the point is not on the curve.
 func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 	if hasWrongG2Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -769,10 +813,24 @@ func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 	return &g2, nil
 }
 
+// castBufferToSlice converts an unsafe.Pointer to a Go byte slice of specified length.
+//
+// This allows direct access to memory allocated by Java code without copying.
+//
+// SAFETY: unsafe.Slice creates a slice that directly references
+// the underlying memory. The caller must ensure that the memory remains valid for the
+// lifetime of the slice.
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
 	return unsafe.Slice((*byte)(buf), length)
 }
 
+// castBuffer converts a C char pointer to a Go byte slice with ensured minimum capacity.
+//
+// Unlike castBufferToSlice, this function ensures the buffer has
+// at least EIP2537PreallocateForResultBytes bytes of capacity.
+//
+// Note: The caller must ensure that the memory remains valid for the lifetime of the
+// returned slice and that no writes occur beyond the actual buffer size allocated by Java.
 func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	bufSize := length
 	if bufSize < EIP2537PreallocateForResultBytes {
@@ -781,6 +839,14 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
+// nonMontgomeryMarshal encodes a pair of base field elements as byte slices
+// in big-endian form and writes them to the output buffer at the specified offset.
+//
+// The output format follows EIP-2537 serialization, with each field element using 64 bytes,
+// (padded with 16 leading zeros). The total output size is 128 bytes
+// (64 bytes for each coordinate).
+//
+// Returns nil on success or an error if the marshaling fails.
 func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) error {
 	// Convert g1.X and g1.Y to big.Int using the BigInt method
 	var x big.Int
@@ -805,6 +871,17 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 	return nil
 }
 
+// nonMontgomeryMarshalG1 converts a G1 affine point to its serialized form following EIP-2537
+// and writes it to the output buffer.
+//
+// The G1 point is serialized as:
+// - 16 zero bytes + 48-byte x-coordinate in big-endian form
+// - 16 zero bytes + 48-byte y-coordinate in big-endian form
+//
+// The total output size is 128 bytes (EIP2537PreallocateForG1).
+//
+// Returns 0 on success or 1 if serialization fails, in which case an error
+// message is written to errorBuf.
 func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []byte) C.int {
 	if nil == nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0) {
 		return 0
@@ -814,6 +891,19 @@ func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []by
 	}
 }
 
+// nonMontgomeryMarshalG2 converts a G2 affine point to its serialized form following EIP-2537
+// and writes it to the output buffer.
+//
+// The G2 point is serialized as:
+// - 16 zero bytes + 48-byte x.a0 coordinate in big-endian form
+// - 16 zero bytes + 48-byte x.a1 coordinate in big-endian form
+// - 16 zero bytes + 48-byte y.a0 coordinate in big-endian form
+// - 16 zero bytes + 48-byte y.a1 coordinate in big-endian form
+//
+// The total output size is 256 bytes (EIP2537PreallocateForG2).
+//
+// Returns 0 on success or 1 if serialization fails, in which case an error
+// message is written to errorBuf.
 func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char, errorBuf []byte) C.int {
 	if nil == nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0) &&
 		nil == nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128) {
