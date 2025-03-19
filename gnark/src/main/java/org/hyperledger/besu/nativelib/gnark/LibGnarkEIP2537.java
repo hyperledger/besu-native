@@ -56,7 +56,7 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(128);
         break;
       case BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE:
-      ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
+       ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
           EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
           degreeOfMSMParallelism);
         o_len.setValue(128);
@@ -68,7 +68,7 @@ public class LibGnarkEIP2537 implements Library {
         o_len.setValue(256);
         break;
       case BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE:
-      ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
+        ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
           EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
           degreeOfMSMParallelism);
         o_len.setValue(256);
