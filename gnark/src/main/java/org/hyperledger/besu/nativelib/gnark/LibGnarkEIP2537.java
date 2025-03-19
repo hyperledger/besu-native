@@ -37,6 +37,9 @@ public class LibGnarkEIP2537 implements Library {
 
   /**
    * Here as a compatibility shim for the pre-existing matter-labs implementation.
+   *
+   * IMPORTANT: The output buffer MUST be zero-initialized before calling this method.
+   * The native implementation relies on this pre-initialization for proper functioning.
    */
   public static int eip2537_perform_operation(
       byte op,
