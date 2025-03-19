@@ -115,7 +115,7 @@ func _blsG1Add(input []byte) (*bls12381.G1Affine, error) {
 
 /*
 
-eip2537blsG1MultiExpParallel performs multi-scalar multiplication on multiple G1 points in parallel.
+eip2537blsG1MultiExp performs multi-scalar multiplication on multiple G1 points in parallel.
 
 - Input:
 	- javaInputBuf: Pointer to a buffer containing a series of G1 point and scalar pairs
@@ -137,8 +137,8 @@ eip2537blsG1MultiExpParallel performs multi-scalar multiplication on multiple G1
 	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
 
 */
-//export eip2537blsG1MultiExpParallel
-func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
+//export eip2537blsG1MultiExp
+func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
 	errorLen := int(cOutputLen)
 
@@ -157,7 +157,7 @@ func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
 	// Compute G1 multi-scalar multiplication in parallel
-	result, err := _blsG1MultiExpParallel(input, int(nbTasks))
+	result, err := _blsG1MultiExp(input, int(nbTasks))
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
@@ -167,7 +167,7 @@ func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
 }
 
-func _blsG1MultiExpParallel(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
+func _blsG1MultiExp(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
 	var exprCount = len(input) / (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar)
 
 	// Prepare arrays for points and scalars
@@ -183,6 +183,13 @@ func _blsG1MultiExpParallel(input []byte, nbTasks int) (*bls12381.G1Affine, erro
 		scalars[i].SetBytes(input[(i*160)+128 : (i+1)*160])
 	}
 
+	// When the size of the multi scalar multiplication(MSM) is 1, this corresponds to
+	// a scalar multiplication so we use the simpler scalar multiplication algorithm to
+	// compute the MSM instead of using the general MSM algorithm. This is in accordance
+	// with EIP-2537.
+	//
+	// When the MSM is of size 2 -- heuristically it has been shown to be faster than
+	// using the general MSM algorithm, so we also special case it.
 	if exprCount == 1 {
 		var result bls12381.G1Affine
 
@@ -289,7 +296,7 @@ func _blsG2Add(input []byte) (*bls12381.G2Affine, error) {
 
 /*
 
-eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2 points in parallel.
+eip2537blsG2MultiExp performs multi-scalar multiplication on multiple G2 points in parallel.
 
 - Input:
 	- javaInputBuf: Pointer to a buffer containing a series of G2 point and scalar pairs
@@ -310,8 +317,8 @@ eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
 
 */
-//export eip2537blsG2MultiExpParallel
-func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
+//export eip2537blsG2MultiExp
+func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
 	errorLen := int(cOutputLen)
 
@@ -330,7 +337,7 @@ func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
 	// Compute G2 multi-scalar multiplication in parallel
-	result, err := _blsG2MultiExpParallel(input, int(nbTasks))
+	result, err := _blsG2MultiExp(input, int(nbTasks))
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
@@ -340,7 +347,7 @@ func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.c
 	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
 }
 
-func _blsG2MultiExpParallel(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
+func _blsG2MultiExp(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
 	var exprCount = len(input) / (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar)
 
 	// Prepare arrays for points and scalars
@@ -356,6 +363,13 @@ func _blsG2MultiExpParallel(input []byte, nbTasks int) (*bls12381.G2Affine, erro
 		scalars[i].SetBytes(input[(i*288)+256 : (i+1)*288])
 	}
 
+	// When the size of the multi scalar multiplication(MSM) is 1, this corresponds to
+	// a scalar multiplication so we use the simpler scalar multiplication algorithm to
+	// compute the MSM instead of using the general MSM algorithm. This is in accordance
+	// with EIP-2537.
+	//
+	// When the MSM is of size 2 -- heuristically it has been shown to be faster than
+	// using the general MSM algorithm, so we also special case it.
 	if exprCount == 1 {
 		var result bls12381.G2Affine
 
