@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"errors"
 	"math/big"
-	"reflect"
 	"unsafe"
 
 	"github.com/consensys/gnark-crypto/ecc"
@@ -102,7 +101,6 @@ func _blsG1Add(input []byte) (*bls12381.G1Affine, error) {
 
 	// generate p0 g1 affine
 	p1, err := g1AffineDecodeOnCurve(input[128:])
-
 	if err != nil {
 		return nil, err
 	}
@@ -772,14 +770,7 @@ func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 }
 
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
-	var slice []byte
-	// Obtain the slice header
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
-	header.Data = uintptr(buf) // point directly to the data
-	header.Len = length        // set the length of the slice
-	header.Cap = length        // set the capacity of the slice
-
-	return slice
+	return unsafe.Slice((*byte)(buf), length)
 }
 
 func castBuffer(javaOutputBuf *C.char, length int) []byte {
