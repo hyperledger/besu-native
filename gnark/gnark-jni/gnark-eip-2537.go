@@ -63,6 +63,7 @@ eip2537blsG1Add adds two G1 points together and returns a G1 Point.
 - JNI:
 	- javaInputBuf must be at least 2*EIP2537PreallocateForG1 bytes (two G1 points)
 	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsG1Add
@@ -133,6 +134,7 @@ eip2537blsG1MultiExp performs multi-scalar multiplication on multiple G1 points 
 - JNI:
 	- javaInputBuf must be at least n*(EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) bytes, where n is the number of point-scalar pairs
 	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsG1MultiExp
@@ -245,6 +247,7 @@ eip2537blsG2Add adds two G2 points together and returns a G2 Point.
 - JNI:
 	- javaInputBuf must be at least 2*EIP2537PreallocateForG2 bytes (two G2 points)
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsG2Add
@@ -313,6 +316,7 @@ eip2537blsG2MultiExp performs multi-scalar multiplication on multiple G2 points 
 - JNI:
 	- javaInputBuf must be at least n*(EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) bytes, where n is the number of point-scalar pairs
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsG2MultiExp
@@ -424,6 +428,7 @@ eip2537blsPairing performs a pairing check on a collection of G1 and G2 point pa
 - JNI:
 	- javaInputBuf must be at least n*(EIP2537PreallocateForG1 + EIP2537PreallocateForG2) bytes, where n is the number of G1-G2 point pairs
 	- javaOutputBuf must be at least 32 bytes to safely store the result (0x01 for success, 0x00 otherwise)
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsPairing
@@ -519,6 +524,7 @@ eip2537blsMapFpToG1 maps a field element to a point on the G1 curve.
 - JNI:
 	- javaInputBuf must be at least EIP2537PreallocateForFp bytes to store the input field element
 	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsMapFpToG1
@@ -586,6 +592,7 @@ eip2537blsMapFp2ToG2 maps a field element in the quadratic extension field Fp^2 
 - JNI:
 	- javaInputBuf must be at least 2*EIP2537PreallocateForFp bytes to store the input Fp^2 field element (two Fp elements)
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
+	- javaOutputBuf must be zero initialized
 
 */
 //export eip2537blsMapFp2ToG2
