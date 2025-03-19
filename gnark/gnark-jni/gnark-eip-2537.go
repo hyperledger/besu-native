@@ -1015,27 +1015,45 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
+// ptrAtOffset returns a pointer to the memory location at a given offset from the base pointer.
+// `base` represents a pointer to the start of a C buffer and offset represents the number of bytes
+// to offset from the base pointer
+func ptrAtOffset(base *C.char, offset int) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(unsafe.Pointer(base)) + uintptr(offset))
+}
+
+// copyBytes copies the contents of the source byte slice into the destination C buffer,
+// starting at the specified offset.
+//
+// Note: If the source slice is empty, the function does nothing.
+func copyBytes(dst *C.char, offset int, src []byte) {
+	if len(src) == 0 {
+		return
+	}
+	C.memcpy(
+		ptrAtOffset(dst, offset),
+		unsafe.Pointer(&src[0]),
+		C.size_t(len(src)),
+	)
+}
+
 func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) error {
 	// Convert g1.X and g1.Y to big.Int using the BigInt method
 	var x big.Int
 	xVal.BigInt(&x)
 	xBytes := x.Bytes()
-	xLen := len(xBytes)
 
-	if xLen > 0 {
-		// Copy x to output at offset (64 - xLen)
-		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+64-xLen)), unsafe.Pointer(&xBytes[0]), C.size_t(xLen))
-	}
+	// Copy xBytes into the 64-byte region [outputOffset .. outputOffset+64],
+	// right-aligned so that the least significant bytes end at outputOffset+64.
+	copyBytes(output, outputOffset+64-len(xBytes), xBytes)
 
 	var y big.Int
 	yVal.BigInt(&y)
 	yBytes := y.Bytes()
-	yLen := len(yBytes)
 
-	if yLen > 0 {
-		// Copy y to output at offset (128 - yLen)
-		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+128-yLen)), unsafe.Pointer(&yBytes[0]), C.size_t(yLen))
-	}
+	// Copy yBytes into the 64-byte region [outputOffset+64 .. outputOffset+128],
+	// right-aligned so that the least significant bytes end at outputOffset+128.
+	copyBytes(output, outputOffset+128-len(yBytes), yBytes)
 	return nil
 }
 
