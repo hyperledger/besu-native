@@ -28,14 +28,12 @@ public class LibGnarkEIP2537 implements Library {
   public static final int EIP2537_PREALLOCATE_FOR_ERROR_BYTES = 256;
 
   public static final byte BLS12_G1ADD_OPERATION_SHIM_VALUE = 1;
-  public static final byte BLS12_G1MUL_OPERATION_SHIM_VALUE = 2;
-  public static final byte BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE = 3;
-  public static final byte BLS12_G2ADD_OPERATION_SHIM_VALUE = 4;
-  public static final byte BLS12_G2MUL_OPERATION_SHIM_VALUE = 5;
-  public static final byte BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE = 6;
-  public static final byte BLS12_PAIR_OPERATION_SHIM_VALUE = 7;
-  public static final byte BLS12_MAP_FP_TO_G1_OPERATION_SHIM_VALUE = 8;
-  public static final byte BLS12_MAP_FP2_TO_G2_OPERATION_SHIM_VALUE = 9;
+  public static final byte BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE = 2;
+  public static final byte BLS12_G2ADD_OPERATION_SHIM_VALUE = 3;
+  public static final byte BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE = 4;
+  public static final byte BLS12_PAIR_OPERATION_SHIM_VALUE = 5;
+  public static final byte BLS12_MAP_FP_TO_G1_OPERATION_SHIM_VALUE = 6;
+  public static final byte BLS12_MAP_FP2_TO_G2_OPERATION_SHIM_VALUE = 7;
 
   /**
    * Here as a compatibility shim for the pre-existing matter-labs implementation.
@@ -57,22 +55,10 @@ public class LibGnarkEIP2537 implements Library {
             EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
         o_len.setValue(128);
         break;
-      case  BLS12_G1MUL_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG1Mul(i, output, err, i_len,
-            EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        o_len.setValue(128);
-        break;
       case BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE:
-        // for pair count <= 2, use straight add/mul loop:
-        if (i.length <= 192 * 2) {
-         ret =  eip2537blsG1MultiExp(i, output, err, i_len,
-             EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        } else {
-          ret = eip2537blsG1MultiExpParallel(i, output, err, i_len,
-              EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
-              degreeOfMSMParallelism);
-        }
+       ret = eip2537blsG1MultiExp(i, output, err, i_len,
+          EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+          degreeOfMSMParallelism);
         o_len.setValue(128);
         break;
       case BLS12_G2ADD_OPERATION_SHIM_VALUE:
@@ -81,23 +67,10 @@ public class LibGnarkEIP2537 implements Library {
             EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
         o_len.setValue(256);
         break;
-      case BLS12_G2MUL_OPERATION_SHIM_VALUE:
-        ret = eip2537blsG2Mul(i, output, err, i_len,
-            EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-            EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        o_len.setValue(256);
-        break;
       case BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE:
-        // for pair count <= 2, use straight add/mul loop:
-        if (i.length <= 288 * 2) {
-          ret =  eip2537blsG2MultiExp(i, output, err, i_len,
-              EIP2537_PREALLOCATE_FOR_RESULT_BYTES,
-              EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        } else {
-          ret = eip2537blsG2MultiExpParallel(i, output, err, i_len,
-              EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
-              degreeOfMSMParallelism);
-        }
+        ret = eip2537blsG2MultiExp(i, output, err, i_len,
+          EIP2537_PREALLOCATE_FOR_RESULT_BYTES, EIP2537_PREALLOCATE_FOR_ERROR_BYTES,
+          degreeOfMSMParallelism);
         o_len.setValue(256);
         break;
       case BLS12_PAIR_OPERATION_SHIM_VALUE:
@@ -137,20 +110,7 @@ public class LibGnarkEIP2537 implements Library {
       byte[] output,
       byte[] error,
       int inputSize, int output_len, int err_len);
-
-  public static native int eip2537blsG1Mul(
-      byte[] input,
-      byte[] output,
-      byte[] error,
-      int inputSize, int output_len, int err_len);
-
   public static native int eip2537blsG1MultiExp(
-      byte[] input,
-      byte[] output,
-      byte[] error,
-      int inputSize, int output_len, int err_len);
-
-  public static native int eip2537blsG1MultiExpParallel(
       byte[] input,
       byte[] output,
       byte[] error,
@@ -162,20 +122,7 @@ public class LibGnarkEIP2537 implements Library {
       byte[] output,
       byte[] error,
       int inputSize, int output_len, int err_len);
-
-  public static native int eip2537blsG2Mul(
-      byte[] input,
-      byte[] output,
-      byte[] error,
-      int inputSize, int output_len, int err_len);
-
   public static native int eip2537blsG2MultiExp(
-      byte[] input,
-      byte[] output,
-      byte[] error,
-      int inputSize, int output_len, int err_len);
-
-  public static native int eip2537blsG2MultiExpParallel(
       byte[] input,
       byte[] output,
       byte[] error,
