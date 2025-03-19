@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"errors"
 	"math/big"
-	"reflect"
 	"unsafe"
 
 	"github.com/consensys/gnark-crypto/ecc"
@@ -69,179 +68,52 @@ eip2537blsG1Add adds two G1 points together and returns a G1 Point.
 //export eip2537blsG1Add
 func eip2537blsG1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Convert C pointer to input buffer into a Go slice
 	if inputLen != 2*EIP2537PreallocateForG1 {
 		copy(errorBuf, "invalid input parameters, invalid input length for G1 addition\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slices
 	input := (*[2 * EIP2537PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-	// generate p0 g1 affine
-	p0, err := g1AffineDecodeOnCurve(input[:128])
-
+	// Compute G1 Addition
+	result, err := _blsG1Add(input)
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
 
+	// Store the result of the G1 addition into the output buffer
+	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+}
+
+func _blsG1Add(input []byte) (*bls12381.G1Affine, error) {
+
+	// generate p0 g1 affine
+	p0, err := g1AffineDecodeOnCurve(input[:128])
+	if err != nil {
+		return nil, err
+	}
+
 	// generate p0 g1 affine
 	p1, err := g1AffineDecodeOnCurve(input[128:])
-
 	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
+		return nil, err
 	}
 
 	// Use the Add method to combine points
 	result := p0.Add(p0, p1)
 
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
-}
-
-/*
-eip2537blsG1Mul performs a scalar multiplication on a G1 point.
-
-- Input:
-	- javaInputBuf: Pointer to a buffer containing one G1 point and one scalar
-	- javaOutputBuf: Pointer to a buffer where the resulting G1 point will be written
-	- javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
-	- cInputLen: Length of the input buffer in bytes
-	- cOutputLen: Length of the output buffer in bytes
-	- cErrorLen: Length of the error buffer in bytes
-- Returns:
-	- zero is returned if successful, result is written to javaOutputBuf
-	- one is returned if there is an error, error message is written to javaErrorBuf
-- Cryptography:
-	- The field elements that comprise the G1 input point must be checked to be canonical.
-	- The input point must be checked to be on the curve and in the correct subgroup.
-- JNI:
-	- javaInputBuf must be at least (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) bytes
-	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
-
-*/
-
-//export eip2537blsG1Mul
-func eip2537blsG1Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
-	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
-
-	// Convert error C pointers to Go slices
-	errorBuf := castBuffer(javaErrorBuf, errorLen)
-
-	if inputLen != (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) {
-		copy(errorBuf, "invalid input parameters, invalid input length for G1 multiplication\x00")
-		return 1
-	}
-
-	// Convert input C pointers to Go slice
-	input := (*[EIP2537PreallocateForG1 + EIP2537PreallocateForScalar]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
-
-	// generate p0 g1 affine
-	p0, err := g1AffineDecodeInSubGroup(input[:128])
-
-	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
-	}
-
-	// Convert byte slice to *big.Int
-	scalar := big.NewInt(0)
-	scalar.SetBytes(input[128:160])
-
-	// multiply g1 point by scalar
-	result := p0.ScalarMultiplication(p0, scalar)
-
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	return result, nil
 }
 
 /*
 
-eip2537blsG1MultiExp performs a multi-scalar multiplication on multiple G1 points.
-
-- Input:
-	- javaInputBuf: Pointer to a buffer containing a series of G1 point and scalar pairs
-	- javaOutputBuf: Pointer to a buffer where the resulting G1 point will be written
-	- javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
-	- cInputLen: Length of the input buffer in bytes
-	- cOutputLen: Length of the output buffer in bytes
-	- cErrorLen: Length of the error buffer in bytes
-- Returns:
-	- zero is returned if successful, result is written to javaOutputBuf
-	- one is returned if there is an error, error message is written to javaErrorBuf
-- Cryptography:
-	- The field elements that comprise the G1 input points must be checked to be canonical.
-	- The scalars are not required to be canonical.
-	- All G1 input points must be checked to be on the curve and in the correct subgroup.
-- JNI:
-	- javaInputBuf must be at least n*(EIP2537PreallocateForG1 + EIP2537PreallocateForScalar) bytes, where n is the number of point-scalar pairs
-	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
-
-*/
-//export eip2537blsG1MultiExp
-func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
-	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
-
-	// Convert error C pointers to Go slices
-	errorBuf := castBuffer(javaErrorBuf, errorLen)
-
-	if inputLen == 0 {
-		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
-		return 1
-	}
-
-	if inputLen%(EIP2537PreallocateForG1+EIP2537PreallocateForScalar) != 0 {
-		copy(errorBuf, "invalid input parameters, invalid input length for G1 multiplication\x00")
-		return 1
-	}
-
-	// Convert input C pointers to Go slice
-	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
-
-	var exprCount = inputLen / (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar)
-
-	// get the first scalar mult operation
-	p0, err := g1AffineDecodeInSubGroup(input[:128])
-	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
-	}
-
-	// Convert byte slice to *big.Int and do the initial scalar multiplication
-	scalar := big.NewInt(0)
-	scalar.SetBytes(input[128:160])
-	result := p0.ScalarMultiplication(p0, scalar)
-
-	for i := 1; i < exprCount; i++ {
-		// for each subsequent operation, decode, mul, and add to the result
-		p1, err := g1AffineDecodeInSubGroup(input[i*160 : (i*160)+128])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		scalar = big.NewInt(0)
-		scalar.SetBytes(input[(i*160)+128 : (i+1)*160])
-		p1.ScalarMultiplication(p1, scalar)
-		// add to the result:
-		result = result.Add(result, p1)
-	}
-
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
-}
-
-/*
-
-eip2537blsG1MultiExpParallel performs multi-scalar multiplication on multiple G1 points in parallel.
+eip2537blsG1MultiExp performs multi-scalar multiplication on multiple G1 points in parallel.
 
 - Input:
 	- javaInputBuf: Pointer to a buffer containing a series of G1 point and scalar pairs
@@ -263,52 +135,93 @@ eip2537blsG1MultiExpParallel performs multi-scalar multiplication on multiple G1
 	- javaOutputBuf must be at least EIP2537PreallocateForG1 bytes to safely store the result
 
 */
-//export eip2537blsG1MultiExpParallel
-func eip2537blsG1MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
+//export eip2537blsG1MultiExp
+func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen == 0 {
 		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
 		return 1
 	}
-
 	if inputLen%(EIP2537PreallocateForG1+EIP2537PreallocateForScalar) != 0 {
 		copy(errorBuf, "invalid input parameters, invalid input length for G1 multiplication\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slice
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
-	var exprCount = inputLen / (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar)
-
-	g1Points := make([]bls12381.G1Affine, exprCount)
-	scalars := make([]fr.Element, exprCount)
-
-	for i := 0; i < exprCount; i++ {
-		_, err := g1AffineDecodeInSubGroupVal(&g1Points[i], input[i*160:(i*160)+128])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		scalars[i].SetBytes(input[(i*160)+128 : (i+1)*160])
-	}
-
-	var affineResult bls12381.G1Affine
-	// leave nbTasks unset, allow golang to use available cpu cores as the parallelism limit
-	_, err := affineResult.MultiExp(g1Points, scalars, ecc.MultiExpConfig{NbTasks: int(nbTasks)})
+	// Compute G1 multi-scalar multiplication in parallel
+	result, err := _blsG1MultiExp(input, int(nbTasks))
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
 
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG1(&affineResult, javaOutputBuf, errorBuf)
+	// Store the result of the G1 multi-scalar multiplication into the output buffer
+	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+}
+
+func _blsG1MultiExp(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
+	var exprCount = len(input) / (EIP2537PreallocateForG1 + EIP2537PreallocateForScalar)
+
+	// Prepare arrays for points and scalars
+	g1Points := make([]bls12381.G1Affine, exprCount)
+	scalars := make([]fr.Element, exprCount)
+
+	// Decode points and scalars
+	for i := 0; i < exprCount; i++ {
+		_, err := g1AffineDecodeInSubGroupVal(&g1Points[i], input[i*160:(i*160)+128])
+		if err != nil {
+			return nil, err
+		}
+		scalars[i].SetBytes(input[(i*160)+128 : (i+1)*160])
+	}
+
+	// When the size of the multi scalar multiplication(MSM) is 1, this corresponds to
+	// a scalar multiplication so we use the simpler scalar multiplication algorithm to
+	// compute the MSM instead of using the general MSM algorithm. This is in accordance
+	// with EIP-2537.
+	//
+	// When the MSM is of size 2 -- heuristically it has been shown to be faster than
+	// using the general MSM algorithm, so we also special case it.
+	if exprCount == 1 {
+		var result bls12381.G1Affine
+
+		var bi big.Int
+
+		scalars[0].BigInt(&bi)
+		result.ScalarMultiplication(&g1Points[0], &bi)
+
+		return &result, nil
+	} else if exprCount == 2 {
+		var result bls12381.G1Affine
+		var tmp bls12381.G1Affine
+
+		var bi big.Int
+
+		scalars[0].BigInt(&bi)
+		tmp.ScalarMultiplication(&g1Points[0], &bi)
+
+		scalars[1].BigInt(&bi)
+		result.ScalarMultiplication(&g1Points[1], &bi)
+
+		result.Add(&result, &tmp)
+
+		return &result, nil
+	}
+
+	// Perform parallel multi-exponentiation
+	var affineResult bls12381.G1Affine
+	_, err := affineResult.MultiExp(g1Points, scalars, ecc.MultiExpConfig{NbTasks: nbTasks})
+	if err != nil {
+		return nil, err
+	}
+
+	return &affineResult, nil
 }
 
 /*
@@ -337,170 +250,51 @@ eip2537blsG2Add adds two G2 points together and returns a G2 Point.
 //export eip2537blsG2Add
 func eip2537blsG2Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen != 2*EIP2537PreallocateForG2 {
 		copy(errorBuf, "invalid input parameters, invalid input length for G2 addition\x00")
 		return 1
 	}
-	// Convert input C pointers to Go slice
 	input := (*[2 * EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-	// obtain p0
+	// Compute G2 Addition
+	result, err := _blsG2Add(input)
+	if err != nil {
+		copy(errorBuf, err.Error())
+		return 1
+	}
+
+	// Store the result of the G2 addition into the output buffer
+	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+}
+
+func _blsG2Add(input []byte) (*bls12381.G2Affine, error) {
+	// Decode the first G2 point
 	p0, err := g2AffineDecodeOnCurve(input[:256])
 	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
+		return nil, err
 	}
 
-	// obtain p1
+	// Decode the second G2 point
 	p1, err := g2AffineDecodeOnCurve(input[256:])
 	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
+		return nil, err
 	}
 
-	// add p0,p1
+	// Add the G2 points
 	result := p0.Add(p0, p1)
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+
+	return result, nil
 }
 
 /*
 
-eip2537blsG2Mul performs scalar multiplication on a G2 point.
-
-- Input:
-	- javaInputBuf: Pointer to a buffer containing one G2 point and one scalar
-	- javaOutputBuf: Pointer to a buffer where the resulting G2 point will be written
-	- javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
-	- cInputLen: Length of the input buffer in bytes
-	- cOutputLen: Length of the output buffer in bytes
-	- cErrorLen: Length of the error buffer in bytes
-- Returns:
-	- zero is returned if successful, result is written to javaOutputBuf
-	- one is returned if there is an error, error message is written to javaErrorBuf
-- Cryptography:
-	- The field elements that comprise the G2 input point must be checked to be canonical.
-	- The input point must be checked to be on the curve and in the correct subgroup.
-- JNI:
-	- javaInputBuf must be at least (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) bytes
-	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
-
-*/
-//export eip2537blsG2Mul
-func eip2537blsG2Mul(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
-	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
-
-	// Convert error C pointers to Go slices
-	errorBuf := castBuffer(javaErrorBuf, errorLen)
-
-	if inputLen != EIP2537PreallocateForG2+EIP2537PreallocateForScalar {
-		copy(errorBuf, "invalid input parameters, invalid input length for G2 multiplication\x00")
-		return 1
-	}
-	// Convert input C pointers to Go slice
-	input := (*[2 * EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
-
-	// obtain p0
-	p0, err := g2AffineDecodeInSubGroup(input[:256])
-	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
-	}
-
-	// Convert byte slice to *big.Int
-	scalar := big.NewInt(0)
-	scalar.SetBytes(input[256:288])
-
-	result := p0.ScalarMultiplication(p0, scalar)
-
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
-}
-
-/*
-
-eip2537blsG2MultiExp performs multi-scalar multiplication on multiple G2 points.
-
-- Input:
-	- javaInputBuf: Pointer to a buffer containing a series of G2 point and scalar pairs
-	- javaOutputBuf: Pointer to a buffer where the resulting G2 point will be written
-	- javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
-	- cInputLen: Length of the input buffer in bytes
-	- cOutputLen: Length of the output buffer in bytes
-	- cErrorLen: Length of the error buffer in bytes
-- Returns:
-	- zero is returned if successful, result is written to javaOutputBuf
-	- one is returned if there is an error, error message is written to javaErrorBuf
-- Cryptography:
-	- The field elements that comprise the G2 input points must be checked to be canonical.
-	- Check that all input points are on the curve and in the correct subgroup.
-- JNI:
-	- javaInputBuf must be at least n*(EIP2537PreallocateForG2 + EIP2537PreallocateForScalar) bytes, where n is the number of point-scalar pairs
-	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
-
-*/
-//export eip2537blsG2MultiExp
-func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
-	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
-
-	// Convert error C pointers to Go slices
-	errorBuf := castBuffer(javaErrorBuf, errorLen)
-
-	if inputLen == 0 {
-		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
-		return 1
-	}
-
-	if inputLen%(EIP2537PreallocateForG2+EIP2537PreallocateForScalar) != 0 {
-		copy(errorBuf, "invalid input parameters, invalid input length for G2 multiplication\x00")
-		return 1
-	}
-
-	// Convert input C pointers to Go slice
-	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
-
-	var exprCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar)
-
-	// get the first scalar mult operation
-	p0, err := g2AffineDecodeInSubGroup(input[:128])
-	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
-	}
-
-	// Convert byte slice to *big.Int and do the initial scalar multiplication
-	scalar := big.NewInt(0)
-	scalar.SetBytes(input[256:288])
-	result := p0.ScalarMultiplication(p0, scalar)
-	for i := 1; i < exprCount; i++ {
-		// for each subsequent operation, decode, mul, and add to the result
-		p1, err := g2AffineDecodeInSubGroup(input[i*288 : (i*288)+256])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		scalar = big.NewInt(0)
-		scalar.SetBytes(input[(i*288)+256 : (i+1)*288])
-		p1.ScalarMultiplication(p1, scalar)
-		// add to the result:
-		result = result.Add(result, p1)
-	}
-
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
-}
-
-/*
-
-eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2 points in parallel.
+eip2537blsG2MultiExp performs multi-scalar multiplication on multiple G2 points in parallel.
 
 - Input:
 	- javaInputBuf: Pointer to a buffer containing a series of G2 point and scalar pairs
@@ -521,52 +315,93 @@ eip2537blsG2MultiExpParallel performs multi-scalar multiplication on multiple G2
 	- javaOutputBuf must be at least EIP2537PreallocateForG2 bytes to safely store the result
 
 */
-//export eip2537blsG2MultiExpParallel
-func eip2537blsG2MultiExpParallel(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
+//export eip2537blsG2MultiExp
+func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int, nbTasks C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen == 0 {
 		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
 		return 1
 	}
-
 	if inputLen%(EIP2537PreallocateForG2+EIP2537PreallocateForScalar) != 0 {
 		copy(errorBuf, "invalid input parameters, invalid input length for G2 multiplication\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slice
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
 
-	var exprCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar)
-
-	g2Points := make([]bls12381.G2Affine, exprCount)
-	scalars := make([]fr.Element, exprCount)
-
-	for i := 0; i < exprCount; i++ {
-		_, err := g2AffineDecodeInSubGroupVal(&g2Points[i], input[i*288:(i*288)+256])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		scalars[i].SetBytes(input[(i*288)+256 : (i+1)*288])
-	}
-
-	var affineResult bls12381.G2Affine
-	// leave nbTasks unset, allow golang to use available cpu cores as the parallelism limit
-	_, err := affineResult.MultiExp(g2Points, scalars, ecc.MultiExpConfig{NbTasks: int(nbTasks)})
+	// Compute G2 multi-scalar multiplication in parallel
+	result, err := _blsG2MultiExp(input, int(nbTasks))
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
 
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG2(&affineResult, javaOutputBuf, errorBuf)
+	// Store the result of the G2 multi-scalar multiplication into the output buffer
+	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+}
+
+func _blsG2MultiExp(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
+	var exprCount = len(input) / (EIP2537PreallocateForG2 + EIP2537PreallocateForScalar)
+
+	// Prepare arrays for points and scalars
+	g2Points := make([]bls12381.G2Affine, exprCount)
+	scalars := make([]fr.Element, exprCount)
+
+	// Decode points and scalars
+	for i := 0; i < exprCount; i++ {
+		_, err := g2AffineDecodeInSubGroupVal(&g2Points[i], input[i*288:(i*288)+256])
+		if err != nil {
+			return nil, err
+		}
+		scalars[i].SetBytes(input[(i*288)+256 : (i+1)*288])
+	}
+
+	// When the size of the multi scalar multiplication(MSM) is 1, this corresponds to
+	// a scalar multiplication so we use the simpler scalar multiplication algorithm to
+	// compute the MSM instead of using the general MSM algorithm. This is in accordance
+	// with EIP-2537.
+	//
+	// When the MSM is of size 2 -- heuristically it has been shown to be faster than
+	// using the general MSM algorithm, so we also special case it.
+	if exprCount == 1 {
+		var result bls12381.G2Affine
+
+		var bi big.Int
+
+		scalars[0].BigInt(&bi)
+		result.ScalarMultiplication(&g2Points[0], &bi)
+
+		return &result, nil
+	} else if exprCount == 2 {
+		var result bls12381.G2Affine
+		var tmp bls12381.G2Affine
+
+		var bi big.Int
+
+		scalars[0].BigInt(&bi)
+		tmp.ScalarMultiplication(&g2Points[0], &bi)
+
+		scalars[1].BigInt(&bi)
+		result.ScalarMultiplication(&g2Points[1], &bi)
+
+		result.Add(&result, &tmp)
+
+		return &result, nil
+	}
+
+	// Perform parallel multi-exponentiation
+	var affineResult bls12381.G2Affine
+	_, err := affineResult.MultiExp(g2Points, scalars, ecc.MultiExpConfig{NbTasks: nbTasks})
+	if err != nil {
+		return nil, err
+	}
+
+	return &affineResult, nil
 }
 
 /*
@@ -595,14 +430,13 @@ eip2537blsPairing performs a pairing check on a collection of G1 and G2 point pa
 func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
 	outputLen := int(cOutputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error and output buffers into go slices
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
-
-	// Convert output C pointers to Go slices
 	output := castBuffer(javaOutputBuf, outputLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen < (EIP2537PreallocateForG2 + EIP2537PreallocateForG1) {
 		copy(errorBuf, "invalid input parameters, invalid number of pairs\x00")
 		return 1
@@ -611,46 +445,57 @@ func eip2537blsPairing(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInput
 		copy(errorBuf, "invalid input parameters, invalid input length for pairing\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slice
 	input := castBufferToSlice(unsafe.Pointer(javaInputBuf), inputLen)
-	var pairCount = inputLen / (EIP2537PreallocateForG2 + EIP2537PreallocateForG1)
-	g1Points := make([]bls12381.G1Affine, pairCount)
-	g2Points := make([]bls12381.G2Affine, pairCount)
 
-	for i := 0; i < pairCount; i++ {
-
-		// get g1
-		g1, err := g1AffineDecodeInSubGroup(input[i*384 : i*384+128])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		// get g2
-		g2, err := g2AffineDecodeInSubGroup(input[i*384+128 : (i+1)*384])
-		if err != nil {
-			copy(errorBuf, err.Error())
-			return 1
-		}
-
-		// collect g1, g2 points
-		g1Points[i] = *g1
-		g2Points[i] = *g2
-	}
-
-	isOne, err := bls12381.PairingCheck(g1Points, g2Points)
+	// Perform pairing check
+	isOne, err := _blsPairing(input)
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
 
+	// Store the result of the pairing check into the output buffer
 	if isOne {
 		// respond with 1 if pairing check was true, leave 0's intact otherwise
 		output[31] = 0x01
 	}
 
 	return 0
+}
+
+func _blsPairing(input []byte) (bool, error) {
+	var pairCount = len(input) / (EIP2537PreallocateForG2 + EIP2537PreallocateForG1)
+
+	// Prepare arrays for G1 and G2 points
+	g1Points := make([]bls12381.G1Affine, pairCount)
+	g2Points := make([]bls12381.G2Affine, pairCount)
+
+	// Decode G1 and G2 points
+	for i := 0; i < pairCount; i++ {
+		// Decode G1 point
+		g1, err := g1AffineDecodeInSubGroup(input[i*384 : i*384+128])
+		if err != nil {
+			return false, err
+		}
+
+		// Decode G2 point
+		g2, err := g2AffineDecodeInSubGroup(input[i*384+128 : (i+1)*384])
+		if err != nil {
+			return false, err
+		}
+
+		// Store decoded points
+		g1Points[i] = *g1
+		g2Points[i] = *g2
+	}
+
+	// Perform pairing check
+	isOne, err := bls12381.PairingCheck(g1Points, g2Points)
+	if err != nil {
+		return false, err
+	}
+
+	return isOne, nil
 
 }
 
@@ -679,35 +524,46 @@ eip2537blsMapFpToG1 maps a field element to a point on the G1 curve.
 //export eip2537blsMapFpToG1
 func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen != (EIP2537PreallocateForFp) {
 		copy(errorBuf, "invalid input parameters, invalid input length for Fp to G1 to curve mapping\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slice
 	input := (*[EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-	if !isZero(input[:16]) {
-		copy(errorBuf, ErrMalformedPointPadding.Error())
-		return 1
-	}
-
-	var fp fp.Element
-	err := fp.SetBytesCanonical(input[16:64])
-
+	// Map Fp field element to a G1 point
+	result, err := _blsMapFpToG1(input)
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
 	}
 
+	// Store the result of the mapping into the output buffer
+	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+}
+
+func _blsMapFpToG1(input []byte) (*bls12381.G1Affine, error) {
+	// Check that the input has correct padding
+	if !isZero(input[:16]) {
+		return nil, ErrMalformedPointPadding
+	}
+
+	// Decode the Fp field element
+	var fp fp.Element
+	err := fp.SetBytesCanonical(input[16:64])
+	if err != nil {
+		return nil, err
+	}
+
+	// Map the field element to a G1 point
 	result := bls12381.MapToG1(fp)
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG1(&result, javaOutputBuf, errorBuf)
+
+	return &result, nil
 }
 
 /*
@@ -735,59 +591,99 @@ eip2537blsMapFp2ToG2 maps a field element in the quadratic extension field Fp^2 
 //export eip2537blsMapFp2ToG2
 func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
-	errorLen := int(cOutputLen)
+	errorLen := int(cErrorLen)
 
-	// Convert error C pointers to Go slices
+	// Convert C pointer to error buffer into a Go slice
 	errorBuf := castBuffer(javaErrorBuf, errorLen)
 
+	// Validate input length and convert C pointer to input buffer into a Go slice
 	if inputLen != (2 * EIP2537PreallocateForFp) {
 		copy(errorBuf, "invalid input parameters, invalid input length for Fp2 to G2 to curve mapping\x00")
 		return 1
 	}
-
-	// Convert input C pointers to Go slice
 	input := (*[2 * EIP2537PreallocateForFp]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
-	if hasWrongG1Padding(input) {
-		copy(errorBuf, ErrMalformedPointPadding.Error())
-		return 1
-	}
-
-	var g2 bls12381.G2Affine
-
-	err := g2.X.A0.SetBytesCanonical(input[16:64])
+	// Map Fp2 field element to a G2 point
+	result, err := _blsMapFp2ToG2(input)
 	if err != nil {
 		copy(errorBuf, err.Error())
 		return 1
+	}
+
+	// Store the result of the mapping into the output buffer
+	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+}
+
+func _blsMapFp2ToG2(input []byte) (*bls12381.G2Affine, error) {
+	// Check that the input has correct padding
+	if hasWrongG1Padding(input) {
+		return nil, ErrMalformedPointPadding
+	}
+
+	// Decode the Fp2 field element
+	var g2 bls12381.G2Affine
+	err := g2.X.A0.SetBytesCanonical(input[16:64])
+	if err != nil {
+		return nil, err
 	}
 	err = g2.X.A1.SetBytesCanonical(input[80:128])
 	if err != nil {
-		copy(errorBuf, err.Error())
-		return 1
+		return nil, err
 	}
 
+	// Map the field element to a G2 point
 	result := bls12381.MapToG2(g2.X)
-	// marshal the resulting point and encode directly to the output buffer
-	return nonMontgomeryMarshalG2(&result, javaOutputBuf, errorBuf)
+
+	return &result, nil
 }
 
-// Function to check if the first 16 bytes of a slice are zero
+// isZero checks if the first 16 bytes of a byte slice are all zeros.
+//
+// This function is used for padding verification in BLS12-381 point decoding.
+// EIP-2537 states that field elements are serialized as 48 bytes, but are expected to have
+// 16 bytes of leading zeros for 32-byte alignment.
+//
+// This function checks that the padding bytes are correctly set to zero.
 func isZero(slice []byte) bool {
 	return bytes.Equal(slice[:16], zeroSlice)
 }
 
+// hasWrongG1Padding returns true if the G1 element is not correctly padded.
+//
+// G1 elements can be represented using two 48 byte field elements (x, y). To be 32-byte
+// aligned, these two elements are zero padded by 16 bytes.
+//
+// This would look like the following: `16 zeroes + x + 16 zeroes + y`
+// where `x` and `y` are 48 bytes each
+//
+// This function checks that the zeroes are correctly placed.
 func hasWrongG1Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80])
 }
 
+// hasWrongG2Padding returns true if the G2 element is not correctly aligned.
+//
+// G2 elements can be represented in 96 bytes (2 fp elements for x, 2 fp elements for y).
+// However, to be 32 byte aligned, 16 bytes are used to pad each field element.
+//
+// This would look like the following:
+// `16 zeroes + x.a0 + 16 zeroes + x.a1 + 16 zeroes + y.a0 + 16 zeroes + y.a1`
+// where each field element is 48 bytes
+//
+// This function checks that the zeroes are correctly placed.
 func hasWrongG2Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80]) || !isZero(input[128:144]) || !isZero(input[192:208])
 }
+
+// g1AffineDecodeInSubGroup decodes a byte slice into a G1 affine point and verifies
+// that the point is on the curve and in the correct subgroup.
+//
+// Returns the decoded G1 point if successful, or an error if the decoding fails
+// or the point is not on the curve or not in the correct subgroup.
 func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 	var g1 bls12381.G1Affine
 	return g1AffineDecodeInSubGroupVal(&g1, input)
 }
-
 func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381.G1Affine, error) {
 	if hasWrongG1Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -813,6 +709,11 @@ func g1AffineDecodeInSubGroupVal(g1 *bls12381.G1Affine, input []byte) (*bls12381
 	return g1, nil
 }
 
+// g1AffineDecodeOnCurve decodes a byte slice into a G1 affine point and verifies
+// that the point is on the curve, without performing a subgroup check.
+//
+// Returns the decoded G1 point if successful, or an error if the decoding fails
+// or the point is not on the curve.
 func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	if hasWrongG1Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -837,11 +738,15 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
+// g2AffineDecodeInSubGroup decodes a byte slice into a G2 affine point and verifies
+// that the point is on the curve and in the correct subgroup.
+//
+// Returns the decoded G2 point if successful, or an error if the decoding fails
+// or the point is not on the curve or not in the correct subgroup.
 func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 	var g2 bls12381.G2Affine
 	return g2AffineDecodeInSubGroupVal(&g2, input)
 }
-
 func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381.G2Affine, error) {
 	if hasWrongG2Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -874,6 +779,11 @@ func g2AffineDecodeInSubGroupVal(g2 *bls12381.G2Affine, input []byte) (*bls12381
 	return g2, nil
 }
 
+// g2AffineDecodeOnCurve decodes a byte slice into a G2 affine point and verifies
+// that the point is on the curve, without performing a subgroup check.
+//
+// Returns the decoded G2 point if successful, or an error if the decoding fails
+// or the point is not on the curve.
 func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 	if hasWrongG2Padding(input) {
 		return nil, ErrMalformedPointPadding
@@ -903,17 +813,24 @@ func g2AffineDecodeOnCurve(input []byte) (*bls12381.G2Affine, error) {
 	return &g2, nil
 }
 
+// castBufferToSlice converts an unsafe.Pointer to a Go byte slice of specified length.
+//
+// This allows direct access to memory allocated by Java code without copying.
+//
+// SAFETY: unsafe.Slice creates a slice that directly references
+// the underlying memory. The caller must ensure that the memory remains valid for the
+// lifetime of the slice.
 func castBufferToSlice(buf unsafe.Pointer, length int) []byte {
-	var slice []byte
-	// Obtain the slice header
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&slice))
-	header.Data = uintptr(buf) // point directly to the data
-	header.Len = length        // set the length of the slice
-	header.Cap = length        // set the capacity of the slice
-
-	return slice
+	return unsafe.Slice((*byte)(buf), length)
 }
 
+// castBuffer converts a C char pointer to a Go byte slice with ensured minimum capacity.
+//
+// Unlike castBufferToSlice, this function ensures the buffer has
+// at least EIP2537PreallocateForResultBytes bytes of capacity.
+//
+// Note: The caller must ensure that the memory remains valid for the lifetime of the
+// returned slice and that no writes occur beyond the actual buffer size allocated by Java.
 func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	bufSize := length
 	if bufSize < EIP2537PreallocateForResultBytes {
@@ -922,6 +839,14 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
+// nonMontgomeryMarshal encodes a pair of base field elements as byte slices
+// in big-endian form and writes them to the output buffer at the specified offset.
+//
+// The output format follows EIP-2537 serialization, with each field element using 64 bytes,
+// (padded with 16 leading zeros). The total output size is 128 bytes
+// (64 bytes for each coordinate).
+//
+// Returns nil on success or an error if the marshaling fails.
 func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) error {
 	// Convert g1.X and g1.Y to big.Int using the BigInt method
 	var x big.Int
@@ -946,6 +871,17 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 	return nil
 }
 
+// nonMontgomeryMarshalG1 converts a G1 affine point to its serialized form following EIP-2537
+// and writes it to the output buffer.
+//
+// The G1 point is serialized as:
+// - 16 zero bytes + 48-byte x-coordinate in big-endian form
+// - 16 zero bytes + 48-byte y-coordinate in big-endian form
+//
+// The total output size is 128 bytes (EIP2537PreallocateForG1).
+//
+// Returns 0 on success or 1 if serialization fails, in which case an error
+// message is written to errorBuf.
 func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []byte) C.int {
 	if nil == nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0) {
 		return 0
@@ -955,6 +891,19 @@ func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []by
 	}
 }
 
+// nonMontgomeryMarshalG2 converts a G2 affine point to its serialized form following EIP-2537
+// and writes it to the output buffer.
+//
+// The G2 point is serialized as:
+// - 16 zero bytes + 48-byte x.a0 coordinate in big-endian form
+// - 16 zero bytes + 48-byte x.a1 coordinate in big-endian form
+// - 16 zero bytes + 48-byte y.a0 coordinate in big-endian form
+// - 16 zero bytes + 48-byte y.a1 coordinate in big-endian form
+//
+// The total output size is 256 bytes (EIP2537PreallocateForG2).
+//
+// Returns 0 on success or 1 if serialization fails, in which case an error
+// message is written to errorBuf.
 func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char, errorBuf []byte) C.int {
 	if nil == nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0) &&
 		nil == nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128) {
