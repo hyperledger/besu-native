@@ -1015,7 +1015,7 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
 	return (*[EIP2537PreallocateForResultBytes]byte)(unsafe.Pointer(javaOutputBuf))[:bufSize:bufSize]
 }
 
-func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) error {
+func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) {
 	// Convert g1.X and g1.Y to big.Int using the BigInt method
 	var x big.Int
 	xVal.BigInt(&x)
@@ -1036,26 +1036,17 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 		// Copy y to output at offset (128 - yLen)
 		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+128-yLen)), unsafe.Pointer(&yBytes[0]), C.size_t(yLen))
 	}
-	return nil
 }
 
 func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []byte) C.int {
-	if nil == nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0) {
-		return 0
-	} else {
-		copy(errorBuf, ErrMalformedOutputBytes.Error())
-		return 1
-	}
+	nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0)
+	return 0
 }
 
 func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char, errorBuf []byte) C.int {
-	if nil == nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0) &&
-		nil == nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128) {
-		return 0
-	} else {
-		copy(errorBuf, ErrMalformedOutputBytes.Error())
-		return 1
-	}
+	nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0)
+	nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128)
+	return 0
 }
 
 func main() {}
