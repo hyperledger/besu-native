@@ -89,7 +89,8 @@ func eip2537blsG1Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G1 addition into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG1(result, javaOutputBuf)
+	return 0
 }
 
 func _blsG1Add(input []byte) (*bls12381.G1Affine, error) {
@@ -164,7 +165,8 @@ func eip2537blsG1MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the G1 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG1(result, javaOutputBuf)
+	return 0
 }
 
 func _blsG1MultiExp(input []byte, nbTasks int) (*bls12381.G1Affine, error) {
@@ -273,7 +275,8 @@ func eip2537blsG2Add(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLe
 	}
 
 	// Store the result of the G2 addition into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG2(result, javaOutputBuf)
+	return 0
 }
 
 func _blsG2Add(input []byte) (*bls12381.G2Affine, error) {
@@ -346,7 +349,8 @@ func eip2537blsG2MultiExp(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the G2 multi-scalar multiplication into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG2(result, javaOutputBuf)
+	return 0
 }
 
 func _blsG2MultiExp(input []byte, nbTasks int) (*bls12381.G2Affine, error) {
@@ -550,7 +554,8 @@ func eip2537blsMapFpToG1(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInp
 	}
 
 	// Store the result of the mapping into the output buffer
-	return nonMontgomeryMarshalG1(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG1(result, javaOutputBuf)
+	return 0
 }
 
 func _blsMapFpToG1(input []byte) (*bls12381.G1Affine, error) {
@@ -618,7 +623,8 @@ func eip2537blsMapFp2ToG2(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cIn
 	}
 
 	// Store the result of the mapping into the output buffer
-	return nonMontgomeryMarshalG2(result, javaOutputBuf, errorBuf)
+	nonMontgomeryMarshalG2(result, javaOutputBuf)
+	return 0
 }
 
 func _blsMapFp2ToG2(input []byte) (*bls12381.G2Affine, error) {
@@ -854,7 +860,7 @@ func castBuffer(javaOutputBuf *C.char, length int) []byte {
 // (64 bytes for each coordinate).
 //
 // Returns nil on success or an error if the marshaling fails.
-func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) error {
+func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset int) {
 	// Convert g1.X and g1.Y to big.Int using the BigInt method
 	var x big.Int
 	xVal.BigInt(&x)
@@ -875,7 +881,6 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 		// Copy y to output at offset (128 - yLen)
 		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+128-yLen)), unsafe.Pointer(&yBytes[0]), C.size_t(yLen))
 	}
-	return nil
 }
 
 // nonMontgomeryMarshalG1 converts a G1 affine point to its serialized form following EIP-2537
@@ -886,16 +891,8 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 // - 16 zero bytes + 48-byte y-coordinate in big-endian form
 //
 // The total output size is 128 bytes (EIP2537PreallocateForG1).
-//
-// Returns 0 on success or 1 if serialization fails, in which case an error
-// message is written to errorBuf.
-func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []byte) C.int {
-	if nil == nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0) {
-		return 0
-	} else {
-		copy(errorBuf, ErrMalformedOutputBytes.Error())
-		return 1
-	}
+func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char) {
+	nonMontgomeryMarshal(&g1.X, &g1.Y, output, 0)
 }
 
 // nonMontgomeryMarshalG2 converts a G2 affine point to its serialized form following EIP-2537
@@ -908,17 +905,9 @@ func nonMontgomeryMarshalG1(g1 *bls12381.G1Affine, output *C.char, errorBuf []by
 // - 16 zero bytes + 48-byte y.a1 coordinate in big-endian form
 //
 // The total output size is 256 bytes (EIP2537PreallocateForG2).
-//
-// Returns 0 on success or 1 if serialization fails, in which case an error
-// message is written to errorBuf.
-func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char, errorBuf []byte) C.int {
-	if nil == nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0) &&
-		nil == nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128) {
-		return 0
-	} else {
-		copy(errorBuf, ErrMalformedOutputBytes.Error())
-		return 1
-	}
+func nonMontgomeryMarshalG2(g2 *bls12381.G2Affine, output *C.char) {
+	nonMontgomeryMarshal(&g2.X.A0, &g2.X.A1, output, 0)
+	nonMontgomeryMarshal(&g2.Y.A0, &g2.Y.A1, output, 128)
 }
 
 func main() {}
