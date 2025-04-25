@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* perf: use latest gnark-crypto 0.17 [#262](https://github.com/hyperledger/besu-native/pull/262)
 
 # 1.3.0
 Pectra ready mainnet support release
