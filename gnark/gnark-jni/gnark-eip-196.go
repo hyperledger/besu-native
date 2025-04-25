@@ -311,13 +311,10 @@ func safeUnmarshalG2EIP196(g2 *bn254.G2Affine, input []byte) error {
 	g2.Y.A1.SetBytesCanonical(input[64:96])
 	g2.Y.A0.SetBytesCanonical(input[96:128])
 
-	// do combined subgroup/curve check first:
+	if !g2.IsOnCurve() {
+		return ErrPointOnCurveCheckFailedEIP196
+	}
 	if !g2.IsInSubGroup() {
-
-		// re-check point on curve to correctly attribute error
-		if !g2.IsOnCurve() {
-			return ErrPointOnCurveCheckFailedEIP196
-		}
 		return ErrPointInSubgroupCheckFailedEIP196
 	}
 
