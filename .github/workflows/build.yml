@@ -8,23 +8,24 @@ on:
 
 jobs:
   native-build-linux-x86-64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
     env:
       SKIP_GRADLE: true
     steps:
       - name: Prepare
         run: |
           # secp256k1 dependencies
-          sudo apt-get update
-          sudo apt upgrade -y
-          sudo apt-get install -y autoconf build-essential libtool automake patchelf
-          sudo apt autoremove -y
+          apt-get update
+          apt upgrade -y
+          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake patchelf wget git curl openjdk-21-jdk
+          apt autoremove -y
+          echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
           wget https://go.dev/dl/go1.24.1.linux-amd64.tar.gz
           echo "cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073 go1.24.1.linux-amd64.tar.gz" | sha256sum -c || exit 1
-          tar -xzf go1.24.1.linux-amd64.tar.gz
-          export GOROOT=$(pwd)/go
-          export PATH=$GOROOT/bin:$PATH
+          tar -xzf go1.24.1.linux-amd64.tar.gz -C /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
@@ -283,7 +284,7 @@ jobs:
           path: constantine/build/
 
   final-assembly:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs:
       - native-build-macos
       - native-build-m1
