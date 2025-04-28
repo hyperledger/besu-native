@@ -833,7 +833,14 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 
 	if xLen > 0 {
 		// Copy x to output at offset (64 - xLen)
-		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+64-xLen)), unsafe.Pointer(&xBytes[0]), C.size_t(xLen))
+
+		// Calculate source and destination addresses
+		srcPtr := unsafe.Pointer(&xBytes[0])
+		destAddr := uintptr(unsafe.Pointer(output)) + uintptr(outputOffset+64-xLen)
+		destPtr := unsafe.Pointer(destAddr)
+
+		// Copy from source to destination
+		C.memcpy(destPtr, srcPtr, C.size_t(xLen))
 	}
 
 	var y big.Int
@@ -843,7 +850,14 @@ func nonMontgomeryMarshal(xVal, yVal *fp.Element, output *C.char, outputOffset i
 
 	if yLen > 0 {
 		// Copy y to output at offset (128 - yLen)
-		C.memcpy(unsafe.Pointer(uintptr(unsafe.Pointer(output))+uintptr(outputOffset+128-yLen)), unsafe.Pointer(&yBytes[0]), C.size_t(yLen))
+
+		// Calculate source and destination addresses
+		srcPtr := unsafe.Pointer(&yBytes[0])
+		destAddr := uintptr(unsafe.Pointer(output)) + uintptr(outputOffset+128-yLen)
+		destPtr := unsafe.Pointer(destAddr)
+
+		// Copy from source to destination
+		C.memcpy(destPtr, srcPtr, C.size_t(yLen))
 	}
 }
 
