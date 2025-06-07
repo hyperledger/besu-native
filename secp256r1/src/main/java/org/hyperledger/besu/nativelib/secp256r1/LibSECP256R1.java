@@ -49,13 +49,25 @@ public class LibSECP256R1 {
     }
 
     public boolean verify(final byte[] dataHash, final byte[] signatureR, final byte[] signatureS,
-                          final byte[] publicKey) throws IllegalArgumentException {
-        final VerifyResultByValue result = BesuNativeEC.p256_verify(
+        final byte[] publicKey) throws IllegalArgumentException {
+        return verify(dataHash, signatureR, signatureS, publicKey, false);
+    }
+
+    public boolean verify(final byte[] dataHash, final byte[] signatureR, final byte[] signatureS,
+        final byte[] publicKey, final boolean allowMalleable) throws IllegalArgumentException {
+        VerifyResultByValue result;
+        if (!allowMalleable) {
+            result = BesuNativeEC.p256_verify(dataHash, dataHash.length,
+                convertToNativeRepresentation(signatureR),
+                convertToNativeRepresentation(signatureS), publicKey);
+        } else {
+            result = BesuNativeEC.p256_verify_malleable_signature(
                 dataHash,
                 dataHash.length,
                 convertToNativeRepresentation(signatureR),
                 convertToNativeRepresentation(signatureS),
                 publicKey);
+        }
 
         if (result.verified < 0) {
             String errorMessage = (new String(result.error_message)).trim();

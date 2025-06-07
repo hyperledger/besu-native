@@ -16,6 +16,7 @@
 package org.hyperledger.besu.nativelib.secp256r1;
 
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.assertj.core.util.Hexadecimals;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LibSECP256R1Test {
     final private LibSECP256R1 libSecp256r1 = new LibSECP256R1();
@@ -57,6 +59,35 @@ public class LibSECP256R1Test {
 
 
         assertThat(verified).isTrue();
+    }
+
+    @Test
+    public void verify_malleated_signature() {
+        var order = UInt256.fromHexString(
+            "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
+        var malleatedSignatureS = order.subtract(UInt256.fromBytes(signatureS));
+
+        boolean verified = libSecp256r1.verify(
+            dataHash,
+            signatureR.toArrayUnsafe(),
+            malleatedSignatureS.toArrayUnsafe(),
+            publicKey.toArrayUnsafe(),
+            true
+        );
+
+        assertThat(verified).isTrue();
+
+        // assert that canonical verification fails:
+        assertThatThrownBy(() ->
+            libSecp256r1.verify(
+                dataHash,
+                signatureR.toArrayUnsafe(),
+                malleatedSignatureS.toArrayUnsafe(),
+                publicKey.toArrayUnsafe(),
+                false
+            )
+        ).isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Signature is not canonicalized. s of signature must not be greater than n / 2: : error:00000000:lib(0)::reason(0)");
     }
 
     @Test

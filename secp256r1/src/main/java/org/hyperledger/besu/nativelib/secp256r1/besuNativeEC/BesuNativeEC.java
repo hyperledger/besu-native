@@ -50,4 +50,9 @@ public class BesuNativeEC implements Library {
 	 * Original signature : <code>verify_result p256_verify(const char[], const int, const char[], const char[], const char[])</code><br>
 	 */
 	public static native VerifyResultByValue p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
+
+	/**
+	 * Original signature : <code>verify_result p256_verify_malleable_signature(const char[], const int, const char[], const char[], const char[])</code><br>
+	 */
+	public static native VerifyResultByValue p256_verify_malleable_signature(byte[] data_hash, int data_hash_length, byte[] signature_r, byte[] signature_s, byte[] public_key_data);
 }
