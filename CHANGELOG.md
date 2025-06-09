@@ -1,7 +1,17 @@
 # Changelog
 
 # Unreleased
+
+# 1.3.1
 * perf: use latest gnark-crypto 0.17 [#262](https://github.com/hyperledger/besu-native/pull/262)
+* tasks: clean-up for easier auditability
+  * [#263](https://github.com/hyperledger/besu-native/pull/263)
+  * [#264](https://github.com/hyperledger/besu-native/pull/264)
+  * [#265](https://github.com/hyperledger/besu-native/pull/265)
+  * [#266](https://github.com/hyperledger/besu-native/pull/266)
+  * [#267](https://github.com/hyperledger/besu-native/pull/267)
+  * [#268](https://github.com/hyperledger/besu-native/pull/268)
+* add malleable signature support for secp256r1 curve [#270](https://github.com/hyperledger/besu-native/pull/270)
 
 # 1.3.0
 Pectra ready mainnet support release
