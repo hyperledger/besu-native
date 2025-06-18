@@ -1,158 +1,111 @@
 #include "p256_verify.h"
+
 #include <openssl/bn.h>
-
-
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
 #include <openssl/mem.h>
 #include <string.h>
+#include <stdio.h>
 
+#define P256_KEY_LEN 65
+#define P256_COORD_LEN 32
 
-static void print_hex(const char *label, const uint8_t *data, size_t len) {
-    fprintf(stderr, "%s [%zu]: ", label, len);
-    for (size_t i = 0; i < len; ++i) {
-        fprintf(stderr, "%02x", data[i]);
-    }
-    fprintf(stderr, "\n");
-}
+#define RESULT_OK ((verify_result_ex){0, ""})
+#define RESULT_INVALID(msg) ((verify_result_ex){1, msg})
+#define RESULT_ERROR(msg) ((verify_result_ex){2, msg})
 
-verify_result p256_verify_malleable_signature(
+verify_result_ex p256_verify_malleable_signature(
     const char data_hash[], int data_hash_length,
     const char signature_r[], const char signature_s[],
-    const char public_key_data[]) {
-
-//    fprintf(stderr, "=== p256_verify_malleable_signature ===\n");
-//
-//    print_hex("data_hash", (const uint8_t *)data_hash, data_hash_length);
-//    print_hex("signature_r", (const uint8_t *)signature_r, 32);
-//    print_hex("signature_s", (const uint8_t *)signature_s, 32);
-//    print_hex("public_key", (const uint8_t *)public_key_data, 64);
-//    fflush(stderr);
-    verify_result result = VERIFY_ERROR;
-
+    const char public_key_data[])
+{
     EC_KEY *ec_key = NULL;
+    EC_POINT *point = NULL;
     ECDSA_SIG *sig = NULL;
+    BIGNUM *r = NULL, *s = NULL, *order = NULL, *half_order = NULL;
+    BN_CTX *ctx = NULL;
 
-    // Constants: P-256 key and signature sizes
-    const size_t key_len = 65;       // uncompressed 0x04 + 32-byte X + 32-byte Y
-    const size_t coord_len = 32;
-
-    if (!data_hash || !signature_r || !signature_s || !public_key_data || data_hash_length != 32) {
-//        fprintf(stderr, "something wrong with params.\n");
-//        fflush(stderr);
-        return VERIFY_ERROR;
+    if (!data_hash || !signature_r || !signature_s || !public_key_data) {
+        return RESULT_ERROR("null input");
+    }
+    if (data_hash_length != 32) {
+        return RESULT_ERROR("invalid hash length");
+    }
+    if ((unsigned char)public_key_data[0] != 0x04) {
+        return RESULT_INVALID("public key must start with 0x04");
     }
 
-    // Construct EC_KEY from uncompressed public key bytes
     const EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
-    if (!group) {
-//        fprintf(stderr, "Failed to get curve by group name.\n");
-//        fflush(stderr);
-        goto cleanup;
-    }
-
-    const BIGNUM *order = EC_GROUP_get0_order(group);
-    char *order_str = BN_bn2hex(order);
-//    fprintf(stderr, "curve order: %s\n", order_str);
-    OPENSSL_free(order_str);
+    if (!group) return RESULT_ERROR("EC_GROUP allocation failed");
 
     ec_key = EC_KEY_new();
-    if (!ec_key) {
-//        fprintf(stderr, "Failed to allocate ec_key.\n");
-//        fflush(stderr);
-        goto cleanup;
+    if (!ec_key || EC_KEY_set_group(ec_key, group) != 1) return RESULT_ERROR("EC_KEY init failed");
+
+    point = EC_POINT_new(group);
+    if (!point) return RESULT_ERROR("EC_POINT allocation failed");
+
+    if (!EC_POINT_oct2point(group, point, (const uint8_t *)public_key_data, P256_KEY_LEN, NULL)) {
+        return RESULT_INVALID("failed to parse public key point");
     }
 
-    if (EC_KEY_set_group(ec_key, group) != 1) {
-//        fprintf(stderr, "Failed to set group for ec_key.\n");
-//        fflush(stderr);
-        goto cleanup;
+    if (EC_POINT_is_at_infinity(group, point)) {
+        return RESULT_INVALID("public key is at infinity");
     }
 
-    EC_POINT *point = EC_POINT_new(group);
-    if (!point) {
-//        fprintf(stderr, "Failed to create ec_point.\n");
-//        fflush(stderr);
-        goto cleanup;
-    }
-
-    // Expect 65-byte uncompressed key: 0x04 || X || Y
-    if (public_key_data[0] != 0x04) {
-//        fprintf(stderr, "public key byte 0 is not 0x04.\n");
-//        fflush(stderr);
-        goto cleanup;
-    }
-
-    if (!EC_POINT_oct2point(group, point,
-                             (const uint8_t *)public_key_data, key_len, NULL)) {
-//        fprintf(stderr, "Failed to parse public key point.\n");
-//        fflush(stderr);
-        EC_POINT_free(point);
-        goto cleanup;
+    if (!EC_POINT_is_on_curve(group, point, NULL)) {
+        return RESULT_INVALID("public key not on curve");
     }
 
     if (EC_KEY_set_public_key(ec_key, point) != 1) {
-//        fprintf(stderr, "Failed to set public key point.\n");
-//        fflush(stderr);
-        EC_POINT_free(point);
-        goto cleanup;
+        return RESULT_ERROR("failed to assign public key to EC_KEY");
     }
 
-    EC_POINT_free(point);
+    r = BN_bin2bn((const uint8_t *)signature_r, P256_COORD_LEN, NULL);
+    s = BN_bin2bn((const uint8_t *)signature_s, P256_COORD_LEN, NULL);
+    if (!r || !s) return RESULT_ERROR("failed to parse r or s");
 
-    // Build ECDSA_SIG from r and s
+    ctx = BN_CTX_new();
+    order = BN_new();
+    half_order = BN_new();
+    if (!ctx || !order || !half_order) return RESULT_ERROR("BN context allocation failed");
+
+    if (EC_GROUP_get_order(group, order, ctx) != 1) return RESULT_ERROR("failed to get group order");
+    if (!BN_rshift1(half_order, order)) return RESULT_ERROR("failed to compute n/2");
+
+    if (BN_is_zero(r) || BN_is_negative(r) || BN_cmp(r, order) >= 0) {
+        return RESULT_INVALID("invalid r: must satisfy 0 < r < n");
+    }
+    if (BN_is_zero(s) || BN_is_negative(s) || BN_cmp(s, order) >= 0) {
+        return RESULT_INVALID("invalid s: must satisfy 0 < s < n");
+    }
+
+    // Canonicalize s if necessary
+    if (BN_cmp(s, half_order) > 0) {
+        BIGNUM *new_s = BN_new();
+        if (!new_s || !BN_sub(new_s, order, s)) {
+            BN_free(new_s);
+            return RESULT_ERROR("failed to canonicalize s");
+        }
+        BN_free(s);
+        s = new_s;
+    }
+
     sig = ECDSA_SIG_new();
-    if (!sig) {
-//        fprintf(stderr, "Failed to create sig.\n");
-//        fflush(stderr);
-        goto cleanup;
+    if (!sig || ECDSA_SIG_set0(sig, r, s) != 1) {
+        BN_free(r);
+        BN_free(s);
+        return RESULT_ERROR("failed to create ECDSA_SIG");
     }
+    r = NULL; // now owned by sig
+    s = NULL;
 
-    BIGNUM *r = BN_bin2bn((const uint8_t *)signature_r, coord_len, NULL);
-    BIGNUM *s = BN_bin2bn((const uint8_t *)signature_s, coord_len, NULL);
-    if (!r || !s) {
-//        fprintf(stderr, "!r or !s.\n");
-//        fflush(stderr);
-        goto cleanup;
-    }
-//    if (BN_cmp(r, BN_value_one()) >= 0 || BN_cmp(r, order) < 0) {
-//        fprintf(stderr, "failed r check");
-//        char *r_str = BN_bn2hex(r);
-//        char *order_str = BN_bn2hex(order);
-//        fprintf(stderr, "r = %s\n", r_str);
-//        fprintf(stderr, "n = %s\n", order_str);
-//        OPENSSL_free(r_str);
-//        OPENSSL_free(order_str);
-//    }
-
-
-    if (ECDSA_SIG_set0(sig, r, s) != 1) {
-//        fprintf(stderr, "Failed to set ecdsa_sig.\n");
-//        fflush(stderr);
-        BN_free(r); BN_free(s);
-        goto cleanup;
-    }
-
-    // Perform verification
     int verify_status = ECDSA_do_verify((const uint8_t *)data_hash, data_hash_length, sig, ec_key);
     if (verify_status == 1) {
-//        fprintf(stderr, "verify ok, result ok.\n");
-//        fflush(stderr);
-        result = VERIFY_OK;
+        return RESULT_OK;
     } else if (verify_status == 0) {
-//        fprintf(stderr, "verify false, result ok.\n");
-//        fflush(stderr);
-        result = VERIFY_INVALID;
+        return RESULT_INVALID("signature verification failed");
     } else {
-//        fprintf(stderr, "verify false, result error.\n");
-//        fflush(stderr);
-        result = VERIFY_ERROR;
+        return RESULT_ERROR("internal error during signature verification");
     }
-
-cleanup:
-    ECDSA_SIG_free(sig);
-    EC_KEY_free(ec_key);
-    return result;
 }
-
