@@ -29,9 +29,11 @@ verify_result_ex p256_verify_malleable_signature(
     if (!data_hash || !signature_r || !signature_s || !public_key_data) {
         return RESULT_ERROR("null input");
     }
+
     if (data_hash_length != 32) {
         return RESULT_ERROR("invalid hash length");
     }
+
     if ((unsigned char)public_key_data[0] != 0x04) {
         return RESULT_INVALID("public key must start with 0x04");
     }
@@ -49,10 +51,10 @@ verify_result_ex p256_verify_malleable_signature(
         return RESULT_INVALID("failed to parse public key point");
     }
 
-    if (EC_POINT_is_at_infinity(group, point)) {
-        return RESULT_INVALID("public key is at infinity");
-    }
-
+//    if (EC_POINT_is_at_infinity(group, point)) {
+//        return RESULT_INVALID("public key is at infinity");
+//    }
+//
     if (!EC_POINT_is_on_curve(group, point, NULL)) {
         return RESULT_INVALID("public key not on curve");
     }
@@ -64,32 +66,6 @@ verify_result_ex p256_verify_malleable_signature(
     r = BN_bin2bn((const uint8_t *)signature_r, P256_COORD_LEN, NULL);
     s = BN_bin2bn((const uint8_t *)signature_s, P256_COORD_LEN, NULL);
     if (!r || !s) return RESULT_ERROR("failed to parse r or s");
-
-    ctx = BN_CTX_new();
-    order = BN_new();
-    half_order = BN_new();
-    if (!ctx || !order || !half_order) return RESULT_ERROR("BN context allocation failed");
-
-    if (EC_GROUP_get_order(group, order, ctx) != 1) return RESULT_ERROR("failed to get group order");
-    if (!BN_rshift1(half_order, order)) return RESULT_ERROR("failed to compute n/2");
-
-    if (BN_is_zero(r) || BN_is_negative(r) || BN_cmp(r, order) >= 0) {
-        return RESULT_INVALID("invalid r: must satisfy 0 < r < n");
-    }
-    if (BN_is_zero(s) || BN_is_negative(s) || BN_cmp(s, order) >= 0) {
-        return RESULT_INVALID("invalid s: must satisfy 0 < s < n");
-    }
-
-    // Canonicalize s if necessary
-    if (BN_cmp(s, half_order) > 0) {
-        BIGNUM *new_s = BN_new();
-        if (!new_s || !BN_sub(new_s, order, s)) {
-            BN_free(new_s);
-            return RESULT_ERROR("failed to canonicalize s");
-        }
-        BN_free(s);
-        s = new_s;
-    }
 
     sig = ECDSA_SIG_new();
     if (!sig || ECDSA_SIG_set0(sig, r, s) != 1) {
