@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hyperledger.besu.nativelib.boringssl.LibP256Verify.prefixPublicKey;
 
 public class P256VerifyTest {
 
@@ -52,12 +53,11 @@ public class P256VerifyTest {
 
   @Test
   public void verifyValidSignatureSucceeds() {
-    var res = LibP256Verify.p256_verify(
+    var res = LibP256Verify.p256Verify(
         dataHash,
-        dataHash.length,
         signatureR.toArrayUnsafe(),
         signatureS.toArrayUnsafe(),
-        dryPrefixPubKeyWithType(publicKey));
+        prefixPublicKey(publicKey.toArrayUnsafe()));
 
     assertThat(res.status).isEqualTo(0);
   }
@@ -68,12 +68,11 @@ public class P256VerifyTest {
         UInt256.fromHexString("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
     var malleatedSignatureS = order.subtract(UInt256.fromBytes(signatureS));
 
-    var res = LibP256Verify.p256_verify(
+    var res = LibP256Verify.p256Verify(
         dataHash,
-        dataHash.length,
         signatureR.toArrayUnsafe(),
         malleatedSignatureS.toArrayUnsafe(),
-        dryPrefixPubKeyWithType(publicKey));
+        prefixPublicKey(publicKey.toArrayUnsafe()));
 
     assertThat(res.status).isEqualTo(0);
   }
@@ -81,32 +80,25 @@ public class P256VerifyTest {
   @Test
   public void verifyShouldReturnErrorIfSignatureIsInvalid() {
     var res =
-        LibP256Verify.p256_verify(
+        LibP256Verify.p256Verify(
             dataHash,
-            dataHash.length,
             invalidSignatureR.toArrayUnsafe(),
             signatureS.toArrayUnsafe(),
-            dryPrefixPubKeyWithType(publicKey));
+            prefixPublicKey(publicKey.toArrayUnsafe()));
 
     assertThat(res.status).isEqualTo(1);
   }
 
   @Test
   public void verifyShouldThrowExceptionIfAnyOtherParameterIsInvalid() {
-    var res = LibP256Verify.p256_verify(
+    var res = LibP256Verify.p256Verify(
         dataHash,
-        dataHash.length,
         signatureR.toArrayUnsafe(),
         signatureS.toArrayUnsafe(),
-        dryPrefixPubKeyWithType(invalidPublicKey));
+        prefixPublicKey(invalidPublicKey.toArrayUnsafe()));
 
     assertThat(res.status).isEqualTo(1);
     assertThat(res.message).isEqualTo("failed to parse public key point");
   }
 
-  //TODO: this should be either moved to p256verify or put in the jni wrapper class.
-  //      BoringSSL wants a 0x04 type prefix.
-  byte[] dryPrefixPubKeyWithType(Bytes publicKey) {
-    return Bytes.concatenate(Bytes.of((byte) 0x04), publicKey).toArrayUnsafe();
-  }
 }
