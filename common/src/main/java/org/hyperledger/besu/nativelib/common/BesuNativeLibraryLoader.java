@@ -46,7 +46,8 @@ public class BesuNativeLibraryLoader {
         NativeLibrary lib = NativeLibrary.getInstance(libPath.get().toString());
         Native.register(jnaClass, lib);
       } else {
-        throw new UnsatisfiedLinkError();
+        // fallback: try loading from library name via JNA
+        Native.register(jnaClass, libraryName);
       }
     } catch (UnsatisfiedLinkError __) {
         String exceptionMessage =

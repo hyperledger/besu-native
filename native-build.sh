@@ -1,6 +1,6 @@
 #!/bin/bash
 apt-get update
-DEBIAN_FRONTEND=non-interactive apt-get install -y autoconf build-essential libtool automake patchelf curl openjdk-21-jdk git wget
+DEBIAN_FRONTEND=non-interactive apt-get install -y autoconf build-essential libtool automake patchelf curl openjdk-21-jdk git wget cmake
 export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
 export PATH=$JAVA_HOME/bin:$PATH
 wget https://go.dev/dl/go1.24.1.linux-arm64.tar.gz

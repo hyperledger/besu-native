@@ -358,6 +358,30 @@ build_constantine() {
  fi
 }
 
+build_boringssl() {
+
+  cat <<EOF
+  #############################
+  ###### build boringssl ######
+  #############################
+EOF
+
+  # build boring ssl static lib from submodule:
+  cd "$SCRIPTDIR/boringssl/google-boringssl/"
+  rm -rf build && mkdir build
+  #-fPIC is redundant on macos, but required for building on linux
+  cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release
+  make -C build
+
+  # build boringssl_jni shared lib linked against boringssl static lib
+  cd "$SCRIPTDIR/boringssl/boringssl_jni/"
+  make clean && make
+
+  # copy the result into OSARCH specific directories, for CI
+  mkdir -p "$SCRIPTDIR/boringssl/build/${OSARCH}/lib"
+  cp build/libp256verify.* "$SCRIPTDIR/boringssl/build/${OSARCH}/lib"
+}
+
 
 build_blake2bf
 build_secp256k1
@@ -366,7 +390,7 @@ build_ipa_multipoint
 build_secp256r1
 build_gnark
 build_constantine
-
+build_boringssl
 
 build_jars
 exit
