@@ -31,31 +31,31 @@ dependencies {
 }
 
 task macArmLibCopy(type: Copy) {
-    from 'boringssl_jni/build/darwin-aarch64/lib/libp256verify.dylib'
+    from 'build/darwin-aarch64/lib/libp256verify.dylib'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
-    from 'boringssl_jni/build/darwin-x86-64/lib/libp256verify.dylib'
+    from 'build/darwin-x86-64/lib/libp256verify.dylib'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-    from 'boringssl_jni/build/linux-gnu-x86_64/lib/libp256verify.so'
+    from 'build/linux-gnu-x86_64/lib/libp256verify.so'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-    from 'boringssl_jni/build/linux-gnu-aarch64/lib/libp256verify.so'
+    from 'build/linux-gnu-aarch64/lib/libp256verify.so'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
-    from 'boringssl_jni/build/linux-gnu-riscv64/lib/libp256verify.so'
+    from 'build/linux-gnu-riscv64/lib/libp256verify.so'
     into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
@@ -138,9 +138,3 @@ artifactory {
         }
     }
 }
-
-//TODO: why is this necessary?
-//test {
-//    systemProperty "jna.library.path", "$project.projectDir/build/darwin-aarch64/lib"
-//    jvmArgs "-Djna.debug_load=true", "-Djna.debug_load.jna=true"
-//}
