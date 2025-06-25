@@ -140,7 +140,7 @@ artifactory {
 }
 
 //TODO: why is this necessary?
-test {
-    systemProperty "jna.library.path", "$project.projectDir/build/darwin-aarch64/lib"
-    jvmArgs "-Djna.debug_load=true", "-Djna.debug_load.jna=true"
-}
+//test {
+//    systemProperty "jna.library.path", "$project.projectDir/build/darwin-aarch64/lib"
+//    jvmArgs "-Djna.debug_load=true", "-Djna.debug_load.jna=true"
+//}
