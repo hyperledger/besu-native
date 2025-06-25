@@ -15,7 +15,7 @@
 #define RESULT_INVALID(msg) ((verify_result_ex){1, msg})
 #define RESULT_ERROR(msg) ((verify_result_ex){2, msg})
 
-verify_result_ex p256_verify_malleable_signature(
+verify_result_ex p256_verify(
     const char data_hash[], int data_hash_length,
     const char signature_r[], const char signature_s[],
     const char public_key_data[])

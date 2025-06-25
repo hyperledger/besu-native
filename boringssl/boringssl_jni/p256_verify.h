@@ -14,7 +14,7 @@ typedef struct {
 // Verifies a P-256 signature (r, s) on data_hash using an uncompressed public key.
 // All inputs are raw big-endian byte arrays.
 // Returns a verify_result_ex struct with status and diagnostic message.
-verify_result_ex p256_verify_malleable_signature(
+verify_result_ex p256_verify(
     const char data_hash[], int data_hash_length,
     const char signature_r[], const char signature_s[],
     const char public_key_data[]);
