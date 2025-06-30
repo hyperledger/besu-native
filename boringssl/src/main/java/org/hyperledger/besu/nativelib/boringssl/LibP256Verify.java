@@ -44,6 +44,10 @@ public class LibP256Verify {
 
     byte[] errorBuf = new byte[ERROR_BUF_SIZE];
 
+    if (dataHash == null) {
+      return new Result(2, "null message hash");
+    }
+
     int status = p256_verify(dataHash, dataHash.length, signatureR, signatureS, publicKey, errorBuf,
         ERROR_BUF_SIZE);
 
