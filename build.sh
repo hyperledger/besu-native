@@ -111,6 +111,30 @@ EOF
     ./configure --prefix="$SCRIPTDIR/secp256k1/build/${OSARCH}" $SECP256K1_BUILD_OPTS && \
     make -j $CORE_COUNT && \
     make -j $CORE_COUNT install
+
+  # Build the JNI ECRECOVER extension
+  cat <<EOF
+  ####################################
+  ###### build secp256k1 JNI ########
+  ####################################
+EOF
+
+  cd "$SCRIPTDIR/secp256k1/secp256k1_jni"
+  
+  # Ensure secp256k1 library is built first
+  export SECP256K1_LIB_PATH="$SCRIPTDIR/secp256k1/bitcoin-core-secp256k1"
+  
+  # Clean and build
+  make clean || true
+  make
+  
+  # Copy results to build directory
+  mkdir -p "$SCRIPTDIR/secp256k1/build/${OSARCH}/lib"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cp build/*/lib/libsecp256k1_ecrecover.dylib "$SCRIPTDIR/secp256k1/build/${OSARCH}/lib/"
+  else
+    cp build/*/lib/libsecp256k1_ecrecover.so "$SCRIPTDIR/secp256k1/build/${OSARCH}/lib/"
+  fi
 }
 
 build_arithmetic() {

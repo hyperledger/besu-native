@@ -22,6 +22,10 @@ plugins {
 dependencies {
   implementation project(':common')
   implementation 'net.java.dev.jna:jna:5.12.1'
+  testImplementation 'net.java.dev.jna:jna:5.12.1'
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'org.assertj:assertj-core:3.22.0'
+  testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
 task macArmLibCopy(type: Copy) {
@@ -53,6 +57,37 @@ task linuxRiscv64LibCopy(type: Copy) {
   into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
+
+// JNI library copy tasks
+task macArmJNILibCopy(type: Copy) {
+  from 'secp256k1_jni/build/darwin-aarch64/lib/libsecp256k1_ecrecover.dylib'
+  into 'build/resources/main/lib/aarch64'
+}
+processResources.dependsOn macArmJNILibCopy
+
+task macJNILibCopy(type: Copy) {
+  from 'secp256k1_jni/build/darwin-x86_64/lib/libsecp256k1_ecrecover.dylib'
+  into 'build/resources/main/lib/x86-64'
+}
+processResources.dependsOn macJNILibCopy
+
+task linuxJNILibCopy(type: Copy) {
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/libsecp256k1_ecrecover.so'
+  into 'build/resources/main/lib/x86-64'
+}
+processResources.dependsOn linuxJNILibCopy
+
+task linuxArm64JNILibCopy(type: Copy) {
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/libsecp256k1_ecrecover.so'
+  into 'build/resources/main/lib/aarch64'
+}
+processResources.dependsOn linuxArm64JNILibCopy
+
+task linuxRiscv64JNILibCopy(type: Copy) {
+  from 'build/linux-gnu-riscv64/lib/libsecp256k1_ecrecover.so'
+  into 'build/resources/main/lib/riscv64'
+}
+processResources.dependsOn linuxRiscv64JNILibCopy
 
 jar {
   archiveBaseName = 'besu-native-secp256k1'
@@ -130,4 +165,10 @@ artifactory {
       publishPom = true
     }
   }
+}
+
+
+test {
+    systemProperty "jna.library.path", "$project.projectDir/build/darwin-aarch64/lib"
+    jvmArgs "-Djna.debug_load=true", "-Djna.debug_load.jna=true"
 }
