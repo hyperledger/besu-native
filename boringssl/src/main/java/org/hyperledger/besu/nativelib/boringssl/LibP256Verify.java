@@ -3,6 +3,7 @@ package org.hyperledger.besu.nativelib.boringssl;
 import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class LibP256Verify {
 
@@ -21,7 +22,7 @@ public class LibP256Verify {
   }
 
   // Native method
-  public static native int p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r,
+  static native int p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r,
       byte[] signature_s, byte[] public_key_data, byte[] error_message_buf,
       int error_message_buf_len);
 
@@ -39,16 +40,30 @@ public class LibP256Verify {
   // Safe, wrapped version of the native call
   final static int ERROR_BUF_SIZE = 256;
 
-  public static Result p256Verify(byte[] dataHash, byte[] signatureR, byte[] signatureS,
-      byte[] publicKey) {
+  public static Result p256Verify(byte[] input, int inputLength) {
 
     byte[] errorBuf = new byte[ERROR_BUF_SIZE];
 
-    if (dataHash == null) {
-      return new Result(2, "null message hash");
+    if (inputLength != 160) {
+      return new Result(2, "incorrect input size");
     }
 
-    int status = p256_verify(dataHash, dataHash.length, signatureR, signatureS, publicKey, errorBuf,
+    byte[] dataHash  = Arrays.copyOfRange(input, 0,   32);
+    byte[] signatureR  = Arrays.copyOfRange(input, 32,  64);
+    byte[] signatureS  = Arrays.copyOfRange(input, 64,  96);
+    byte[] publicKey = Arrays.copyOfRange(input, 96,  160);
+    byte[] uncompressedPubKey = new byte[65];
+    // uncompressed point prefix
+    uncompressedPubKey[0] = 0x04;
+    System.arraycopy(input, 96, uncompressedPubKey, 1, 64);
+
+    int status = p256_verify(
+        dataHash,
+        dataHash.length,
+        signatureR,
+        signatureS,
+        uncompressedPubKey,
+        errorBuf,
         ERROR_BUF_SIZE);
 
     int nullTerminator = 0;
@@ -58,17 +73,5 @@ public class LibP256Verify {
 
     String message = new String(errorBuf, 0, nullTerminator, StandardCharsets.UTF_8);
     return new Result(status, message);
-  }
-
-  /**
-   * BoringSSL wants a 0x04 type prefix. Upstream Besu should prefix keys since
-   * EIP-7951 only specifies 64 byte public key.
-   */
-
-  public static byte[] prefixPublicKey(byte[] pubKeyBytes) {
-    byte[] prefixed = new byte[1 + pubKeyBytes.length];
-    prefixed[0] = 0x04;
-    System.arraycopy(pubKeyBytes, 0, prefixed, 1, pubKeyBytes.length);
-    return prefixed;
   }
 }

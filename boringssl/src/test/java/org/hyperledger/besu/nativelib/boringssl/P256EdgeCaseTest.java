@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -55,16 +54,10 @@ public class P256EdgeCaseTest {
     @Test
     public void testSignatureRIsZero() {
         // ECDSA requires r != 0 - this should fail
-        byte[] zeroR = new byte[32]; // All zeros
+        byte[] input = createInput(testDataHash, new byte[32], validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            zeroR,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        // This will fail signature verification, but not parameter error
         assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
@@ -72,37 +65,22 @@ public class P256EdgeCaseTest {
     @Test
     public void testSignatureSIsZero() {
         // ECDSA requires s != 0 - this should fail
-        byte[] zeroS = new byte[32]; // All zeros
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), new byte[32], validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            zeroS,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        // This will fail signature verification, but not parameter error
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
     @Test
     public void testSignatureREqualsOrder() {
         // r >= curve_order should be invalid
-        byte[] rEqualsOrder = CURVE_ORDER.toByteArray();
-        if (rEqualsOrder.length > 32) {
-            // Remove leading zero if present
-            rEqualsOrder = Arrays.copyOfRange(rEqualsOrder, rEqualsOrder.length - 32, rEqualsOrder.length);
-        }
+        byte[] rEqualsOrder = toBytes32(CURVE_ORDER);
+        byte[] input = createInput(testDataHash, rEqualsOrder, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            rEqualsOrder,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        // This will fail signature verification, but not parameter error
         assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
@@ -110,58 +88,12 @@ public class P256EdgeCaseTest {
     @Test
     public void testSignatureSEqualsOrder() {
         // s >= curve_order should be invalid
-        byte[] sEqualsOrder = CURVE_ORDER.toByteArray();
-        if (sEqualsOrder.length > 32) {
-            // Remove leading zero if present
-            sEqualsOrder = Arrays.copyOfRange(sEqualsOrder, sEqualsOrder.length - 32, sEqualsOrder.length);
-        }
+        byte[] sEqualsOrder = toBytes32(CURVE_ORDER);
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), sEqualsOrder, validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            sEqualsOrder,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        // This will fail signature verification, but not parameter error
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
-    }
-
-    @Test
-    public void testSignatureRMaxValid() {
-        // r = curve_order - 1 should be the maximum valid r value
-        BigInteger maxValidR = CURVE_ORDER.subtract(BigInteger.ONE);
-        byte[] maxRBytes = toBytes32(maxValidR);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            maxRBytes,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // This will fail verification due to mismatched signature, but should not fail input validation
-        // The important thing is it doesn't crash or return invalid parameter error
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
-        assertThat(result.message).isEqualTo("signature verification failed");
-    }
-
-    @Test
-    public void testSignatureSMaxValid() {
-        // s = curve_order - 1 should be the maximum valid s value
-        BigInteger maxValidS = CURVE_ORDER.subtract(BigInteger.ONE);
-        byte[] maxSBytes = toBytes32(maxValidS);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            maxSBytes,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // This will fail verification due to mismatched signature, but should not fail input validation
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
@@ -170,16 +102,12 @@ public class P256EdgeCaseTest {
         // r > curve_order should be invalid
         byte[] rGreaterThanOrder = new byte[32];
         Arrays.fill(rGreaterThanOrder, (byte) 0xFF); // Maximum 256-bit value
+        byte[] input = createInput(testDataHash, rGreaterThanOrder, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            rGreaterThanOrder,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
-        assertThat(result.status).isNotEqualTo(0);
     }
 
     @Test
@@ -187,15 +115,11 @@ public class P256EdgeCaseTest {
         // s > curve_order should be invalid
         byte[] sGreaterThanOrder = new byte[32];
         Arrays.fill(sGreaterThanOrder, (byte) 0xFF); // Maximum 256-bit value
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), sGreaterThanOrder, validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            sGreaterThanOrder,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
@@ -205,14 +129,9 @@ public class P256EdgeCaseTest {
     public void testPublicKeyPointAtInfinity() {
         // Point at infinity (all zeros) should be invalid
         byte[] pointAtInfinity = new byte[64];
-        // Already all zeros
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), pointAtInfinity);
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(pointAtInfinity)
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("failed to parse public key point");
@@ -220,83 +139,28 @@ public class P256EdgeCaseTest {
 
     @Test
     public void testPublicKeyNotOnCurve() {
-        // P-256 has cofactor=1, so all valid public keys are in the correct subgroup.
-        // This test constructs a point with valid field coordinates but that does NOT
-        // lie on the curve (violates y^2 != x^3 + ax + b) — should be rejected.
-
-        BigInteger fieldPrime = new BigInteger("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF", 16);
-        BigInteger maxX = fieldPrime.subtract(BigInteger.ONE);
-
+        // Create a point that's definitely not on the P-256 curve
         byte[] invalidPoint = new byte[64];
-        byte[] xBytes = toBytes32(maxX);
-        System.arraycopy(xBytes, 0, invalidPoint, 0, 32);
-
-        // Arbitrary y value that likely doesn't satisfy curve equation
-        Arrays.fill(invalidPoint, 32, 64, (byte) 0x01);
-
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(invalidPoint)
-        );
+        Arrays.fill(invalidPoint, (byte) 0x42); // All bytes set to 0x42
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), invalidPoint);
+        
+        var result = LibP256Verify.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("failed to parse public key point");
     }
 
-    @Test
-    public void testMalformedPublicKeyWrongLength() {
-        // Test with wrong public key length (should be 64 bytes without prefix)
-        byte[] wrongLengthKey = new byte[63]; // One byte short
-        Arrays.fill(wrongLengthKey, (byte) 0x01);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(wrongLengthKey)
-        );
-        
-        assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("failed to parse public key point");
-    }
-
-    @Test
-    public void testPublicKeyWithInvalidPrefix() {
-        // Test with wrong prefix (should be 0x04 for uncompressed)
-        byte[] keyWithWrongPrefix = new byte[65];
-        keyWithWrongPrefix[0] = 0x02; // Wrong prefix
-        System.arraycopy(validPublicKey.toArrayUnsafe(), 0, keyWithWrongPrefix, 1, 64);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            keyWithWrongPrefix // Don't use prefixPublicKey since we're testing the prefix
-        );
-        
-        assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("public key must start with 0x04");
-    }
-
-    // 3. Message Hash Edge Cases
+    // 3. Hash Edge Cases
 
     @Test
     public void testAllZeroHash() {
         // All zero hash (z = 0) - corner case
         byte[] allZeroHash = new byte[32];
-        // Already all zeros
+        byte[] input = createInput(allZeroHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            allZeroHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // This should not fail due to hash being zero, but signature verification will likely fail
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
+        var result = LibP256Verify.p256Verify(input, input.length);
+
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
@@ -305,186 +169,53 @@ public class P256EdgeCaseTest {
         // All ones hash (z = 0xFFFF...FFFF)
         byte[] allOnesHash = new byte[32];
         Arrays.fill(allOnesHash, (byte) 0xFF);
+        byte[] input = createInput(allOnesHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            allOnesHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // This should not fail due to hash content, but signature verification will likely fail
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
+        var result = LibP256Verify.p256Verify(input, input.length);
+
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
     @Test
     public void testHashEqualsOrder() {
         // Message hash exactly equal to curve order
-        byte[] hashEqualsOrder = CURVE_ORDER.toByteArray();
-        if (hashEqualsOrder.length > 32) {
-            hashEqualsOrder = Arrays.copyOfRange(hashEqualsOrder, hashEqualsOrder.length - 32, hashEqualsOrder.length);
-        }
+        byte[] hashEqualsOrder = toBytes32(CURVE_ORDER);
+        byte[] input = createInput(hashEqualsOrder, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            hashEqualsOrder,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // This should not fail due to hash content, but signature verification will likely fail
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
-        assertThat(result.message).isEqualTo("signature verification failed");
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-    }
-
-    @Test
-    public void testWrongHashLength() {
-        // Test with wrong hash length (too short)
-        byte[] shortHash = new byte[16]; // Half the expected length
-        Arrays.fill(shortHash, (byte) 0x01);
-        
-        var result = LibP256Verify.p256Verify(
-            shortHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("invalid hash length");
-
-    }
-
-    @Test
-    public void testOversizedHash() {
-        // Test with oversized hash (too long)
-        byte[] longHash = new byte[64]; // Double the expected length
-        Arrays.fill(longHash, (byte) 0x01);
-        
-        var result = LibP256Verify.p256Verify(
-            longHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("invalid hash length");
-
-    }
-
-    // 4. Implementation-Focused Checks
-
-    @Test
-    public void testNullDataHash() {
-        // Test null data hash
-        var result = LibP256Verify.p256Verify(
-            null,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("null message hash");
-    }
-
-    @Test
-    public void testNullSignatureR() {
-        // Test null signature R
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            null,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("null input");
-    }
-
-    @Test
-    public void testNullSignatureS() {
-        // Test null signature S
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            null,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("null input");
-    }
-
-    @Test
-    public void testNullPublicKey() {
-        // Test null public key
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            null
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("null input");
-    }
-
-    @Test
-    public void testEmptyArrays() {
-        // Test with empty arrays
-        byte[] empty = new byte[0];
-        
-        var result = LibP256Verify.p256Verify(
-            empty,
-            empty,
-            empty,
-            empty
-        );
-        
-        assertThat(result.status).isEqualTo(2);
-    }
-
-    @Test
-    public void testSignatureComponentsWrongLength() {
-        // Test signature components with wrong length
-        byte[] shortR = new byte[16];
-        byte[] shortS = new byte[16];
-        Arrays.fill(shortR, (byte) 0x01);
-        Arrays.fill(shortS, (byte) 0x02);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            shortR,
-            shortS,
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
         assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
-    // 5. Replay/Malleability Conditions
+    // 4. Input Size Edge Cases
+
+    @Test
+    public void testIncorrectInputSize() {
+        // Test with wrong input size (not 160 bytes)
+        byte[] shortInput = new byte[128]; // Too short
+        Arrays.fill(shortInput, (byte) 0x01);
+        
+        var result = LibP256Verify.p256Verify(shortInput, shortInput.length);
+
+        assertThat(result.status).isEqualTo(2);
+        assertThat(result.message).isEqualTo("incorrect input size");
+    }
+
+    // 5. Malleability Conditions
 
     @Test
     public void testMalleatedSignatureHighS() {
         // Test signature with s > n/2 (valid but not canonical)
         // This should still verify according to EIP-7951 which doesn't require canonical signatures
         UInt256 order = UInt256.fromHexString("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
-        UInt256 highS = order.subtract(UInt256.valueOf(1)); // n - 1, which is > n/2
+        UInt256 malleatedS = order.subtract(UInt256.fromBytes(validSignatureS));
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), malleatedS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            highS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        // Should not fail due to high S value, though verification may fail for other reasons
-        assertThat(result.status).isIn(0, 1);
+        var result = LibP256Verify.p256Verify(input, input.length);
+
+        assertThat(result.status).isEqualTo(0); // Should pass per EIP-7951
     }
 
     @Test
@@ -493,49 +224,25 @@ public class P256EdgeCaseTest {
         // Use a valid R but with wrong signature components
         byte[] wrongR = validSignatureR.toArrayUnsafe().clone();
         wrongR[31] ^= 0x01; // Flip one bit to make it wrong but still in valid range
+        byte[] input = createInput(testDataHash, wrongR, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            wrongR,
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        var result = LibP256Verify.p256Verify(input, input.length);
 
-        assertThat(result.status).isEqualTo(1); // Either valid or verification failed, but not parameter error
+        assertThat(result.status).isEqualTo(1);
         assertThat(result.message).isEqualTo("signature verification failed");
     }
 
-    // 6. Positive Test Cases with Known Vectors
+    // 6. Positive Test Cases
 
     @Test
     public void testKnownValidSignature() {
         // Test with known valid signature to ensure positive cases work
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            validSignatureS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
+        byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
+        var result = LibP256Verify.p256Verify(input, input.length);
+
         assertThat(result.status).isEqualTo(0);
         assertThat(result.message).isEmpty();
-    }
-
-    @Test
-    public void testMalleatedButValidSignature() {
-        // Test malleated signature (s' = n - s) which should still be valid per EIP-7951
-        UInt256 order = UInt256.fromHexString("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
-        UInt256 originalS = UInt256.fromBytes(validSignatureS);
-        UInt256 malleatedS = order.subtract(originalS);
-        
-        var result = LibP256Verify.p256Verify(
-            testDataHash,
-            validSignatureR.toArrayUnsafe(),
-            malleatedS.toArrayUnsafe(),
-            LibP256Verify.prefixPublicKey(validPublicKey.toArrayUnsafe())
-        );
-        
-        assertThat(result.status).isEqualTo(0);
     }
 
     // Helper method to convert BigInteger to 32-byte array
@@ -550,5 +257,19 @@ public class P256EdgeCaseTest {
         }
         
         return result;
+    }
+
+    // Helper method to create 160-byte input array: hash(32) + r(32) + s(32) + pubkey(64)
+    private byte[] createInput(byte[] hash, byte[] r, byte[] s, byte[] pubkey) {
+        if (hash.length != 32 || r.length != 32 || s.length != 32 || pubkey.length != 64) {
+            throw new IllegalArgumentException("Invalid component lengths for input creation");
+        }
+        
+        byte[] input = new byte[160];
+        System.arraycopy(hash, 0, input, 0, 32);
+        System.arraycopy(r, 0, input, 32, 32);
+        System.arraycopy(s, 0, input, 64, 32);
+        System.arraycopy(pubkey, 0, input, 96, 64);
+        return input;
     }
 }

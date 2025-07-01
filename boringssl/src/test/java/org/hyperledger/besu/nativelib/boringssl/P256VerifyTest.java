@@ -24,7 +24,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hyperledger.besu.nativelib.boringssl.LibP256Verify.prefixPublicKey;
 
 public class P256VerifyTest {
 
@@ -53,11 +52,8 @@ public class P256VerifyTest {
 
   @Test
   public void verifyValidSignatureSucceeds() {
-    var res = LibP256Verify.p256Verify(
-        dataHash,
-        signatureR.toArrayUnsafe(),
-        signatureS.toArrayUnsafe(),
-        prefixPublicKey(publicKey.toArrayUnsafe()));
+    byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
+    var res = LibP256Verify.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(0);
   }
@@ -68,37 +64,41 @@ public class P256VerifyTest {
         UInt256.fromHexString("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
     var malleatedSignatureS = order.subtract(UInt256.fromBytes(signatureS));
 
-    var res = LibP256Verify.p256Verify(
-        dataHash,
-        signatureR.toArrayUnsafe(),
-        malleatedSignatureS.toArrayUnsafe(),
-        prefixPublicKey(publicKey.toArrayUnsafe()));
+    byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), malleatedSignatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
+    var res = LibP256Verify.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(0);
   }
 
   @Test
   public void verifyShouldReturnErrorIfSignatureIsInvalid() {
-    var res =
-        LibP256Verify.p256Verify(
-            dataHash,
-            invalidSignatureR.toArrayUnsafe(),
-            signatureS.toArrayUnsafe(),
-            prefixPublicKey(publicKey.toArrayUnsafe()));
+    byte[] input = createInput(dataHash, invalidSignatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
+    var res = LibP256Verify.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(1);
   }
 
   @Test
   public void verifyShouldThrowExceptionIfAnyOtherParameterIsInvalid() {
-    var res = LibP256Verify.p256Verify(
-        dataHash,
-        signatureR.toArrayUnsafe(),
-        signatureS.toArrayUnsafe(),
-        prefixPublicKey(invalidPublicKey.toArrayUnsafe()));
+    byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), invalidPublicKey.toArrayUnsafe());
+    var res = LibP256Verify.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(1);
     assertThat(res.message).isEqualTo("failed to parse public key point");
+  }
+
+  // Helper method to create 160-byte input array: hash(32) + r(32) + s(32) + pubkey(64)
+  private byte[] createInput(byte[] hash, byte[] r, byte[] s, byte[] pubkey) {
+    if (hash.length != 32 || r.length != 32 || s.length != 32 || pubkey.length != 64) {
+      throw new IllegalArgumentException("Invalid component lengths for input creation");
+    }
+    
+    byte[] input = new byte[160];
+    System.arraycopy(hash, 0, input, 0, 32);
+    System.arraycopy(r, 0, input, 32, 32);
+    System.arraycopy(s, 0, input, 64, 32);
+    System.arraycopy(pubkey, 0, input, 96, 64);
+    return input;
   }
 
 }
