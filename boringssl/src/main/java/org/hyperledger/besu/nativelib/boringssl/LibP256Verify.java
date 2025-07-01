@@ -51,7 +51,6 @@ public class LibP256Verify {
     byte[] dataHash  = Arrays.copyOfRange(input, 0,   32);
     byte[] signatureR  = Arrays.copyOfRange(input, 32,  64);
     byte[] signatureS  = Arrays.copyOfRange(input, 64,  96);
-    byte[] publicKey = Arrays.copyOfRange(input, 96,  160);
     byte[] uncompressedPubKey = new byte[65];
     // uncompressed point prefix
     uncompressedPubKey[0] = 0x04;
