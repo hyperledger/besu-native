@@ -32,34 +32,36 @@ dependencies {
 }
 
 task macArmLibCopy(type: Copy) {
-    from 'build/darwin-aarch64/lib/libp256verify.dylib'
+    from 'build/darwin-aarch64/lib/libboringssl_precompiles.dylib'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
-    from 'build/darwin-x86-64/lib/libp256verify.dylib'
+    from 'build/darwin-x86-64/lib/libboringssl_precompiles.dylib'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-    from 'build/linux-gnu-x86_64/lib/libp256verify.so'
+    from 'build/linux-gnu-x86_64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-    from 'build/linux-gnu-aarch64/lib/libp256verify.so'
+    from 'build/linux-gnu-aarch64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
-    from 'build/linux-gnu-riscv64/lib/libp256verify.so'
+    from 'build/linux-gnu-riscv64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
+
+
 
 jar {
     archiveBaseName = 'besu-native-boringssl'
@@ -72,6 +74,37 @@ jar {
                 'Implementation-Version': project.version,
                 'Automatic-Module-Name': 'org.hyperledger.besu.nativelib.boringssl'
         )
+    }
+}
+
+test {
+    def osName = System.getProperty("os.name").toLowerCase()
+    def osArch = System.getProperty("os.arch").toLowerCase()
+    def libPath = "build/resources/main/lib/"
+
+    if (osName.contains("mac")) {
+        if (osArch.contains("aarch64")) {
+            libPath += "aarch64"
+        } else {
+            libPath += "x86-64" // Assuming x86_64 for Intel Macs
+        }
+    } else if (osName.contains("linux")) {
+        if (osArch.contains("aarch64")) {
+            libPath += "aarch64"
+        } else if (osArch.contains("x86_64")) {
+            libPath += "x86-64"
+        } else if (osArch.contains("riscv64")) {
+            libPath += "riscv64"
+        } else {
+            libPath += "unknown"
+        }
+    } else {
+        libPath += "unknown"
+    }
+
+    systemProperty "java.library.path", file(libPath)
+    doFirst {
+        println "java.library.path: " + System.getProperty("java.library.path")
     }
 }
 

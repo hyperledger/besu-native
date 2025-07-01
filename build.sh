@@ -403,7 +403,7 @@ EOF
 
   # copy the result into OSARCH specific directories, for CI
   mkdir -p "$SCRIPTDIR/boringssl/build/${OSARCH}/lib"
-  cp build/libp256verify.* "$SCRIPTDIR/boringssl/build/${OSARCH}/lib"
+  cp build/libboringssl_precompiles.* "$SCRIPTDIR/boringssl/build/${OSARCH}/lib"
 }
 
 
