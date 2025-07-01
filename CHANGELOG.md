@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* perf: add boringssl for p256Verify precompile [#275](https://github.com/hyperledger/besu-native/pull/275)
 
 # 1.3.1
 * perf: use latest gnark-crypto 0.17 [#262](https://github.com/hyperledger/besu-native/pull/262)

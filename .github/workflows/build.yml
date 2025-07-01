@@ -19,7 +19,7 @@ jobs:
           # secp256k1 dependencies
           apt-get update
           apt upgrade -y
-          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake patchelf wget git curl openjdk-21-jdk
+          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake patchelf wget git curl openjdk-21-jdk cmake
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
@@ -102,6 +102,10 @@ jobs:
         with:
           name: constantine-native-build-artifacts-linux-x86-64
           path: constantine/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-linux-x86-64
+          path: boringssl/build/
 
   native-build-linux-arm64:
     runs-on: besu-arm64
@@ -144,6 +148,10 @@ jobs:
         with:
           name: constantine-native-build-artifacts-linux-arm64
           path: constantine/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-linux-arm64
+          path: boringssl/build/
 
   native-build-macos:
     runs-on: macos-13
@@ -201,6 +209,10 @@ jobs:
         with:
           name: constantine-native-build-artifacts-macos-x86-64
           path: constantine/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-macos-x86-64
+          path: boringssl/build/
 
   native-build-m1:
     runs-on: macos-13-xlarge
@@ -282,6 +294,10 @@ jobs:
         with:
           name: constantine-native-build-artifacts-macos-arm64
           path: constantine/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-macos-arm64
+          path: boringssl/build/
 
   final-assembly:
     runs-on: ubuntu-latest
@@ -435,6 +451,26 @@ jobs:
         with:
           name: constantine-native-build-artifacts-macos-arm64
           path: constantine/build/
+      - name: Download boringssl
+        uses: actions/download-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-linux-x86-64
+          path: boringssl/build/
+      - name: Download boringssl
+        uses: actions/download-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-linux-arm64
+          path: boringssl/build/
+      - name: Download boringssl
+        uses: actions/download-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-macos-x86-64
+          path: boringssl/build/
+      - name: Download boringssl
+        uses: actions/download-artifact@v4
+        with:
+          name: boringssl-native-build-artifacts-macos-arm64
+          path: boringssl/build/
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -473,6 +509,10 @@ jobs:
         with:
           name: jars-constantine
           path: constantine/build/libs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars-boringssl
+          path: boringssl/build/libs
       - uses: actions/upload-artifact@v4
         with:
           name: jars-common

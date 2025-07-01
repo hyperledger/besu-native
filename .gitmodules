@@ -7,3 +7,6 @@
 [submodule "constantine/constantine"]
 	path = constantine/constantine
 	url = https://github.com/mratsim/constantine.git
+[submodule "boringssl/google-boringssl"]
+	path = boringssl/google-boringssl
+	url = https://boringssl.googlesource.com/boringssl
