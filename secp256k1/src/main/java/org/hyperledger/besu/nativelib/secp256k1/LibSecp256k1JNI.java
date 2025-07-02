@@ -24,8 +24,7 @@ public class LibSecp256k1JNI {
   static {
     boolean enabled;
     try {
-//      BesuNativeLibraryLoader.loadJNI(LibSecp256k1JNI.class, "secp256k1_ecrecover");
-      Native.register(LibSecp256k1JNI.class, "/Users/garyschulte/dev/besu-native/secp256k1/build/darwin-aarch64/lib/libsecp256k1_ecrecover.dylib");
+      BesuNativeLibraryLoader.registerJNA(LibSecp256k1JNI.class, "secp256k1_ecrecover");
       enabled = true;
     } catch (final Throwable t) {
       t.printStackTrace();
