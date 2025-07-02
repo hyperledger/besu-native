@@ -10,6 +10,11 @@ public class BoringSSLPrecompiles {
 
   public static final boolean ENABLED;
 
+  public static final int STATUS_SUCCESS = 0;
+  public static final int STATUS_FAIL = 1;
+  public static final int STATUS_ERROR = 2;
+
+
   static {
     boolean enabled;
     try {
@@ -23,13 +28,13 @@ public class BoringSSLPrecompiles {
   }
 
   // Native r1 p256 verify method
-  static native int p256_verify(byte[] data_hash, int data_hash_length, byte[] signature_r,
-      byte[] signature_s, byte[] public_key_data, byte[] error_message_buf,
-      int error_message_buf_len);
+  static native int p256_verify(final byte[] data_hash, final int data_hash_length, final byte[] signature_r,
+      final byte[] signature_s, final byte[] public_key_data, final byte[] error_message_buf,
+      final int error_message_buf_len);
 
 
   // Native r1 ecrecover
-  static native int ecrecover_r1(byte[] hash, byte[] sig, int recovery_id, byte[] error);
+  static native int ecrecover_r1(final byte[] hash, final byte[] sig, final int recovery_id, final byte[] output);
 
 
 
@@ -38,17 +43,19 @@ public class BoringSSLPrecompiles {
     public final int status;
     public final String error;
 
-    public P256VerifyResult(int status, String message) {
+    public P256VerifyResult(final int status, final String message) {
       this.status = status;
       this.error = message;
     }
   }
 
   public static class EcrecoverResult {
+    public final int status;
     public final Optional<byte[]> publicKey;
     public final Optional<String> error;
 
-    public EcrecoverResult(Optional<byte[]> publicKey, Optional<String> error) {
+    public EcrecoverResult(final int status, final Optional<byte[]> publicKey, final Optional<String> error) {
+      this.status = status;
       this.publicKey = publicKey;
       this.error = error;
     }
@@ -57,7 +64,7 @@ public class BoringSSLPrecompiles {
   // Safe, wrapped version of the native calls
   final static int ERROR_BUF_SIZE = 256;
 
-  public static P256VerifyResult p256Verify(byte[] input, int inputLength) {
+  public static P256VerifyResult p256Verify(final byte[] input, final int inputLength) {
 
     byte[] errorBuf = new byte[ERROR_BUF_SIZE];
 
@@ -85,20 +92,20 @@ public class BoringSSLPrecompiles {
     return new P256VerifyResult(status, bytesToNullTermString(errorBuf));
   }
 
-  public static EcrecoverResult ecrecover(byte[] hash, byte[] sig, int recovery_id) {
+  public static EcrecoverResult ecrecover(final byte[] hash, final byte[] sig, final int recovery_id) {
     byte[] output = new byte[ERROR_BUF_SIZE];
     int status = ecrecover_r1(hash, sig, recovery_id, output);
 
     if (status == 0) {
       byte[] publicKey = new byte[65];
       System.arraycopy(output, 0, publicKey, 0, 65);
-      return new EcrecoverResult(Optional.of(publicKey), Optional.empty());
+      return new EcrecoverResult(status, Optional.of(publicKey), Optional.empty());
     } else {
-      return new EcrecoverResult(Optional.empty(), Optional.of(bytesToNullTermString(output)));
+      return new EcrecoverResult(status, Optional.empty(), Optional.of("ecrecover failed"));
     }
   }
 
-  static String bytesToNullTermString(byte[] buffer) {
+  static String bytesToNullTermString(final byte[] buffer) {
     int nullTerminator = 0;
     while (nullTerminator < buffer.length && buffer[nullTerminator] != 0) {
       nullTerminator++;

@@ -9,7 +9,10 @@ extern "C" {
 //
 // All inputs are raw big-endian byte arrays.
 //
-// returns 1 on success, 0 on failure.
+// Returns:
+//   0 - success, public key written to output_buffer
+//   1 - invalid input parameters or signature verification failed  
+//   2 - system error (memory allocation, curve operations failed)
 int ecrecover_r1(
     const unsigned char message_hash[32],
     const unsigned char signature[64],

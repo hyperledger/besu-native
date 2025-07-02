@@ -42,13 +42,20 @@ public class SecP256R1ParameterizedTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
+        // SHA256 hash of test data from LibSECP256R1Test
+        String validHash = "9b2db89cb0e8fa3cc7608b4d6cc1dec0114e0b9ff4080bea12b134f489ab2bbc";
+        // secp256r1 signature from LibSECP256R1Test  
+        String validSig = "976d3a4e9d23326dc0baa9fa560b7c4e53f42864f508483a6473b6a11079b2db1b766e9ceb71ba6c01dcd46e0af462cd4cfa652ae5017d4555b8eeefe36e1932";
+        // Expected uncompressed public key (0x04 prefix + coordinates)
+        String validPubkey = "04e266ddfdc12668db30d4ca3e8f7749432c416044f2d2b8c10bf3d4012aeffa8abfa86404a2e9ffe67d47c587ef7a97a7f456b863b4d02cfc6928973ab5b1cb39";
+        
         return Arrays.asList(new Object[][]{
                 // Valid case
-                {"4b68ab3847feda7d6c62c1fbcbe54368316afb042c81868a5972936d3735d04b", "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 0, "0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", true},
+                {validHash, validSig, 0, validPubkey, true},
                 // Invalid recovery id
-                {"4b68ab3847feda7d6c62c1fbcbe54368316afb042c81868a5972936d3735d04b", "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 4, null, false},
+                {validHash, validSig, 4, null, false},
                 // Invalid signature
-                {"4b68ab3847feda7d6c62c1fbcbe54368316afb042c81868a5972936d3735d04b", "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", 0, null, false},
+                {validHash, "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", 0, null, false},
         });
     }
 
@@ -61,10 +68,12 @@ public class SecP256R1ParameterizedTest {
         BoringSSLPrecompiles.EcrecoverResult result = ecrecover(hashBytes, sigBytes, recoveryId);
 
         if (success) {
+            assertThat(result.status).isEqualTo(0);
             assertThat(result.error).isEmpty();
             assertThat(result.publicKey).isPresent();
             assertThat(result.publicKey.get()).isEqualTo(pubkeyBytes);
         } else {
+            assertThat(result.status).isEqualTo(1);
             assertThat(result.error).isPresent();
             assertThat(result.publicKey).isNotPresent();
         }

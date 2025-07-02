@@ -18,23 +18,30 @@ int ecrecover_r1(
     unsigned char output_buffer[65]) {
 
     if (message_hash == NULL || signature == NULL || output_buffer == NULL) {
-        return 0;
+        return 1;
     }
 
     if (recovery_id < 0 || recovery_id > 3) {
-        return 0;
+        return 1;
     }
 
     BN_CTX *ctx = BN_CTX_new();
     if (!ctx) {
-        return 0;
+        return 2;
     }
 
     BIGNUM *r = BN_bin2bn(signature, P256_COORD_LEN, NULL);
     BIGNUM *s = BN_bin2bn(signature + P256_COORD_LEN, P256_COORD_LEN, NULL);
     BIGNUM *e = BN_bin2bn(message_hash, 32, NULL);
 
-    const EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
+    EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
+    if (!group) {
+        BN_free(r);
+        BN_free(s);
+        BN_free(e);
+        BN_CTX_free(ctx);
+        return 2;
+    }
     const BIGNUM *order = EC_GROUP_get0_order(group);
 
     BIGNUM *r_inv = BN_mod_inverse(NULL, r, order, ctx);
@@ -42,24 +49,48 @@ int ecrecover_r1(
         BN_free(r);
         BN_free(s);
         BN_free(e);
+        EC_GROUP_free(group);
         BN_CTX_free(ctx);
-        return 0;
+        return 1;
     }
 
     EC_POINT *R = EC_POINT_new(group);
+    if (!R) {
+        BN_free(r);
+        BN_free(s);
+        BN_free(e);
+        BN_free(r_inv);
+        EC_GROUP_free(group);
+        BN_CTX_free(ctx);
+        return 2;
+    }
     if (!EC_POINT_set_compressed_coordinates_GFp(group, R, r, recovery_id & 1, ctx)) {
         BN_free(r);
         BN_free(s);
         BN_free(e);
         BN_free(r_inv);
         EC_POINT_free(R);
+        EC_GROUP_free(group);
         BN_CTX_free(ctx);
-        return 0;
+        return 1;
     }
 
     BIGNUM *u1 = BN_new();
     BIGNUM *u2 = BN_new();
     BIGNUM *e_r_inv = BN_new();
+    if (!u1 || !u2 || !e_r_inv) {
+        BN_free(r);
+        BN_free(s);
+        BN_free(e);
+        BN_free(r_inv);
+        EC_POINT_free(R);
+        BN_free(u1);
+        BN_free(u2);
+        BN_free(e_r_inv);
+        EC_GROUP_free(group);
+        BN_CTX_free(ctx);
+        return 2;
+    }
 
     BN_mod_mul(e_r_inv, e, r_inv, order, ctx); // e * r_inv mod n
 
@@ -73,6 +104,18 @@ int ecrecover_r1(
     BN_mod_mul(u2, s, r_inv, order, ctx);
 
     EC_POINT *Q = EC_POINT_new(group);
+    if (!Q) {
+        BN_free(r);
+        BN_free(s);
+        BN_free(e);
+        BN_free(r_inv);
+        EC_POINT_free(R);
+        BN_free(u1);
+        BN_free(u2);
+        EC_GROUP_free(group);
+        BN_CTX_free(ctx);
+        return 2;
+    }
     if (!EC_POINT_mul(group, Q, u1, R, u2, ctx)) {
         BN_free(r);
         BN_free(s);
@@ -82,8 +125,9 @@ int ecrecover_r1(
         BN_free(u1);
         BN_free(u2);
         EC_POINT_free(Q);
+        EC_GROUP_free(group);
         BN_CTX_free(ctx);
-        return 0;
+        return 1;
     }
 
     if (EC_POINT_point2oct(group, Q, POINT_CONVERSION_UNCOMPRESSED, output_buffer, P256_KEY_LEN, ctx) != P256_KEY_LEN) {
@@ -95,8 +139,9 @@ int ecrecover_r1(
         BN_free(u1);
         BN_free(u2);
         EC_POINT_free(Q);
+        EC_GROUP_free(group);
         BN_CTX_free(ctx);
-        return 0;
+        return 2;
     }
 
     BN_free(r);
@@ -107,7 +152,8 @@ int ecrecover_r1(
     BN_free(u1);
     BN_free(u2);
     EC_POINT_free(Q);
+    EC_GROUP_free(group);
     BN_CTX_free(ctx);
 
-    return 1;
+    return 0;
 }
