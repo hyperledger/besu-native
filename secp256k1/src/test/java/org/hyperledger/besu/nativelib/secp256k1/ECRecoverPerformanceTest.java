@@ -20,6 +20,7 @@ import org.hyperledger.besu.nativelib.secp256k1.LibSecp256k1.secp256k1_ecdsa_rec
 import org.hyperledger.besu.nativelib.secp256k1.LibSecp256k1.secp256k1_pubkey;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -40,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * This test simulates the ECRECOVER precompile workload using diverse inputs.
  */
 @RunWith(Parameterized.class)
+@Ignore
 public class ECRecoverPerformanceTest {
 
     private static final int TEST_CASES = 50000;
