@@ -101,7 +101,8 @@ public class BoringSSLPrecompiles {
       System.arraycopy(output, 0, publicKey, 0, 65);
       return new EcrecoverResult(status, Optional.of(publicKey), Optional.empty());
     } else {
-      return new EcrecoverResult(status, Optional.empty(), Optional.of("ecrecover failed"));
+      return new EcrecoverResult(status, Optional.empty(),
+          Optional.of("ecrecover failed"));
     }
   }
 
