@@ -30,74 +30,93 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class P256VerifyParameterizedTest {
+public class SecP256R1EcrecoverParameterizedTest {
 
     @Parameterized.Parameter(0)
     public String input;
 
     @Parameterized.Parameter(1)
-    public String expectedStatus;
+    public String expectedOutput;
 
     @Parameterized.Parameter(2)
-    public String expectedMessage;
+    public String expectedStatus;
 
     @Parameterized.Parameter(3)
+    public String error;
+
+    @Parameterized.Parameter(4)
     public String notes;
 
     @Parameterized.Parameters
     public static Iterable<String[]> parameters() throws IOException {
         return CharStreams.readLines(
                 new InputStreamReader(
-                        P256VerifyParameterizedTest.class.getResourceAsStream("p256_verify.csv"), UTF_8))
+                        SecP256R1EcrecoverParameterizedTest.class.getResourceAsStream("secp256r1ecrecover.csv"), UTF_8))
                 .stream()
-                .map(line -> line.split(",", 7))
+                .map(line -> line.split(",", 5))
                 .collect(Collectors.toList());
     }
 
     @Test
-    public void shouldCalculateP256VerifyFromCSV() {
+    public void shouldCalculateSecP256R1EcrecoverFromCSV() {
         // Skip the header row
         if ("input".equals(input)) {
             return;
         }
 
-        Assume.assumeTrue("P256Verify must be enabled", BoringSSLPrecompiles.ENABLED);
-
+        Assume.assumeTrue("BoringSSL must be enabled", BoringSSLPrecompiles.ENABLED);
 
         // Handle null input case
         if (input == null || input.isEmpty()) {
-            BoringSSLPrecompiles.P256VerifyResult result = BoringSSLPrecompiles.p256Verify(null, 0);
-            int expectedStatusInt = Integer.parseInt(expectedStatus);
-            assertThat(result.status).as("Test case: %s", notes).isEqualTo(expectedStatusInt);
-            if (!expectedMessage.isEmpty()) {
-                assertThat(result.error).as("Error message for test case: %s", notes).isEqualTo(expectedMessage);
-            }
             return;
         }
 
-        // Call P256 verify
+        // Parse input: hash (32 bytes) + recovery_id (1 byte) + signature (64 bytes)
         byte[] inputBytes = Bytes.fromHexString(input).toArrayUnsafe();
-        BoringSSLPrecompiles.P256VerifyResult
-            result = BoringSSLPrecompiles.p256Verify(inputBytes, inputBytes.length);
+        
+        // Extract components from input
+        byte[] hash = new byte[32];
+        System.arraycopy(inputBytes, 0, hash, 0, 32);
+        
+        int recoveryId = inputBytes[63] & 0xFF;
+        int siglen = inputBytes.length >= 128 ? 64 : inputBytes.length - 64;
+        byte[] signature = new byte[siglen];
+        System.arraycopy(inputBytes, 64, signature, 0, siglen);
 
-        // Parse expected status
+        // Call ecrecover
+        BoringSSLPrecompiles.EcrecoverResult result = BoringSSLPrecompiles.ecrecover(hash, signature, recoveryId);
+
+
+        // Parse expected result
+        Bytes expectedPublicKey = Bytes.fromHexString(expectedOutput);
         int expectedStatusInt = Integer.parseInt(expectedStatus);
-
         // Verify the result
         assertThat(result.status)
             .as("Test case: %s", notes)
             .isEqualTo(expectedStatusInt);
 
-        // Verify error message if expected
-        if (!expectedMessage.isEmpty()) {
+        // For successful cases, verify we got a public key
+        if (expectedStatusInt == 0) {
+            assertThat(result.publicKey)
+                .as("Success case should have public key: %s", notes)
+                .isPresent();
+            assertThat(result.publicKey.get())
+                .as("Success case should have public key: %s", notes)
+                .isEqualTo(expectedPublicKey.toArrayUnsafe());
             assertThat(result.error)
-                .as("Error message for test case: %s", notes)
-                .isEqualTo(expectedMessage);
-        } else {
-            // For successful cases, message should be empty
-            assertThat(result.error)
-                .as("Success case should have empty message: %s", notes)
+                .as("Success case should have no error: %s", notes)
                 .isEmpty();
+        } else {
+            // For failed cases, verify no public key and error present
+            assertThat(result.publicKey)
+                .as("Failed case should have no public key: %s", notes)
+                .isNotPresent();
+            assertThat(result.error)
+                .as("Failed case should have error: %s", notes)
+                .isPresent();
+            assertThat(result.error.get())
+                .as("Failed case should have error: %s", notes)
+                .isEqualTo(error);
         }
     }
 }

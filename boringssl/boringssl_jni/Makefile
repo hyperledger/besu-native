@@ -26,8 +26,8 @@ CFLAGS = -O2 -fPIC $(INCLUDES)
 LIBS = $(BSSL_BUILD_DIR)/libcrypto.a
 
 # Files
-LIB_NAME = libp256verify.$(LIB_EXT)
-SRCS = p256_verify.c
+LIB_NAME = libboringssl_precompiles.$(LIB_EXT)
+SRCS = p256_verify.c ecrecover.c
 OBJS = $(SRCS:.c=.o)
 BUILD_OBJS = $(addprefix $(BUILD_DIR)/, $(OBJS))
 BUILD_LIB = $(BUILD_DIR)/$(LIB_NAME)
