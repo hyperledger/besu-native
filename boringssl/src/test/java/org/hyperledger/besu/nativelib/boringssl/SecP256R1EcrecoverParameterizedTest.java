@@ -100,6 +100,9 @@ public class SecP256R1EcrecoverParameterizedTest {
             assertThat(result.publicKey)
                 .as("Success case should have public key: %s", notes)
                 .isPresent();
+            assertThat(result.publicKey.get())
+                .as("Success case should have public key: %s", notes)
+                .isEqualTo(expectedPublicKey.toArrayUnsafe());
             assertThat(result.error)
                 .as("Success case should have no error: %s", notes)
                 .isEmpty();
