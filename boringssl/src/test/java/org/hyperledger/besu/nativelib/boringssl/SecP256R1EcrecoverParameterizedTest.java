@@ -79,9 +79,9 @@ public class SecP256R1EcrecoverParameterizedTest {
         System.arraycopy(inputBytes, 0, hash, 0, 32);
         
         int recoveryId = inputBytes[63] & 0xFF;
-        
-        byte[] signature = new byte[64];
-        System.arraycopy(inputBytes, 64, signature, 0, inputBytes.length >= 128 ? 64 : inputBytes.length - 64);
+        int siglen = inputBytes.length >= 128 ? 64 : inputBytes.length - 64;
+        byte[] signature = new byte[siglen];
+        System.arraycopy(inputBytes, 64, signature, 0, siglen);
 
         // Call ecrecover
         BoringSSLPrecompiles.EcrecoverResult result = BoringSSLPrecompiles.ecrecover(hash, signature, recoveryId);

@@ -2,6 +2,7 @@ package org.hyperledger.besu.nativelib.boringssl;
 
 import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
@@ -92,7 +93,37 @@ public class BoringSSLPrecompiles {
     return new P256VerifyResult(status, bytesToNullTermString(errorBuf));
   }
 
+  // secp256r1 curve order
+  private static final BigInteger SECP256R1_ORDER = 
+      new BigInteger("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", 16);
+
   public static EcrecoverResult ecrecover(final byte[] hash, final byte[] sig, final int recovery_id) {
+    // Validate signature length
+    if (sig == null || sig.length != 64) {
+      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+          Optional.of("invalid signature length"));
+    }
+
+    // Extract r and s values
+    byte[] rBytes = new byte[32];
+    byte[] sBytes = new byte[32];
+    System.arraycopy(sig, 0, rBytes, 0, 32);
+    System.arraycopy(sig, 32, sBytes, 0, 32);
+
+    BigInteger r = new BigInteger(1, rBytes);
+    BigInteger s = new BigInteger(1, sBytes);
+
+    // Validate r and s are in range [1, n-1] before calling native method
+    if (r.equals(BigInteger.ZERO) || r.compareTo(SECP256R1_ORDER) >= 0) {
+      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+          Optional.of("invalid signature r value"));
+    }
+    
+    if (s.equals(BigInteger.ZERO) || s.compareTo(SECP256R1_ORDER) >= 0) {
+      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+          Optional.of("invalid signature s value"));
+    }
+
     byte[] output = new byte[ERROR_BUF_SIZE];
     int status = ecrecover_r1(hash, sig, recovery_id, output);
 
