@@ -77,37 +77,6 @@ jar {
     }
 }
 
-test {
-    def osName = System.getProperty("os.name").toLowerCase()
-    def osArch = System.getProperty("os.arch").toLowerCase()
-    def libPath = "build/resources/main/lib/"
-
-    if (osName.contains("mac")) {
-        if (osArch.contains("aarch64")) {
-            libPath += "aarch64"
-        } else {
-            libPath += "x86-64" // Assuming x86_64 for Intel Macs
-        }
-    } else if (osName.contains("linux")) {
-        if (osArch.contains("aarch64")) {
-            libPath += "aarch64"
-        } else if (osArch.contains("x86_64")) {
-            libPath += "x86-64"
-        } else if (osArch.contains("riscv64")) {
-            libPath += "riscv64"
-        } else {
-            libPath += "unknown"
-        }
-    } else {
-        libPath += "unknown"
-    }
-
-    systemProperty "java.library.path", file(libPath)
-    doFirst {
-        println "java.library.path: " + System.getProperty("java.library.path")
-    }
-}
-
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveBaseName = 'besu-native-boringssl'
     archiveClassifier = 'sources'
