@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class SecP256R1EcrecoverParameterizedTest {
+    private static final int V_BASE = 27;
 
     @Parameterized.Parameter(0)
     public String input;
@@ -78,7 +79,7 @@ public class SecP256R1EcrecoverParameterizedTest {
         byte[] hash = new byte[32];
         System.arraycopy(inputBytes, 0, hash, 0, 32);
         
-        int recoveryId = inputBytes[63] & 0xFF;
+        int recoveryId = (inputBytes[63] & 0xFF) - V_BASE;
         int siglen = inputBytes.length >= 128 ? 64 : inputBytes.length - 64;
         byte[] signature = new byte[siglen];
         System.arraycopy(inputBytes, 64, signature, 0, siglen);
