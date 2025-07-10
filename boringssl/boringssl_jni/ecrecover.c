@@ -21,7 +21,8 @@ int ecrecover_r1(
         return 1;
     }
 
-    if (recovery_id < 0 || recovery_id > 3) {
+    // restrict recovery_id to uncompressed point types
+    if (recovery_id < 0 || recovery_id > 1) {
         return 1;
     }
 

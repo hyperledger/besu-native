@@ -13,9 +13,9 @@ extern "C" {
  * 
  * @param message_hash the 32-byte message hash that was signed
  * @param signature the 64-byte compact signature (r || s)
- * @param recovery_id the recovery ID (0, 1, 2, or 3)
+ * @param recovery_id the recovery ID (0, 1)
  * @param output_buffer the output buffer to write the recovered public key (65 bytes uncompressed)
- * @return 1 if recovery was successful, 0 otherwise
+ * @return 0 if recovery was successful, 1 otherwise
  */
 int secp256k1_ecrecover_jni(
     const unsigned char message_hash[32],

@@ -29,13 +29,14 @@ public class BoringSSLPrecompiles {
   }
 
   // Native r1 p256 verify method
-  static native int p256_verify(final byte[] data_hash, final int data_hash_length, final byte[] signature_r,
-      final byte[] signature_s, final byte[] public_key_data, final byte[] error_message_buf,
-      final int error_message_buf_len);
+  static native int p256_verify(final byte[] data_hash, final int data_hash_length,
+      final byte[] signature_r, final byte[] signature_s, final byte[] public_key_data,
+      final byte[] error_message_buf, final int error_message_buf_len);
 
 
   // Native r1 ecrecover
-  static native int ecrecover_r1(final byte[] hash, final byte[] sig, final int recovery_id, final byte[] output);
+  static native int ecrecover_r1(final byte[] hash, final byte[] sig, final int recovery_id,
+      final byte[] output);
 
 
 
@@ -50,17 +51,12 @@ public class BoringSSLPrecompiles {
     }
   }
 
-  public static class EcrecoverResult {
-    public final int status;
-    public final Optional<byte[]> publicKey;
-    public final Optional<String> error;
 
-    public EcrecoverResult(final int status, final Optional<byte[]> publicKey, final Optional<String> error) {
-      this.status = status;
-      this.publicKey = publicKey;
-      this.error = error;
-    }
-  }
+  public record ECRecoverResult(
+      int status,
+      Optional<byte[]> publicKey,
+      Optional<String> error) {}
+
 
   // Safe, wrapped version of the native calls
   final static int ERROR_BUF_SIZE = 256;
@@ -73,34 +69,30 @@ public class BoringSSLPrecompiles {
       return new P256VerifyResult(2, "incorrect input size");
     }
 
-    byte[] dataHash  = Arrays.copyOfRange(input, 0,   32);
-    byte[] signatureR  = Arrays.copyOfRange(input, 32,  64);
-    byte[] signatureS  = Arrays.copyOfRange(input, 64,  96);
+    byte[] dataHash = Arrays.copyOfRange(input, 0, 32);
+    byte[] signatureR = Arrays.copyOfRange(input, 32, 64);
+    byte[] signatureS = Arrays.copyOfRange(input, 64, 96);
     byte[] uncompressedPubKey = new byte[65];
     // uncompressed point prefix
     uncompressedPubKey[0] = 0x04;
     System.arraycopy(input, 96, uncompressedPubKey, 1, 64);
 
-    int status = p256_verify(
-        dataHash,
-        dataHash.length,
-        signatureR,
-        signatureS,
-        uncompressedPubKey,
-        errorBuf,
-        ERROR_BUF_SIZE);
+    int status =
+        p256_verify(dataHash, dataHash.length, signatureR, signatureS, uncompressedPubKey, errorBuf,
+            ERROR_BUF_SIZE);
 
     return new P256VerifyResult(status, bytesToNullTermString(errorBuf));
   }
 
   // secp256r1 curve order
-  private static final BigInteger SECP256R1_ORDER = 
+  private static final BigInteger SECP256R1_ORDER =
       new BigInteger("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", 16);
 
-  public static EcrecoverResult ecrecover(final byte[] hash, final byte[] sig, final int recovery_id) {
+  public static ECRecoverResult ecrecover(final byte[] hash, final byte[] sig,
+      final int recovery_id) {
     // Validate signature length
     if (sig == null || sig.length != 64) {
-      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
           Optional.of("invalid signature length"));
     }
 
@@ -115,13 +107,18 @@ public class BoringSSLPrecompiles {
 
     // Validate r and s are in range [1, n-1] before calling native method
     if (r.equals(BigInteger.ZERO) || r.compareTo(SECP256R1_ORDER) >= 0) {
-      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
           Optional.of("invalid signature r value"));
     }
-    
+
     if (s.equals(BigInteger.ZERO) || s.compareTo(SECP256R1_ORDER) >= 0) {
-      return new EcrecoverResult(STATUS_ERROR, Optional.empty(), 
+      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
           Optional.of("invalid signature s value"));
+    }
+
+    if (recovery_id < 0 || recovery_id > 1) {
+      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
+          Optional.of("invalid recovery id " + recovery_id + " is not 0 or 1"));
     }
 
     byte[] output = new byte[ERROR_BUF_SIZE];
@@ -130,10 +127,9 @@ public class BoringSSLPrecompiles {
     if (status == 0) {
       byte[] publicKey = new byte[65];
       System.arraycopy(output, 0, publicKey, 0, 65);
-      return new EcrecoverResult(status, Optional.of(publicKey), Optional.empty());
+      return new ECRecoverResult(status, Optional.of(publicKey), Optional.empty());
     } else {
-      return new EcrecoverResult(status, Optional.empty(),
-          Optional.of("ecrecover failed"));
+      return new ECRecoverResult(status, Optional.empty(), Optional.of("ecrecover failed"));
     }
   }
 

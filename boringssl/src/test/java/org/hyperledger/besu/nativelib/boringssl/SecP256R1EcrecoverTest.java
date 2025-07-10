@@ -48,11 +48,11 @@ public class SecP256R1EcrecoverTest {
         expectedPubkey[0] = 0x04;
         System.arraycopy(publicKey.toArrayUnsafe(), 0, expectedPubkey, 1, 64);
 
-        BoringSSLPrecompiles.EcrecoverResult result = ecrecover(dataHash, sig, signatureV);
+        BoringSSLPrecompiles.ECRecoverResult result = ecrecover(dataHash, sig, signatureV);
 
-        assertThat(result.status).isEqualTo(0);
-        assertThat(result.error).isEmpty();
-        assertThat(result.publicKey).isPresent();
-        assertThat(result.publicKey.get()).isEqualTo(expectedPubkey);
+        assertThat(result.status()).isEqualTo(0);
+        assertThat(result.error()).isEmpty();
+        assertThat(result.publicKey()).isPresent();
+        assertThat(result.publicKey().get()).isEqualTo(expectedPubkey);
     }
 }

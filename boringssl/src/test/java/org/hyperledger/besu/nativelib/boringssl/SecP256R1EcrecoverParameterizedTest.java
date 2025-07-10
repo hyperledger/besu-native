@@ -85,37 +85,38 @@ public class SecP256R1EcrecoverParameterizedTest {
         System.arraycopy(inputBytes, 64, signature, 0, siglen);
 
         // Call ecrecover
-        BoringSSLPrecompiles.EcrecoverResult result = BoringSSLPrecompiles.ecrecover(hash, signature, recoveryId);
+        BoringSSLPrecompiles.ECRecoverResult
+            result = BoringSSLPrecompiles.ecrecover(hash, signature, recoveryId);
 
 
         // Parse expected result
         Bytes expectedPublicKey = Bytes.fromHexString(expectedOutput);
         int expectedStatusInt = Integer.parseInt(expectedStatus);
         // Verify the result
-        assertThat(result.status)
+        assertThat(result.status())
             .as("Test case: %s", notes)
             .isEqualTo(expectedStatusInt);
 
         // For successful cases, verify we got a public key
         if (expectedStatusInt == 0) {
-            assertThat(result.publicKey)
+            assertThat(result.publicKey())
                 .as("Success case should have public key: %s", notes)
                 .isPresent();
-            assertThat(result.publicKey.get())
+            assertThat(result.publicKey().get())
                 .as("Success case should have public key: %s", notes)
                 .isEqualTo(expectedPublicKey.toArrayUnsafe());
-            assertThat(result.error)
+            assertThat(result.error())
                 .as("Success case should have no error: %s", notes)
                 .isEmpty();
         } else {
             // For failed cases, verify no public key and error present
-            assertThat(result.publicKey)
+            assertThat(result.publicKey())
                 .as("Failed case should have no public key: %s", notes)
                 .isNotPresent();
-            assertThat(result.error)
+            assertThat(result.error())
                 .as("Failed case should have error: %s", notes)
                 .isPresent();
-            assertThat(result.error.get())
+            assertThat(result.error().get())
                 .as("Failed case should have error: %s", notes)
                 .isEqualTo(error);
         }
