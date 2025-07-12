@@ -60,7 +60,8 @@ int ecrecover_r1(
     r = BN_CTX_get(ctx);
     s = BN_CTX_get(ctx);
     e = BN_CTX_get(ctx);
-    if (!r || !s || !e) {
+    r_inv = BN_CTX_get(ctx);
+    if (!r || !s || !e || !r_inv) {
         RETURN_ERROR("failed to get BIGNUMs from context");
     }
 
@@ -80,8 +81,7 @@ int ecrecover_r1(
     }
     const BIGNUM *order = EC_GROUP_get0_order(group);
 
-    r_inv = BN_mod_inverse(NULL, r, order, ctx);
-    if (!r_inv) {
+    if (!BN_mod_inverse(r_inv, r, order, ctx)) {
         RETURN_INVALID("failed to compute modular inverse of r");
     }
 
@@ -93,9 +93,9 @@ int ecrecover_r1(
         RETURN_INVALID("failed to recover point R from signature");
     }
 
-    u1 = BN_new();
-    u2 = BN_new();
-    e_r_inv = BN_new();
+    u1 = BN_CTX_get(ctx);
+    u2 = BN_CTX_get(ctx);
+    e_r_inv = BN_CTX_get(ctx);
     if (!u1 || !u2 || !e_r_inv) {
         RETURN_ERROR("BIGNUM allocation failed");
     }
@@ -107,8 +107,6 @@ int ecrecover_r1(
     } else {
         BN_sub(u1, order, e_r_inv); // order - (e * r_inv mod n)
     }
-    BN_free(e_r_inv);
-    e_r_inv = NULL;
 
     BN_mod_mul(u2, s, r_inv, order, ctx);
 
@@ -133,11 +131,7 @@ cleanup:
         BN_CTX_free(ctx);
     }
     if (group) EC_GROUP_free(group);
-    if (r_inv) BN_free(r_inv);
     if (R) EC_POINT_free(R);
-    if (u1) BN_free(u1);
-    if (u2) BN_free(u2);
-    if (e_r_inv) BN_free(e_r_inv);
     if (Q) EC_POINT_free(Q);
 
     return ret;
