@@ -16,11 +16,12 @@ static void ensure_context() {
     }
 }
 
-int secp256k1_ecrecover_jni(
-    const unsigned char message_hash[32],
-    const unsigned char signature[64],
+// Internal implementation with size validation
+static int secp256k1_ecrecover_jni_impl(
+    const unsigned char message_hash[], int message_hash_len,
+    const unsigned char signature[], int signature_len,
     int recovery_id,
-    unsigned char output_buffer[65]) {
+    unsigned char output_buffer[], int output_buffer_len) {
     
     // Ensure we have a valid context
     ensure_context();
@@ -31,6 +32,17 @@ int secp256k1_ecrecover_jni(
     // Validate inputs
     if (message_hash == NULL || signature == NULL || output_buffer == NULL) {
         return 1;
+    }
+
+    // Validate input array sizes
+    if (message_hash_len != 32) {
+        return 1; // message_hash must be exactly 32 bytes
+    }
+    if (signature_len != 64) {
+        return 1; // signature must be exactly 64 bytes
+    }
+    if (output_buffer_len < 65) {
+        return 1; // output_buffer must be at least 65 bytes
     }
 
     // restrict recovery id to uncompressed point types
@@ -65,6 +77,20 @@ int secp256k1_ecrecover_jni(
     }
 
     return 0; // Success
+}
+
+// Public API with backward compatibility (assumes standard sizes)
+int secp256k1_ecrecover_jni(
+    const unsigned char message_hash[32],
+    const unsigned char signature[64],
+    int recovery_id,
+    unsigned char output_buffer[65]) {
+    
+    return secp256k1_ecrecover_jni_impl(
+        message_hash, 32,
+        signature, 64,
+        recovery_id,
+        output_buffer, 65);
 }
 
 // Cleanup function (called when library is unloaded)
