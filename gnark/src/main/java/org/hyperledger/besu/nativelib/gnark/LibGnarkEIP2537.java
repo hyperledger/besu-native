@@ -150,6 +150,30 @@ public class LibGnarkEIP2537 implements Library {
       byte[] error,
       int inputSize, int output_len, int err_len);
 
+  public static native int eip2537G1AffineDecodeOnCurve(
+    byte[] input,
+    byte[] output,
+    byte[] error,
+    int inputSize, int output_len, int err_len);
+
+  public static native int eip2537G2AffineDecodeOnCurve(
+    byte[] input,
+    byte[] output,
+    byte[] error,
+    int inputSize, int output_len, int err_len);
+
+  public static native int eip2537G1AffineDecodeInSubGroup(
+    byte[] input,
+    byte[] output,
+    byte[] error,
+    int inputSize, int output_len, int err_len);
+
+  public static native int eip2537G2AffineDecodeInSubGroup(
+    byte[] input,
+    byte[] output,
+    byte[] error,
+    int inputSize, int output_len, int err_len);
+
   public static void setDegreeOfMSMParallelism(int nbTasks) {
     degreeOfMSMParallelism = nbTasks;
   }
