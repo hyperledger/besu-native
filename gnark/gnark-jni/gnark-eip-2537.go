@@ -692,6 +692,9 @@ func hasWrongG2Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80]) || !isZero(input[128:144]) || !isZero(input[192:208])
 }
 
+//export eip2537G1AffineDecodeInSubGroup
+func eip2537G1AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+
 // g1AffineDecodeInSubGroup decodes a byte slice into a G1 affine point and verifies
 // that the point is on the curve and in the correct subgroup.
 //
@@ -709,6 +712,9 @@ func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 	}
 	return g1, nil
 }
+
+//export eip2537G1AffineDecodeOnCurve
+func eip2537G1AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
 
 // g1AffineDecodeOnCurve decodes a byte slice into a G1 affine point and verifies
 // that the point is on the curve, without performing a subgroup check.
@@ -739,6 +745,9 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
+//export eip2537G2AffineDecodeInSubGroup
+func eip2537G2AffineDecodeInSubGroup(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+
 // g2AffineDecodeInSubGroup decodes a byte slice into a G2 affine point and verifies
 // that the point is on the curve and in the correct subgroup.
 //
@@ -755,6 +764,9 @@ func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 	}
 	return g2, nil
 }
+
+//export eip2537G2AffineDecodeOnCurve
+func eip2537G2AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
 
 // g2AffineDecodeOnCurve decodes a byte slice into a G2 affine point and verifies
 // that the point is on the curve, without performing a subgroup check.
