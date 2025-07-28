@@ -692,8 +692,30 @@ func hasWrongG2Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80]) || !isZero(input[128:144]) || !isZero(input[192:208])
 }
 
-//export eip2537G1AffineDecodeInSubGroup
-func eip2537G1AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+//export eip2537G1IsInSubGroup
+func eip2537G1IsInSubGroup(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
+	inputLen := int(cInputLen)
+	errorLen := int(cErrorLen)
+
+	// Convert C pointer to error buffer into a Go slice
+	errorBuf := castBuffer(javaErrorBuf, errorLen)
+
+	// Validate input length
+	if inputLen != EIP2537PreallocateForG1 {
+		copy(errorBuf, "invalid input parameters, invalid input length for G1 point validation\x00")
+		return 0
+	}
+	input := (*[EIP2537PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+	// Check if G1 point is in subgroup
+	_, err := g1AffineDecodeInSubGroup(input)
+	if err != nil {
+		copy(errorBuf, err.Error())
+		return 0
+	}
+
+	return 1
+}
 
 // g1AffineDecodeInSubGroup decodes a byte slice into a G1 affine point and verifies
 // that the point is on the curve and in the correct subgroup.
@@ -713,8 +735,30 @@ func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
-//export eip2537G1AffineDecodeOnCurve
-func eip2537G1AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+//export eip2537G1IsOnCurve
+func eip2537G1IsOnCurve(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
+	inputLen := int(cInputLen)
+	errorLen := int(cErrorLen)
+
+	// Convert C pointer to error buffer into a Go slice
+	errorBuf := castBuffer(javaErrorBuf, errorLen)
+
+	// Validate input length
+	if inputLen != EIP2537PreallocateForG1 {
+		copy(errorBuf, "invalid input parameters, invalid input length for G1 point validation\x00")
+		return 0
+	}
+	input := (*[EIP2537PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+	// Check if G1 point is on curve
+	_, err := g1AffineDecodeOnCurve(input)
+	if err != nil {
+		copy(errorBuf, err.Error())
+		return 0
+	}
+
+	return 1
+}
 
 // g1AffineDecodeOnCurve decodes a byte slice into a G1 affine point and verifies
 // that the point is on the curve, without performing a subgroup check.
@@ -745,8 +789,30 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
-//export eip2537G2AffineDecodeInSubGroup
-func eip2537G2AffineDecodeInSubGroup(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+//export eip2537G2IsInSubGroup
+func eip2537G2IsInSubGroup(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
+	inputLen := int(cInputLen)
+	errorLen := int(cErrorLen)
+
+	// Convert C pointer to error buffer into a Go slice
+	errorBuf := castBuffer(javaErrorBuf, errorLen)
+
+	// Validate input length
+	if inputLen != EIP2537PreallocateForG2 {
+		copy(errorBuf, "invalid input parameters, invalid input length for G2 point validation\x00")
+		return 0
+	}
+	input := (*[EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+	// Check if G2 point is in subgroup
+	_, err := g2AffineDecodeInSubGroup(input)
+	if err != nil {
+		copy(errorBuf, err.Error())
+		return 0
+	}
+
+	return 1
+}
 
 // g2AffineDecodeInSubGroup decodes a byte slice into a G2 affine point and verifies
 // that the point is on the curve and in the correct subgroup.
@@ -765,8 +831,30 @@ func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 	return g2, nil
 }
 
-//export eip2537G2AffineDecodeOnCurve
-func eip2537G2AffineDecodeOnCurve(javaInputBuf, javaOutputBuf, javaErrorBuf *C.char, cInputLen, cOutputLen, cErrorLen C.int) C.int {}
+//export eip2537G2IsOnCurve
+func eip2537G2IsOnCurve(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
+	inputLen := int(cInputLen)
+	errorLen := int(cErrorLen)
+
+	// Convert C pointer to error buffer into a Go slice
+	errorBuf := castBuffer(javaErrorBuf, errorLen)
+
+	// Validate input length
+	if inputLen != EIP2537PreallocateForG2 {
+		copy(errorBuf, "invalid input parameters, invalid input length for G2 point validation\x00")
+		return 0
+	}
+	input := (*[EIP2537PreallocateForG2]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
+
+	// Check if G2 point is on curve
+	_, err := g2AffineDecodeOnCurve(input)
+	if err != nil {
+		copy(errorBuf, err.Error())
+		return 0
+	}
+
+	return 1
+}
 
 // g2AffineDecodeOnCurve decodes a byte slice into a G2 affine point and verifies
 // that the point is on the curve, without performing a subgroup check.
