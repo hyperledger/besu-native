@@ -11,7 +11,6 @@
 #define P256_KEY_LEN 65
 #define P256_COORD_LEN 32
 
-#define RETURN_OK() do { goto cleanup; } while (0)
 #define RETURN_INVALID(msg) do { snprintf(error_message_buf, error_message_buf_len, "%s", msg); ret = 1; goto cleanup; } while (0)
 #define RETURN_ERROR(msg) do { snprintf(error_message_buf, error_message_buf_len, "%s", msg); ret = 2; goto cleanup; } while (0)
 
