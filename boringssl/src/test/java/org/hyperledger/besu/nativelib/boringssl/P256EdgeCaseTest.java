@@ -43,7 +43,7 @@ public class P256EdgeCaseTest {
 
     @Before
     public void setUp() throws NoSuchAlgorithmException {
-        Assume.assumeTrue("P256Verify must be enabled", LibP256Verify.ENABLED);
+        Assume.assumeTrue("P256Verify must be enabled", BoringSSLPrecompiles.ENABLED);
         
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         testDataHash = digest.digest(validDataHash.toArrayUnsafe());
@@ -56,10 +56,10 @@ public class P256EdgeCaseTest {
         // ECDSA requires r != 0 - this should fail
         byte[] input = createInput(testDataHash, new byte[32], validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -67,10 +67,10 @@ public class P256EdgeCaseTest {
         // ECDSA requires s != 0 - this should fail
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), new byte[32], validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -79,10 +79,10 @@ public class P256EdgeCaseTest {
         byte[] rEqualsOrder = toBytes32(CURVE_ORDER);
         byte[] input = createInput(testDataHash, rEqualsOrder, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -91,10 +91,10 @@ public class P256EdgeCaseTest {
         byte[] sEqualsOrder = toBytes32(CURVE_ORDER);
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), sEqualsOrder, validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -104,10 +104,10 @@ public class P256EdgeCaseTest {
         Arrays.fill(rGreaterThanOrder, (byte) 0xFF); // Maximum 256-bit value
         byte[] input = createInput(testDataHash, rGreaterThanOrder, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -117,10 +117,10 @@ public class P256EdgeCaseTest {
         Arrays.fill(sGreaterThanOrder, (byte) 0xFF); // Maximum 256-bit value
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), sGreaterThanOrder, validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     // 2. Public Key Edge Cases
@@ -131,10 +131,10 @@ public class P256EdgeCaseTest {
         byte[] pointAtInfinity = new byte[64];
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), pointAtInfinity);
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("failed to parse public key point");
+        assertThat(result.error).isEqualTo("failed to parse public key point");
     }
 
     @Test
@@ -144,10 +144,10 @@ public class P256EdgeCaseTest {
         Arrays.fill(invalidPoint, (byte) 0x42); // All bytes set to 0x42
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), invalidPoint);
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("failed to parse public key point");
+        assertThat(result.error).isEqualTo("failed to parse public key point");
     }
 
     // 3. Hash Edge Cases
@@ -158,10 +158,10 @@ public class P256EdgeCaseTest {
         byte[] allZeroHash = new byte[32];
         byte[] input = createInput(allZeroHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -171,10 +171,10 @@ public class P256EdgeCaseTest {
         Arrays.fill(allOnesHash, (byte) 0xFF);
         byte[] input = createInput(allOnesHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     @Test
@@ -183,10 +183,10 @@ public class P256EdgeCaseTest {
         byte[] hashEqualsOrder = toBytes32(CURVE_ORDER);
         byte[] input = createInput(hashEqualsOrder, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     // 4. Input Size Edge Cases
@@ -197,10 +197,10 @@ public class P256EdgeCaseTest {
         byte[] shortInput = new byte[128]; // Too short
         Arrays.fill(shortInput, (byte) 0x01);
         
-        var result = LibP256Verify.p256Verify(shortInput, shortInput.length);
+        var result = BoringSSLPrecompiles.p256Verify(shortInput, shortInput.length);
 
         assertThat(result.status).isEqualTo(2);
-        assertThat(result.message).isEqualTo("incorrect input size");
+        assertThat(result.error).isEqualTo("incorrect input size");
     }
 
     // 5. Malleability Conditions
@@ -213,7 +213,7 @@ public class P256EdgeCaseTest {
         UInt256 malleatedS = order.subtract(UInt256.fromBytes(validSignatureS));
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), malleatedS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(0); // Should pass per EIP-7951
     }
@@ -226,10 +226,10 @@ public class P256EdgeCaseTest {
         wrongR[31] ^= 0x01; // Flip one bit to make it wrong but still in valid range
         byte[] input = createInput(testDataHash, wrongR, validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(1);
-        assertThat(result.message).isEqualTo("signature verification failed");
+        assertThat(result.error).isEqualTo("signature verification failed");
     }
 
     // 6. Positive Test Cases
@@ -239,10 +239,10 @@ public class P256EdgeCaseTest {
         // Test with known valid signature to ensure positive cases work
         byte[] input = createInput(testDataHash, validSignatureR.toArrayUnsafe(), validSignatureS.toArrayUnsafe(), validPublicKey.toArrayUnsafe());
         
-        var result = LibP256Verify.p256Verify(input, input.length);
+        var result = BoringSSLPrecompiles.p256Verify(input, input.length);
 
         assertThat(result.status).isEqualTo(0);
-        assertThat(result.message).isEmpty();
+        assertThat(result.error).isEmpty();
     }
 
     // Helper method to convert BigInteger to 32-byte array
