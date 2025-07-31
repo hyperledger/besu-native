@@ -24,42 +24,44 @@ dependencies {
     implementation project(':common')
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
-    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
-    testImplementation 'io.tmio:tuweni-units:2.4.2'
+    testImplementation 'io.consensys.tuweni:tuweni-bytes:2.7.1'
+    testImplementation 'io.consensys.tuweni:tuweni-units:2.7.1'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
 task macArmLibCopy(type: Copy) {
-    from 'build/darwin-aarch64/lib/libp256verify.dylib'
+    from 'build/darwin-aarch64/lib/libboringssl_precompiles.dylib'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
-    from 'build/darwin-x86-64/lib/libp256verify.dylib'
+    from 'build/darwin-x86-64/lib/libboringssl_precompiles.dylib'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
-    from 'build/linux-gnu-x86_64/lib/libp256verify.so'
+    from 'build/linux-gnu-x86_64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
-    from 'build/linux-gnu-aarch64/lib/libp256verify.so'
+    from 'build/linux-gnu-aarch64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
-    from 'build/linux-gnu-riscv64/lib/libp256verify.so'
+    from 'build/linux-gnu-riscv64/lib/libboringssl_precompiles.so'
     into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
+
+
 
 jar {
     archiveBaseName = 'besu-native-boringssl'

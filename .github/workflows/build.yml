@@ -10,7 +10,7 @@ jobs:
   native-build-linux-x86-64:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:20.04
+      image: ubuntu:22.04
     env:
       SKIP_GRADLE: true
     steps:
@@ -118,7 +118,7 @@ jobs:
           submodules: recursive
       - name: Build
         run: |
-          docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:20.04 /home/ubuntu/native-build.sh
+          docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:22.04 /home/ubuntu/native-build.sh
       - uses: actions/upload-artifact@v4
         with:
           name: arithmetic-native-build-artifacts-linux-arm64
