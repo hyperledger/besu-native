@@ -692,6 +692,25 @@ func hasWrongG2Padding(input []byte) bool {
 	return !isZero(input[:16]) || !isZero(input[64:80]) || !isZero(input[128:144]) || !isZero(input[192:208])
 }
 
+/*
+
+eip2537G1IsInSubGroup checks if a G1 point is in the correct subgroup.
+
+- Input:
+    - javaInputBuf: Pointer to a buffer containing a G1 point
+    - javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
+    - cInputLen: Length of the input buffer in bytes
+    - cErrorLen: Length of the error buffer in bytes
+- Returns:
+    - 1 if the G1 point is in the subgroup, 0 otherwise
+- Cryptography:
+    - The field elements that comprise the G1 input point must be checked to be canonical.
+    - Check that the input point is on the curve and in the correct subgroup.
+- JNI:
+    - javaInputBuf must be at least EIP2537PreallocateForG1 bytes to store the G1 point
+    - javaErrorBuf must be at least 256 bytes to safely store the error message
+    - javaErrorBuf must be zero initialized
+*/
 //export eip2537G1IsInSubGroup
 func eip2537G1IsInSubGroup(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
@@ -735,6 +754,25 @@ func g1AffineDecodeInSubGroup(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
+/*
+
+eip2537G1IsOnCurve checks if a G1 point is on the curve.
+
+- Input:
+    - javaInputBuf: Pointer to a buffer containing a G1 point
+    - javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
+    - cInputLen: Length of the input buffer in bytes
+    - cErrorLen: Length of the error buffer in bytes
+- Returns:
+    - 1 if the G1 point is on the curve, 0 otherwise
+- Cryptography:
+    - The field elements that comprise the G1 input point must be checked to be canonical.
+    - Check that the input point is on the curve, without performing a subgroup check.
+- JNI:
+    - javaInputBuf must be at least EIP2537PreallocateForG1 bytes to store the G1 point
+    - javaErrorBuf must be at least 256 bytes to safely store the error message
+    - javaErrorBuf must be zero initialized
+*/
 //export eip2537G1IsOnCurve
 func eip2537G1IsOnCurve(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
@@ -789,6 +827,25 @@ func g1AffineDecodeOnCurve(input []byte) (*bls12381.G1Affine, error) {
 	return g1, nil
 }
 
+/*
+
+eip2537G2IsInSubGroup checks if a G2 point is in the correct subgroup.
+
+- Input:
+    - javaInputBuf: Pointer to a buffer containing a G2 point
+    - javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
+    - cInputLen: Length of the input buffer in bytes
+    - cErrorLen: Length of the error buffer in bytes
+- Returns:
+    - 1 if the G2 point is in the subgroup, 0 otherwise
+- Cryptography:
+    - The field elements that comprise the G2 input point must be checked to be canonical.
+    - Check that the input point is on the curve and in the correct subgroup.
+- JNI:
+    - javaInputBuf must be at least EIP2537PreallocateForG2 bytes to store the G2 point
+    - javaErrorBuf must be at least 256 bytes to safely store the error message
+    - javaErrorBuf must be zero initialized
+*/
 //export eip2537G2IsInSubGroup
 func eip2537G2IsInSubGroup(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
@@ -831,6 +888,25 @@ func g2AffineDecodeInSubGroup(input []byte) (*bls12381.G2Affine, error) {
 	return g2, nil
 }
 
+/*
+
+eip2537G2IsOnCurve checks if a G2 point is on the curve.
+
+- Input:
+    - javaInputBuf: Pointer to a buffer containing a G2 point
+    - javaErrorBuf: Pointer to a buffer where error messages will be written if an error occurs
+    - cInputLen: Length of the input buffer in bytes
+    - cErrorLen: Length of the error buffer in bytes
+- Returns:
+    - 1 if the G2 point is on the curve, 0 otherwise
+- Cryptography:
+    - The field elements that comprise the G2 input point must be checked to be canonical.
+    - Check that the input point is on the curve, without performing a subgroup check.
+- JNI:
+    - javaInputBuf must be at least EIP2537PreallocateForG2 bytes to store the G2 point
+    - javaErrorBuf must be at least 256 bytes to safely store the error message
+    - javaErrorBuf must be zero initialized
+*/
 //export eip2537G2IsOnCurve
 func eip2537G2IsOnCurve(javaInputBuf, javaErrorBuf *C.char, cInputLen, cErrorLen C.int) C.int {
 	inputLen := int(cInputLen)
