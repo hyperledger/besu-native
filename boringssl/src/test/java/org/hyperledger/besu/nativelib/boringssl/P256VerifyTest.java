@@ -53,7 +53,7 @@ public class P256VerifyTest {
   @Test
   public void verifyValidSignatureSucceeds() {
     byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
-    var res = LibP256Verify.p256Verify(input, input.length);
+    var res = BoringSSLPrecompiles.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(0);
   }
@@ -65,7 +65,7 @@ public class P256VerifyTest {
     var malleatedSignatureS = order.subtract(UInt256.fromBytes(signatureS));
 
     byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), malleatedSignatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
-    var res = LibP256Verify.p256Verify(input, input.length);
+    var res = BoringSSLPrecompiles.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(0);
   }
@@ -73,7 +73,7 @@ public class P256VerifyTest {
   @Test
   public void verifyShouldReturnErrorIfSignatureIsInvalid() {
     byte[] input = createInput(dataHash, invalidSignatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), publicKey.toArrayUnsafe());
-    var res = LibP256Verify.p256Verify(input, input.length);
+    var res = BoringSSLPrecompiles.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(1);
   }
@@ -81,10 +81,10 @@ public class P256VerifyTest {
   @Test
   public void verifyShouldThrowExceptionIfAnyOtherParameterIsInvalid() {
     byte[] input = createInput(dataHash, signatureR.toArrayUnsafe(), signatureS.toArrayUnsafe(), invalidPublicKey.toArrayUnsafe());
-    var res = LibP256Verify.p256Verify(input, input.length);
+    var res = BoringSSLPrecompiles.p256Verify(input, input.length);
 
     assertThat(res.status).isEqualTo(1);
-    assertThat(res.message).isEqualTo("failed to parse public key point");
+    assertThat(res.error).isEqualTo("failed to parse public key point");
   }
 
   // Helper method to create 160-byte input array: hash(32) + r(32) + s(32) + pubkey(64)

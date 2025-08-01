@@ -11,10 +11,10 @@ extern "C" {
 // Returns: 0 = OK, 1 = INVALID, 2 = ERROR
 int p256_verify(
     const char data_hash[], int data_hash_length,
-    const char signature_r[], const char signature_s[],
-    const char public_key_data[],
-    char* error_message_buf,
-    int error_message_buf_len);
+    const char signature_r[], int signature_r_length,
+    const char signature_s[], int signature_s_length,
+    const char public_key_data[], int public_key_data_length,
+    char error_message_buf[], int error_message_buf_len);
 
 #ifdef __cplusplus
 }

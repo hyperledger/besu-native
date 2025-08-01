@@ -61,23 +61,24 @@ public class P256VerifyParameterizedTest {
             return;
         }
 
-        Assume.assumeTrue("P256Verify must be enabled", LibP256Verify.ENABLED);
+        Assume.assumeTrue("P256Verify must be enabled", BoringSSLPrecompiles.ENABLED);
 
 
         // Handle null input case
         if (input == null || input.isEmpty()) {
-            LibP256Verify.Result result = LibP256Verify.p256Verify(null, 0);
+            BoringSSLPrecompiles.P256VerifyResult result = BoringSSLPrecompiles.p256Verify(null, 0);
             int expectedStatusInt = Integer.parseInt(expectedStatus);
             assertThat(result.status).as("Test case: %s", notes).isEqualTo(expectedStatusInt);
             if (!expectedMessage.isEmpty()) {
-                assertThat(result.message).as("Error message for test case: %s", notes).isEqualTo(expectedMessage);
+                assertThat(result.error).as("Error message for test case: %s", notes).isEqualTo(expectedMessage);
             }
             return;
         }
 
         // Call P256 verify
         byte[] inputBytes = Bytes.fromHexString(input).toArrayUnsafe();
-        LibP256Verify.Result result = LibP256Verify.p256Verify(inputBytes, inputBytes.length);
+        BoringSSLPrecompiles.P256VerifyResult
+            result = BoringSSLPrecompiles.p256Verify(inputBytes, inputBytes.length);
 
         // Parse expected status
         int expectedStatusInt = Integer.parseInt(expectedStatus);
@@ -89,12 +90,12 @@ public class P256VerifyParameterizedTest {
 
         // Verify error message if expected
         if (!expectedMessage.isEmpty()) {
-            assertThat(result.message)
+            assertThat(result.error)
                 .as("Error message for test case: %s", notes)
                 .isEqualTo(expectedMessage);
         } else {
             // For successful cases, message should be empty
-            assertThat(result.message)
+            assertThat(result.error)
                 .as("Success case should have empty message: %s", notes)
                 .isEmpty();
         }

@@ -24,8 +24,8 @@ dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'io.tmio:tuweni-bytes:2.4.2'
-    testImplementation 'io.tmio:tuweni-units:2.4.2'
+    testImplementation 'io.consensys.tuweni:tuweni-bytes:2.7.1'
+    testImplementation 'io.consensys.tuweni:tuweni-units:2.7.1'
     testImplementation 'org.assertj:assertj-core:3.22.0'
 }
 
