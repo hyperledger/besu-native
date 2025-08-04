@@ -471,6 +471,10 @@ jobs:
         with:
           name: boringssl-native-build-artifacts-macos-arm64
           path: boringssl/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debug-before
+          path: .
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -481,6 +485,10 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: --no-daemon --parallel build --scan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debug-after
+          path: .
       - uses: actions/upload-artifact@v4
         with:
           name: jars-arithmetic
