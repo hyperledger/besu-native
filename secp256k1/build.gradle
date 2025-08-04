@@ -63,25 +63,25 @@ processResources.dependsOn linuxRiscv64LibCopy
 
 // JNI library copy tasks
 task macArmJNILibCopy(type: Copy) {
-  from 'secp256k1_jni/build/darwin-aarch64/lib/libsecp256k1_ecrecover.dylib'
+  from 'build/darwin-aarch64/lib/libsecp256k1_ecrecover.dylib'
   into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmJNILibCopy
 
 task macJNILibCopy(type: Copy) {
-  from 'secp256k1_jni/build/darwin-x86_64/lib/libsecp256k1_ecrecover.dylib'
+  from 'build/darwin-x86-64/lib/libsecp256k1_ecrecover.dylib'
   into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macJNILibCopy
 
 task linuxJNILibCopy(type: Copy) {
-  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/libsecp256k1_ecrecover.so'
+  from 'build/linux-gnu-x86_64/lib/libsecp256k1_ecrecover.so'
   into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxJNILibCopy
 
 task linuxArm64JNILibCopy(type: Copy) {
-  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/libsecp256k1_ecrecover.so'
+  from 'build/linux-gnu-aarch64/lib/libsecp256k1_ecrecover.so'
   into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64JNILibCopy
