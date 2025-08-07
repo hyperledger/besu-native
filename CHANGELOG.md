@@ -1,6 +1,8 @@
 # Changelog
 
 # Unreleased
+
+# 1.4.0
 * perf: add boringssl for p256Verify precompile [#275](https://github.com/hyperledger/besu-native/pull/275)
 * perf: add higher performing ecrecover-specific entrypoints for secp256k1/r1 [#277](https://github.com/hyperledger/besu-native/pull/277)
 
