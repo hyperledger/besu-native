@@ -1,6 +1,7 @@
 # Changelog
 
 # Unreleased
+* Add and export JNI functions for IsOnCurve and IsInSubgroup for both G1 and G2 points[#279](https://github.com/hyperledger/besu-native/pull/279)
 
 # 1.4.0
 * perf: add boringssl for p256Verify precompile [#275](https://github.com/hyperledger/besu-native/pull/275)

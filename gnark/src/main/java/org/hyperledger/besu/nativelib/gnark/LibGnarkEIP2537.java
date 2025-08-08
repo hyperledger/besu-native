@@ -165,6 +165,26 @@ public class LibGnarkEIP2537 implements Library {
       byte[] error,
       int inputSize, int output_len, int err_len);
 
+  public static native boolean eip2537G1IsOnCurve(
+    byte[] input,
+    byte[] error,
+    int inputSize, int err_len);
+
+  public static native boolean eip2537G2IsOnCurve(
+    byte[] input,
+    byte[] error,
+    int inputSize, int err_len);
+
+  public static native boolean eip2537G1IsInSubGroup(
+    byte[] input,
+    byte[] error,
+    int inputSize, int err_len);
+
+  public static native boolean eip2537G2IsInSubGroup(
+    byte[] input,
+    byte[] error,
+    int inputSize, int err_len);
+
   public static void setDegreeOfMSMParallelism(int nbTasks) {
     degreeOfMSMParallelism = nbTasks;
   }
