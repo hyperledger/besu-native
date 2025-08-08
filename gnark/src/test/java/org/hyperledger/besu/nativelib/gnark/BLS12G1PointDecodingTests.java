@@ -22,34 +22,22 @@ import org.junit.Test;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BLS12PointDecodingTests {
+public class BLS12G1PointDecodingTests {
 
   // Valid G1 point from existing test data - 128 bytes with proper padding
   private static final String VALID_G1_POINT = 
       "0000000000000000000000000000000012196c5a43d69224d8713389285f26b98f86ee910ab3dd668e413738282003cc5b7357af9a7af54bb713d62255e80f56" +
       "0000000000000000000000000000000006ba8102bfbeea4416b710c73e8cce3032c31c6269c44906f8ac4f7874ce99fb17559992486528963884ce429a992fee";
 
-  // Valid G2 point - zero point (point at infinity) - 256 bytes (512 hex chars)
-  private static final String VALID_G2_POINT = 
-      "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-  // Invalid G1 point (not on curve) - modified valid point by changing last byte
+  // Invalid G1 point (not on curve)
   private static final String INVALID_G1_POINT_NOT_ON_CURVE =
-      "0000000000000000000000000000000012196c5a43d69224d8713389285f26b98f86ee910ab3dd668e413738282003cc5b7357af9a7af54bb713d62255e80f56" +
-      "0000000000000000000000000000000006ba8102bfbeea4416b710c73e8cce3032c31c6269c44906f8ac4f7874ce99fb17559992486528963884ce429a992fef"; // Changed last byte
-
-  // Invalid G2 point (not on curve) - modified zero point by changing last byte  
-  private static final String INVALID_G2_POINT_NOT_ON_CURVE =
-      "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"; // Changed last byte
+      "00000000000000000000000000000000177b39d2b8d31753ee35033df55a1f891be9196aec9cd8f512e9069d21a8bdbf693bd2e826e792cd12cb554287adf4ca" +
+      "0000000000000000000000000000000003c0f5770509862f754fc474cb163c41790d844f52939e2dec87b97c2a707831a4043ab47014d501f67862e95842ba5a";
 
   // G1 point that's on curve but not in subgroup - use a simple test point (256 hex chars)
   private static final String G1_POINT_NOT_IN_SUBGROUP =
-      "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001" +
-      "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002";
-
-  // G2 point that's on curve but not in subgroup - use a simple test point (512 hex chars)  
-  private static final String G2_POINT_NOT_IN_SUBGROUP =
-      "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    "00000000000000000000000000000000054a4326bbddbdbbca126659e6686984046d2fa49270742e5b6d9017734acf2801f370eebe7af29dfc8d50483609dc00" +
+    "000000000000000000000000000000001713e9ef64254fe96d874d16e33636f186e30d7e476db9f49a16698b771f10e0f8f08e5d8dba621b887c0d257cbd8eac";
 
   // Invalid padding (non-zero leading bytes)
   private static final String INVALID_G1_PADDING =
@@ -111,30 +99,6 @@ public class BLS12PointDecodingTests {
   }
 
   @Test
-  public void testG2IsOnCurve_ValidPoint() {
-    final byte[] input = Bytes.fromHexString(VALID_G2_POINT).toArrayUnsafe();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsOnCurve(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void testG2IsOnCurve_InvalidPoint() {
-    final byte[] input = Bytes.fromHexString(INVALID_G2_POINT_NOT_ON_CURVE).toArrayUnsafe();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsOnCurve(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isFalse();
-    String errorMsg = new String(error, 0, LibGnarkUtils.findFirstTrailingZeroIndex(error), UTF_8);
-    assertThat(errorMsg).contains("invalid point: point is not on curve");
-  }
-
-  @Test
   public void testG1IsInSubGroup_ValidPoint() {
     final byte[] input = Bytes.fromHexString(VALID_G1_POINT).toArrayUnsafe();
     final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
@@ -146,7 +110,6 @@ public class BLS12PointDecodingTests {
   }
 
   @Test
-  @Ignore("generate a g1 point that is in subgroup but not on curve")
   public void testG1IsInSubGroup_NotInSubGroup() {
     final byte[] input = Bytes.fromHexString(G1_POINT_NOT_IN_SUBGROUP).toArrayUnsafe();
     final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
@@ -173,62 +136,12 @@ public class BLS12PointDecodingTests {
   }
 
   @Test
-  public void testG2IsInSubGroup_ValidPoint() {
-    final byte[] input = Bytes.fromHexString(VALID_G2_POINT).toArrayUnsafe();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsInSubGroup(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  @Ignore("generate a g2 point that is not in subgroup")
-  public void testG2IsInSubGroup_NotInSubGroup() {
-    final byte[] input = Bytes.fromHexString(G2_POINT_NOT_IN_SUBGROUP).toArrayUnsafe();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsInSubGroup(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isFalse();
-    String errorMsg = new String(error, 0, LibGnarkUtils.findFirstTrailingZeroIndex(error), UTF_8);
-    assertThat(errorMsg).contains("invalid point: subgroup check failed");
-  }
-
-  @Test
-  public void testG2IsInSubGroup_NotOnCurve() {
-    final byte[] input = Bytes.fromHexString(INVALID_G2_POINT_NOT_ON_CURVE).toArrayUnsafe();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsInSubGroup(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isFalse();
-    String errorMsg = new String(error, 0, LibGnarkUtils.findFirstTrailingZeroIndex(error), UTF_8);
-    assertThat(errorMsg).contains("invalid point: point is not on curve");
-  }
-
-  @Test
   public void testG1IsOnCurve_ZeroPoint() {
     // Test the point at infinity (all zeros) which should be on curve
     final byte[] input = new byte[128]; // All zeros
     final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
     
     boolean result = LibGnarkEIP2537.eip2537G1IsOnCurve(
-        input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
-        
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void testG2IsOnCurve_ZeroPoint() {
-    // Test the point at infinity (all zeros) which should be on curve
-    final byte[] input = new byte[256]; // All zeros  
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    
-    boolean result = LibGnarkEIP2537.eip2537G2IsOnCurve(
         input, error, input.length, LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES);
         
     assertThat(result).isTrue();
