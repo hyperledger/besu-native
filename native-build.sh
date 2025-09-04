@@ -11,7 +11,7 @@ mkdir -p $GOPATH
 export GOROOT="$HOME/go"
 export PATH="$GOROOT/bin":$PATH
 export CARGO_HOME="$HOME/.cargo"
-curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
+curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
 export PATH=$PATH:$CARGO_HOME/bin
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec
 git config --global --add safe.directory /home/ubuntu/secp256r1/besu-native-ec/openssl

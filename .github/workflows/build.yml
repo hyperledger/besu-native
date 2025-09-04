@@ -28,7 +28,7 @@ jobs:
           tar -xzf go1.24.1.linux-amd64.tar.gz -C /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
           # nim dependencies
           export CHOOSENIM_CHOOSE_VERSION=2.2.2
           curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
@@ -166,7 +166,7 @@ jobs:
           brew install go@1.24 || true
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
           # install both x86 and arm64 toolchains
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
@@ -237,7 +237,7 @@ jobs:
           brew install go@1.24 || true 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.75.0
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
           # install both x86 and arm64 toolchains
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add x86_64-apple-darwin
