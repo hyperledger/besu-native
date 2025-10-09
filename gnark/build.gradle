@@ -31,13 +31,11 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
+// Dynamic library copy tasks (for JNA)
 task macArmLibCopy(type: Copy) {
     from 'build/darwin-aarch64/lib/libgnark_jni.dylib'
     from 'build/darwin-aarch64/lib/libgnark_eip_2537.dylib'
     from 'build/darwin-aarch64/lib/libgnark_eip_196.dylib'
-    from 'build/darwin-aarch64/lib/libgnark_jni.a'
-    from 'build/darwin-aarch64/lib/libgnark_eip_2537.a'
-    from 'build/darwin-aarch64/lib/libgnark_eip_196.a'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn macArmLibCopy
@@ -46,9 +44,6 @@ task macLibCopy(type: Copy) {
     from 'build/darwin-x86-64/lib/libgnark_jni.dylib'
     from 'build/darwin-x86-64/lib/libgnark_eip_2537.dylib'
     from 'build/darwin-x86-64/lib/libgnark_eip_196.dylib'
-    from 'build/darwin-x86-64/lib/libgnark_jni.a'
-    from 'build/darwin-x86-64/lib/libgnark_eip_2537.a'
-    from 'build/darwin-x86-64/lib/libgnark_eip_196.a'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn macLibCopy
@@ -57,9 +52,6 @@ task linuxLibCopy(type: Copy) {
     from 'build/linux-gnu-x86_64/lib/libgnark_jni.so'
     from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.so'
-    from 'build/linux-gnu-x86_64/lib/libgnark_jni.a'
-    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.a'
-    from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.a'
     into 'build/resources/main/lib/x86-64'
 }
 processResources.dependsOn linuxLibCopy
@@ -68,9 +60,6 @@ task linuxArm64LibCopy(type: Copy) {
     from 'build/linux-gnu-aarch64/lib/libgnark_jni.so'
     from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.so'
-    from 'build/linux-gnu-aarch64/lib/libgnark_jni.a'
-    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.a'
-    from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.a'
     into 'build/resources/main/lib/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
@@ -79,12 +68,66 @@ task linuxRiscv64LibCopy(type: Copy) {
     from 'build/linux-gnu-riscv64/lib/libgnark_jni.so'
     from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.so'
     from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.so'
-    from 'build/linux-gnu-riscv64/lib/libgnark_jni.a'
-    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.a'
-    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.a'
     into 'build/resources/main/lib/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
+
+// Static library copy tasks (for GraalVM native-image)
+task macArmStaticLibCopy(type: Copy) {
+    from 'build/darwin-aarch64/lib/libgnark_jni.a'
+    from 'build/darwin-aarch64/lib/libgnark_eip_2537.a'
+    from 'build/darwin-aarch64/lib/libgnark_eip_196.a'
+    from 'build/darwin-aarch64/lib/libgnark_jni.h'
+    from 'build/darwin-aarch64/lib/libgnark_eip_2537.h'
+    from 'build/darwin-aarch64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/aarch64'
+}
+
+task macStaticLibCopy(type: Copy) {
+    from 'build/darwin-x86-64/lib/libgnark_jni.a'
+    from 'build/darwin-x86-64/lib/libgnark_eip_2537.a'
+    from 'build/darwin-x86-64/lib/libgnark_eip_196.a'
+    from 'build/darwin-x86-64/lib/libgnark_jni.h'
+    from 'build/darwin-x86-64/lib/libgnark_eip_2537.h'
+    from 'build/darwin-x86-64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/x86-64'
+}
+
+task linuxStaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-x86_64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/x86-64'
+}
+
+task linuxArm64StaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-aarch64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/aarch64'
+}
+
+task linuxRiscv64StaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-riscv64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/riscv64'
+}
+
+// Task to prepare static resources
+task prepareStaticResources {
+    dependsOn macArmStaticLibCopy, macStaticLibCopy, linuxStaticLibCopy,
+              linuxArm64StaticLibCopy, linuxRiscv64StaticLibCopy
+}
 
 jar {
     archiveBaseName = 'besu-native-gnark'
@@ -112,6 +155,13 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+task staticJar(type: Jar, dependsOn: prepareStaticResources) {
+    archiveBaseName = 'besu-native-gnark'
+    archiveClassifier = 'static'
+    from 'build/resources-static'
+    includeEmptyDirs = false
+}
+
 
 publishing {
     publications {
@@ -123,6 +173,7 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact javadocJar
+            artifact staticJar
 
             pom {
                 name = "Besu Native - ${project.name}"
