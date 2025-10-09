@@ -19,9 +19,13 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Test harness for LibGnarkEIP2537Graal to verify G2 point validation operations.
- * Exercises the GraalVM native wrapper with various test cases.
+ * Exercises the GraalVM native wrapper with various test cases and prints detailed
+ * results to stdout.
  */
 public class GraalG2PointTest {
+
+    /** Private constructor to prevent instantiation of utility class. */
+    private GraalG2PointTest() {}
 
     // Valid G2 point - zero point (point at infinity) - 256 bytes (512 hex chars)
     private static final String VALID_G2_POINT =
@@ -54,6 +58,11 @@ public class GraalG2PointTest {
     // Invalid length input
     private static final String INVALID_LENGTH_INPUT = "0001020304";
 
+    /**
+     * Main method to run all G2 point validation tests.
+     *
+     * @param args command line arguments (unused)
+     */
     public static void main(String[] args) {
         System.out.println("========================================");
         System.out.println("LibGnarkEIP2537Graal G2 Point Test");
@@ -259,7 +268,10 @@ public class GraalG2PointTest {
     }
 
     /**
-     * Convert hex string to byte array
+     * Convert hex string to byte array.
+     *
+     * @param hex hexadecimal string (must have even length)
+     * @return byte array representation of the hex string
      */
     private static byte[] hexStringToBytes(String hex) {
         int len = hex.length();

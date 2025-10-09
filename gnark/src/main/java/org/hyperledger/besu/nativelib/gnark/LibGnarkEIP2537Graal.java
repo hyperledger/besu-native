@@ -23,23 +23,44 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * GraalVM native-image compatible interface to gnark EIP-2537 static library
+ * GraalVM native-image compatible interface to gnark EIP-2537 static library.
+ * Provides operations for BLS12-381 elliptic curve operations including G1/G2 addition,
+ * multi-scalar multiplication, pairing checks, and curve/subgroup validation.
  */
 public class LibGnarkEIP2537Graal {
 
+    /** Recommended buffer size for operation results. */
     public static final int EIP2537_PREALLOCATE_FOR_RESULT_BYTES = 256;
+
+    /** Recommended buffer size for error messages. */
     public static final int EIP2537_PREALLOCATE_FOR_ERROR_BYTES = 256;
 
+    /** Operation code for BLS12-381 G1 point addition. */
     public static final byte BLS12_G1ADD_OPERATION_SHIM_VALUE = 1;
+
+    /** Operation code for BLS12-381 G1 multi-scalar multiplication. */
     public static final byte BLS12_G1MULTIEXP_OPERATION_SHIM_VALUE = 2;
+
+    /** Operation code for BLS12-381 G2 point addition. */
     public static final byte BLS12_G2ADD_OPERATION_SHIM_VALUE = 3;
+
+    /** Operation code for BLS12-381 G2 multi-scalar multiplication. */
     public static final byte BLS12_G2MULTIEXP_OPERATION_SHIM_VALUE = 4;
+
+    /** Operation code for BLS12-381 pairing check. */
     public static final byte BLS12_PAIR_OPERATION_SHIM_VALUE = 5;
+
+    /** Operation code for mapping field element to G1. */
     public static final byte BLS12_MAP_FP_TO_G1_OPERATION_SHIM_VALUE = 6;
+
+    /** Operation code for mapping field element to G2. */
     public static final byte BLS12_MAP_FP2_TO_G2_OPERATION_SHIM_VALUE = 7;
 
-    // zero implies 'default' degree of parallelism, which is the number of cpu cores available
+    /** Degree of parallelism for multi-scalar multiplication (0 = auto-detect CPU cores). */
     private static int degreeOfMSMParallelism = 0;
+
+    /** Private constructor to prevent instantiation of utility class. */
+    private LibGnarkEIP2537Graal() {}
 
     @CContext(LibGnarkEIP2537Graal.Directives.class)
     public static class Directives implements CContext.Directives {
@@ -228,7 +249,15 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsG1Add
+     * Java-friendly wrapper for BLS12-381 G1 point addition.
+     *
+     * @param input input data containing two G1 points to add
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsG1Add(
             byte[] input,
@@ -245,7 +274,16 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsG1MultiExp
+     * Java-friendly wrapper for BLS12-381 G1 multi-scalar multiplication.
+     *
+     * @param input input data containing G1 points and scalars
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @param nbTasks number of parallel tasks (0 = auto-detect)
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsG1MultiExp(
             byte[] input,
@@ -263,7 +301,15 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsG2Add
+     * Java-friendly wrapper for BLS12-381 G2 point addition.
+     *
+     * @param input input data containing two G2 points to add
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsG2Add(
             byte[] input,
@@ -280,7 +326,16 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsG2MultiExp
+     * Java-friendly wrapper for BLS12-381 G2 multi-scalar multiplication.
+     *
+     * @param input input data containing G2 points and scalars
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @param nbTasks number of parallel tasks (0 = auto-detect)
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsG2MultiExp(
             byte[] input,
@@ -298,7 +353,15 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsPairing
+     * Java-friendly wrapper for BLS12-381 pairing check operation.
+     *
+     * @param input input data containing pairs of G1 and G2 points
+     * @param output output buffer for result (boolean encoded as bytes)
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsPairing(
             byte[] input,
@@ -315,7 +378,15 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsMapFpToG1
+     * Java-friendly wrapper for mapping field element to BLS12-381 G1 point.
+     *
+     * @param input input data containing field element
+     * @param output output buffer for resulting G1 point
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsMapFpToG1(
             byte[] input,
@@ -332,7 +403,15 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537blsMapFp2ToG2
+     * Java-friendly wrapper for mapping field element to BLS12-381 G2 point.
+     *
+     * @param input input data containing field element
+     * @param output output buffer for resulting G2 point
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputLength size of output buffer
+     * @param errorLength size of error buffer
+     * @return result code from native function (0 = success)
      */
     public static int eip2537blsMapFp2ToG2(
             byte[] input,
@@ -349,7 +428,13 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537G1IsOnCurve
+     * Java-friendly wrapper for checking if a point is on the BLS12-381 G1 curve.
+     *
+     * @param input input data containing G1 point to validate
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param errorLength size of error buffer
+     * @return true if point is on curve, false otherwise
      */
     public static boolean eip2537G1IsOnCurve(
             byte[] input,
@@ -364,7 +449,13 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537G2IsOnCurve
+     * Java-friendly wrapper for checking if a point is on the BLS12-381 G2 curve.
+     *
+     * @param input input data containing G2 point to validate
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param errorLength size of error buffer
+     * @return true if point is on curve, false otherwise
      */
     public static boolean eip2537G2IsOnCurve(
             byte[] input,
@@ -379,7 +470,13 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537G1IsInSubGroup
+     * Java-friendly wrapper for checking if a G1 point is in the correct subgroup.
+     *
+     * @param input input data containing G1 point to validate
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param errorLength size of error buffer
+     * @return true if point is in subgroup, false otherwise
      */
     public static boolean eip2537G1IsInSubGroup(
             byte[] input,
@@ -394,7 +491,13 @@ public class LibGnarkEIP2537Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip2537G2IsInSubGroup
+     * Java-friendly wrapper for checking if a G2 point is in the correct subgroup.
+     *
+     * @param input input data containing G2 point to validate
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param errorLength size of error buffer
+     * @return true if point is in subgroup, false otherwise
      */
     public static boolean eip2537G2IsInSubGroup(
             byte[] input,
@@ -408,6 +511,11 @@ public class LibGnarkEIP2537Graal {
         );
     }
 
+    /**
+     * Sets the degree of parallelism for multi-scalar multiplication operations.
+     *
+     * @param nbTasks number of parallel tasks (0 = auto-detect CPU cores)
+     */
     public static void setDegreeOfMSMParallelism(int nbTasks) {
         degreeOfMSMParallelism = nbTasks;
     }

@@ -24,15 +24,29 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * GraalVM native-image compatible interface to gnark EIP-196 static library
+ * GraalVM native-image compatible interface to gnark EIP-196 static library.
+ * Provides operations for Alt-BN128 elliptic curve operations including G1 addition,
+ * scalar multiplication, and pairing checks.
  */
 public class LibGnarkEIP196Graal {
 
+    /** Recommended buffer size for operation results. */
     public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 128;
+
+    /** Recommended buffer size for error messages. */
     public static final int EIP196_PREALLOCATE_FOR_ERROR_BYTES = 256;
+
+    /** Operation code for G1 point addition. */
     public static final byte EIP196_ADD_OPERATION_RAW_VALUE = 1;
+
+    /** Operation code for G1 scalar multiplication. */
     public static final byte EIP196_MUL_OPERATION_RAW_VALUE = 2;
+
+    /** Operation code for pairing check. */
     public static final byte EIP196_PAIR_OPERATION_RAW_VALUE = 3;
+
+    /** Private constructor to prevent instantiation of utility class. */
+    private LibGnarkEIP196Graal() {}
 
     @CContext(LibGnarkEIP196Graal.Directives.class)
     public static class Directives implements CContext.Directives {
@@ -81,7 +95,17 @@ public class LibGnarkEIP196Graal {
             CIntPointer errorSize);
 
     /**
-     * Here as a compatibility shim for the pre-existing matter-labs implementation.
+     * Compatibility shim for the pre-existing matter-labs implementation.
+     * Routes operation codes to the appropriate native function.
+     *
+     * @param op operation code (ADD, MUL, or PAIR)
+     * @param input input data buffer
+     * @param inputLength length of input data
+     * @param output output data buffer
+     * @param outputSize output size reference (updated by native function)
+     * @param error error message buffer
+     * @param errorSize error size reference (updated by native function)
+     * @return result code from native function
      */
     public static int eip196_perform_operation(
             byte op,
@@ -111,7 +135,15 @@ public class LibGnarkEIP196Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip196altbn128G1Add
+     * Java-friendly wrapper for Alt-BN128 G1 point addition.
+     *
+     * @param input input data containing two G1 points to add
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputSize output size reference (updated by native function)
+     * @param errorSize error size reference (updated by native function)
+     * @return result code from native function
      */
     public static int eip196altbn128G1Add(
             byte[] input,
@@ -128,7 +160,15 @@ public class LibGnarkEIP196Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip196altbn128G1Mul
+     * Java-friendly wrapper for Alt-BN128 G1 scalar multiplication.
+     *
+     * @param input input data containing G1 point and scalar
+     * @param output output buffer for result
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputSize output size reference (updated by native function)
+     * @param errorSize error size reference (updated by native function)
+     * @return result code from native function
      */
     public static int eip196altbn128G1Mul(
             byte[] input,
@@ -145,7 +185,15 @@ public class LibGnarkEIP196Graal {
     }
 
     /**
-     * Java-friendly wrapper for eip196altbn128Pairing
+     * Java-friendly wrapper for Alt-BN128 pairing check operation.
+     *
+     * @param input input data containing pairs of G1 and G2 points
+     * @param output output buffer for result (boolean encoded as bytes)
+     * @param error error message buffer
+     * @param inputSize size of input data
+     * @param outputSize output size reference (updated by native function)
+     * @param errorSize error size reference (updated by native function)
+     * @return result code from native function
      */
     public static int eip196altbn128Pairing(
             byte[] input,
