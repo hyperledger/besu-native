@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
+    implementation 'org.graalvm.sdk:graal-sdk:24.0.2'
     implementation project(':common')
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
