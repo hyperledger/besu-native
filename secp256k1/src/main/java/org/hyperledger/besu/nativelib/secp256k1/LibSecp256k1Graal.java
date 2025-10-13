@@ -15,18 +15,13 @@
  */
 package org.hyperledger.besu.nativelib.secp256k1;
 
-import org.graalvm.nativeimage.ObjectHandle;
-import org.graalvm.nativeimage.ObjectHandles;
 import org.graalvm.nativeimage.PinnedObject;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
-import org.graalvm.nativeimage.c.struct.CField;
-import org.graalvm.nativeimage.c.struct.CStruct;
 import org.graalvm.nativeimage.c.type.CCharPointer;
-import org.graalvm.nativeimage.c.type.WordPointer;
+import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.word.PointerBase;
 
-import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,12 +35,23 @@ import java.util.List;
  * <p>This class uses GraalVM's @CFunction annotation to call native C functions
  * directly from statically linked libraries, avoiding the overhead of JNA.
  *
+ * <p>Unlike JNA, this implementation treats secp256k1 structures as opaque byte arrays,
+ * avoiding the need for @CStruct definitions which require struct definitions at compile time.
+ *
+ * <p>This class provides a simple byte-array based API. Implementing projects can
+ * create their own type-safe wrapper classes if desired.
+ *
  * <p>The native library required is:
  * <ul>
  *   <li>libsecp256k1.a - Core Bitcoin secp256k1 library with recovery module</li>
  * </ul>
  */
 public class LibSecp256k1Graal {
+
+    // Structure sizes (opaque to us, but we need to allocate the right amount)
+    public static final int SECP256K1_PUBKEY_SIZE = 64;
+    public static final int SECP256K1_ECDSA_SIGNATURE_SIZE = 64;
+    public static final int SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE = 65;
 
     // Context flags
     private static final int SECP256K1_FLAGS_TYPE_CONTEXT = 1;
@@ -67,8 +73,20 @@ public class LibSecp256k1Graal {
         SECP256K1_FLAGS_TYPE_COMPRESSION | SECP256K1_FLAGS_BIT_COMPRESSION;
     public static final int SECP256K1_EC_UNCOMPRESSED = SECP256K1_FLAGS_TYPE_COMPRESSION;
 
-    /** Global context initialized for verification and signing. */
-    public static final PointerBase CONTEXT = createContext();
+    /** Lazy-initialized context holder to avoid static initialization issues with GraalVM. */
+    private static class ContextHolder {
+        static final PointerBase INSTANCE = createContext();
+    }
+
+    /**
+     * Get the global secp256k1 context (lazily initialized).
+     * The context is initialized for both verification and signing operations.
+     *
+     * @return the global context
+     */
+    public static PointerBase getContext() {
+        return ContextHolder.INSTANCE;
+    }
 
     /** Private constructor to prevent instantiation of utility class. */
     private LibSecp256k1Graal() {}
@@ -99,33 +117,6 @@ public class LibSecp256k1Graal {
         }
     }
 
-    /**
-     * Opaque data structure that holds a parsed and valid public key (64 bytes).
-     */
-    @CStruct("secp256k1_pubkey")
-    public interface Secp256k1Pubkey extends PointerBase {
-        @CField("data")
-        CCharPointer data();
-    }
-
-    /**
-     * Opaque data structure that holds a parsed ECDSA signature (64 bytes).
-     */
-    @CStruct("secp256k1_ecdsa_signature")
-    public interface Secp256k1EcdsaSignature extends PointerBase {
-        @CField("data")
-        CCharPointer data();
-    }
-
-    /**
-     * Opaque data structure that holds a parsed ECDSA recoverable signature (65 bytes).
-     */
-    @CStruct("secp256k1_ecdsa_recoverable_signature")
-    public interface Secp256k1EcdsaRecoverableSignature extends PointerBase {
-        @CField("data")
-        CCharPointer data();
-    }
-
     // ============ Context Management ============
 
     /**
@@ -135,7 +126,7 @@ public class LibSecp256k1Graal {
      * @return a newly created context object
      */
     @CFunction(value = "secp256k1_context_create")
-    public static native PointerBase secp256k1ContextCreate(int flags);
+    static native PointerBase secp256k1ContextCreate(int flags);
 
     /**
      * Updates the context randomization to protect against side-channel leakage.
@@ -145,7 +136,7 @@ public class LibSecp256k1Graal {
      * @return 1 if randomization successfully updated, 0 if an error occurred
      */
     @CFunction(value = "secp256k1_context_randomize")
-    public static native int secp256k1ContextRandomize(PointerBase ctx, CCharPointer seed32);
+    static native int secp256k1ContextRandomize(PointerBase ctx, CCharPointer seed32);
 
     /**
      * Destroy a secp256k1 context object.
@@ -153,7 +144,7 @@ public class LibSecp256k1Graal {
      * @param ctx pointer to a context object
      */
     @CFunction(value = "secp256k1_context_destroy")
-    public static native void secp256k1ContextDestroy(PointerBase ctx);
+    static native void secp256k1ContextDestroy(PointerBase ctx);
 
     // ============ Public Key Operations ============
 
@@ -161,15 +152,15 @@ public class LibSecp256k1Graal {
      * Parse a variable-length public key into the pubkey object.
      *
      * @param ctx a secp256k1 context object
-     * @param pubkey pointer to a pubkey object (output)
+     * @param pubkey pointer to a 64-byte pubkey buffer (output)
      * @param input pointer to a serialized public key
      * @param inputlen length of the array pointed to by input
      * @return 1 if the public key was fully valid, 0 otherwise
      */
     @CFunction(value = "secp256k1_ec_pubkey_parse")
-    public static native int secp256k1EcPubkeyParse(
+    static native int secp256k1EcPubkeyParse(
         PointerBase ctx,
-        Secp256k1Pubkey pubkey,
+        CCharPointer pubkey,
         CCharPointer input,
         long inputlen);
 
@@ -179,30 +170,30 @@ public class LibSecp256k1Graal {
      * @param ctx a secp256k1 context object
      * @param output pointer to output array (33 or 65 bytes)
      * @param outputlen pointer to output length (input/output)
-     * @param pubkey pointer to a secp256k1_pubkey
+     * @param pubkey pointer to a 64-byte pubkey buffer
      * @param flags SECP256K1_EC_COMPRESSED or SECP256K1_EC_UNCOMPRESSED
      * @return 1 always
      */
     @CFunction(value = "secp256k1_ec_pubkey_serialize")
-    public static native int secp256k1EcPubkeySerialize(
+    static native int secp256k1EcPubkeySerialize(
         PointerBase ctx,
         CCharPointer output,
-        WordPointer outputlen,
-        Secp256k1Pubkey pubkey,
+        CIntPointer outputlen,
+        CCharPointer pubkey,
         int flags);
 
     /**
      * Compute the public key for a secret key.
      *
      * @param ctx pointer to a context object
-     * @param pubkey pointer to the created public key (output)
+     * @param pubkey pointer to 64-byte pubkey buffer (output)
      * @param seckey pointer to a 32-byte private key
      * @return 1 if secret was valid, 0 if secret was invalid
      */
     @CFunction(value = "secp256k1_ec_pubkey_create")
-    public static native int secp256k1EcPubkeyCreate(
+    static native int secp256k1EcPubkeyCreate(
         PointerBase ctx,
-        Secp256k1Pubkey pubkey,
+        CCharPointer pubkey,
         CCharPointer seckey);
 
     // ============ ECDSA Signature Operations ============
@@ -211,45 +202,45 @@ public class LibSecp256k1Graal {
      * Parse an ECDSA signature in compact (64 bytes) format.
      *
      * @param ctx a secp256k1 context object
-     * @param sig pointer to a signature object (output)
+     * @param sig pointer to a 64-byte signature buffer (output)
      * @param input64 pointer to the 64-byte array to parse
      * @return 1 when the signature could be parsed, 0 otherwise
      */
     @CFunction(value = "secp256k1_ecdsa_signature_parse_compact")
-    public static native int secp256k1EcdsaSignatureParseCompact(
+    static native int secp256k1EcdsaSignatureParseCompact(
         PointerBase ctx,
-        Secp256k1EcdsaSignature sig,
+        CCharPointer sig,
         CCharPointer input64);
 
     /**
      * Convert a signature to a normalized lower-S form.
      *
      * @param ctx a secp256k1 context object
-     * @param sigout pointer to output signature (output)
-     * @param sigin pointer to input signature
+     * @param sigout pointer to 64-byte output signature buffer (output)
+     * @param sigin pointer to 64-byte input signature buffer
      * @return 1 if sigin was not normalized, 0 if it already was
      */
     @CFunction(value = "secp256k1_ecdsa_signature_normalize")
-    public static native int secp256k1EcdsaSignatureNormalize(
+    static native int secp256k1EcdsaSignatureNormalize(
         PointerBase ctx,
-        Secp256k1EcdsaSignature sigout,
-        Secp256k1EcdsaSignature sigin);
+        CCharPointer sigout,
+        CCharPointer sigin);
 
     /**
      * Verify an ECDSA signature.
      *
      * @param ctx a secp256k1 context object
-     * @param sig the signature being verified
+     * @param sig pointer to 64-byte signature buffer
      * @param msg32 the 32-byte message hash being verified
-     * @param pubkey pointer to an initialized public key
+     * @param pubkey pointer to 64-byte pubkey buffer
      * @return 1 if correct signature, 0 if incorrect or unparseable signature
      */
     @CFunction(value = "secp256k1_ecdsa_verify")
-    public static native int secp256k1EcdsaVerify(
+    static native int secp256k1EcdsaVerify(
         PointerBase ctx,
-        Secp256k1EcdsaSignature sig,
+        CCharPointer sig,
         CCharPointer msg32,
-        Secp256k1Pubkey pubkey);
+        CCharPointer pubkey);
 
     // ============ Recoverable Signature Operations ============
 
@@ -257,15 +248,15 @@ public class LibSecp256k1Graal {
      * Parse a compact ECDSA signature (64 bytes + recovery id).
      *
      * @param ctx a secp256k1 context object
-     * @param sig pointer to a signature object (output)
+     * @param sig pointer to a 65-byte recoverable signature buffer (output)
      * @param input64 pointer to a 64-byte compact signature
      * @param recid the recovery id (0, 1, 2 or 3)
      * @return 1 when the signature could be parsed, 0 otherwise
      */
     @CFunction(value = "secp256k1_ecdsa_recoverable_signature_parse_compact")
-    public static native int secp256k1EcdsaRecoverableSignatureParseCompact(
+    static native int secp256k1EcdsaRecoverableSignatureParseCompact(
         PointerBase ctx,
-        Secp256k1EcdsaRecoverableSignature sig,
+        CCharPointer sig,
         CCharPointer input64,
         int recid);
 
@@ -275,29 +266,29 @@ public class LibSecp256k1Graal {
      * @param ctx a secp256k1 context object
      * @param output64 pointer to a 64-byte array (output)
      * @param recid pointer to an integer to hold the recovery id (output)
-     * @param sig pointer to an initialized signature object
+     * @param sig pointer to 65-byte recoverable signature buffer
      */
     @CFunction(value = "secp256k1_ecdsa_recoverable_signature_serialize_compact")
-    public static native void secp256k1EcdsaRecoverableSignatureSerializeCompact(
+    static native void secp256k1EcdsaRecoverableSignatureSerializeCompact(
         PointerBase ctx,
         CCharPointer output64,
-        WordPointer recid,
-        Secp256k1EcdsaRecoverableSignature sig);
+        CIntPointer recid,
+        CCharPointer sig);
 
     /**
      * Recover an ECDSA public key from a signature.
      *
      * @param ctx pointer to a context object
-     * @param pubkey pointer to the recovered public key (output)
-     * @param sig pointer to initialized signature that supports pubkey recovery
+     * @param pubkey pointer to 64-byte pubkey buffer (output)
+     * @param sig pointer to 65-byte recoverable signature buffer
      * @param msg32 the 32-byte message hash assumed to be signed
      * @return 1 if public key successfully recovered, 0 otherwise
      */
     @CFunction(value = "secp256k1_ecdsa_recover")
-    public static native int secp256k1EcdsaRecover(
+    static native int secp256k1EcdsaRecover(
         PointerBase ctx,
-        Secp256k1Pubkey pubkey,
-        Secp256k1EcdsaRecoverableSignature sig,
+        CCharPointer pubkey,
+        CCharPointer sig,
         CCharPointer msg32);
 
     // ============ Helper Methods ============
@@ -305,13 +296,13 @@ public class LibSecp256k1Graal {
     /**
      * Create and initialize the global context with randomization.
      *
-     * @return initialized context or null if creation failed
+     * @return initialized context (non-null, may be zero/invalid on error)
      */
     private static PointerBase createContext() {
         try {
             PointerBase context = secp256k1ContextCreate(SECP256K1_CONTEXT_VERIFY | SECP256K1_CONTEXT_SIGN);
             if (context.isNull()) {
-                return null;
+                throw new RuntimeException("Failed to create secp256k1 context");
             }
 
             if (Boolean.parseBoolean(System.getProperty("secp256k1.randomize", "true"))) {
@@ -320,13 +311,13 @@ public class LibSecp256k1Graal {
                 try (PinnedObject pinnedSeed = PinnedObject.create(seed)) {
                     if (secp256k1ContextRandomize(context, pinnedSeed.addressOfArrayElement(0)) != 1) {
                         secp256k1ContextDestroy(context);
-                        return null;
+                        throw new RuntimeException("Failed to randomize secp256k1 context");
                     }
                 }
             }
             return context;
         } catch (final Throwable t) {
-            return null;
+            throw new RuntimeException("Failed to initialize secp256k1 context", t);
         }
     }
 
@@ -335,18 +326,18 @@ public class LibSecp256k1Graal {
      *
      * @param ctx context object
      * @param pubkey 64-byte array to receive parsed public key
-     * @param input serialized public key (33, 65 bytes)
+     * @param input serialized public key (33 or 65 bytes)
      * @return 1 if valid, 0 otherwise
      */
     public static int ecPubkeyParse(PointerBase ctx, byte[] pubkey, byte[] input) {
-        if (pubkey.length != 64) {
-            throw new IllegalArgumentException("Public key buffer must be 64 bytes");
+        if (pubkey.length != SECP256K1_PUBKEY_SIZE) {
+            throw new IllegalArgumentException("Public key buffer must be " + SECP256K1_PUBKEY_SIZE + " bytes");
         }
         try (PinnedObject pinnedPubkey = PinnedObject.create(pubkey);
              PinnedObject pinnedInput = PinnedObject.create(input)) {
             return secp256k1EcPubkeyParse(
                 ctx,
-                (Secp256k1Pubkey) pinnedPubkey.addressOfArrayElement(0),
+                pinnedPubkey.addressOfArrayElement(0),
                 pinnedInput.addressOfArrayElement(0),
                 input.length);
         }
@@ -361,13 +352,13 @@ public class LibSecp256k1Graal {
      * @return serialized public key
      */
     public static byte[] ecPubkeySerialize(PointerBase ctx, byte[] pubkey, boolean compressed) {
-        if (pubkey.length != 64) {
-            throw new IllegalArgumentException("Public key must be 64 bytes");
+        if (pubkey.length != SECP256K1_PUBKEY_SIZE) {
+            throw new IllegalArgumentException("Public key must be " + SECP256K1_PUBKEY_SIZE + " bytes");
         }
 
         int flags = compressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED;
         byte[] output = new byte[compressed ? 33 : 65];
-        long[] outputLen = new long[] { output.length };
+        int[] outputLen = new int[] { output.length };
 
         try (PinnedObject pinnedPubkey = PinnedObject.create(pubkey);
              PinnedObject pinnedOutput = PinnedObject.create(output);
@@ -375,8 +366,8 @@ public class LibSecp256k1Graal {
             secp256k1EcPubkeySerialize(
                 ctx,
                 pinnedOutput.addressOfArrayElement(0),
-                (WordPointer) pinnedOutputLen.addressOfArrayElement(0),
-                (Secp256k1Pubkey) pinnedPubkey.addressOfArrayElement(0),
+                (CIntPointer) pinnedOutputLen.addressOfArrayElement(0),
+                pinnedPubkey.addressOfArrayElement(0),
                 flags);
         }
 
@@ -399,11 +390,11 @@ public class LibSecp256k1Graal {
         if (message.length != 32) {
             throw new IllegalArgumentException("Message must be 32 bytes");
         }
-        if (pubkey.length != 64) {
-            throw new IllegalArgumentException("Public key must be 64 bytes");
+        if (pubkey.length != SECP256K1_PUBKEY_SIZE) {
+            throw new IllegalArgumentException("Public key must be " + SECP256K1_PUBKEY_SIZE + " bytes");
         }
 
-        byte[] sig = new byte[64];
+        byte[] sig = new byte[SECP256K1_ECDSA_SIGNATURE_SIZE];
         try (PinnedObject pinnedSig = PinnedObject.create(sig);
              PinnedObject pinnedSignature = PinnedObject.create(signature);
              PinnedObject pinnedMessage = PinnedObject.create(message);
@@ -412,7 +403,7 @@ public class LibSecp256k1Graal {
             // Parse the signature
             int parseResult = secp256k1EcdsaSignatureParseCompact(
                 ctx,
-                (Secp256k1EcdsaSignature) pinnedSig.addressOfArrayElement(0),
+                pinnedSig.addressOfArrayElement(0),
                 pinnedSignature.addressOfArrayElement(0));
 
             if (parseResult != 1) {
@@ -422,9 +413,9 @@ public class LibSecp256k1Graal {
             // Verify the signature
             return secp256k1EcdsaVerify(
                 ctx,
-                (Secp256k1EcdsaSignature) pinnedSig.addressOfArrayElement(0),
+                pinnedSig.addressOfArrayElement(0),
                 pinnedMessage.addressOfArrayElement(0),
-                (Secp256k1Pubkey) pinnedPubkey.addressOfArrayElement(0));
+                pinnedPubkey.addressOfArrayElement(0));
         }
     }
 
@@ -445,8 +436,8 @@ public class LibSecp256k1Graal {
             throw new IllegalArgumentException("Message must be 32 bytes");
         }
 
-        byte[] recoverableSig = new byte[65];
-        byte[] pubkey = new byte[64];
+        byte[] recoverableSig = new byte[SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE];
+        byte[] pubkey = new byte[SECP256K1_PUBKEY_SIZE];
 
         try (PinnedObject pinnedRecSig = PinnedObject.create(recoverableSig);
              PinnedObject pinnedSignature = PinnedObject.create(signature);
@@ -456,7 +447,7 @@ public class LibSecp256k1Graal {
             // Parse recoverable signature
             int parseResult = secp256k1EcdsaRecoverableSignatureParseCompact(
                 ctx,
-                (Secp256k1EcdsaRecoverableSignature) pinnedRecSig.addressOfArrayElement(0),
+                pinnedRecSig.addressOfArrayElement(0),
                 pinnedSignature.addressOfArrayElement(0),
                 recid);
 
@@ -467,8 +458,8 @@ public class LibSecp256k1Graal {
             // Recover public key
             int recoverResult = secp256k1EcdsaRecover(
                 ctx,
-                (Secp256k1Pubkey) pinnedPubkey.addressOfArrayElement(0),
-                (Secp256k1EcdsaRecoverableSignature) pinnedRecSig.addressOfArrayElement(0),
+                pinnedPubkey.addressOfArrayElement(0),
+                pinnedRecSig.addressOfArrayElement(0),
                 pinnedMessage.addressOfArrayElement(0));
 
             return recoverResult == 1 ? pubkey : null;
@@ -487,15 +478,236 @@ public class LibSecp256k1Graal {
             throw new IllegalArgumentException("Private key must be 32 bytes");
         }
 
-        byte[] pubkey = new byte[64];
+        byte[] pubkey = new byte[SECP256K1_PUBKEY_SIZE];
         try (PinnedObject pinnedPubkey = PinnedObject.create(pubkey);
              PinnedObject pinnedSeckey = PinnedObject.create(seckey)) {
             int result = secp256k1EcPubkeyCreate(
                 ctx,
-                (Secp256k1Pubkey) pinnedPubkey.addressOfArrayElement(0),
+                pinnedPubkey.addressOfArrayElement(0),
                 pinnedSeckey.addressOfArrayElement(0));
 
             return result == 1 ? pubkey : null;
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for signature parsing.
+     *
+     * @param ctx context object
+     * @param signature 64-byte array to receive parsed signature
+     * @param compact64 64-byte compact signature to parse
+     * @return 1 if valid, 0 otherwise
+     */
+    public static int ecdsaSignatureParseCompact(PointerBase ctx, byte[] signature, byte[] compact64) {
+        if (signature.length != SECP256K1_ECDSA_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException("Signature buffer must be " + SECP256K1_ECDSA_SIGNATURE_SIZE + " bytes");
+        }
+        if (compact64.length != 64) {
+            throw new IllegalArgumentException("Compact signature must be 64 bytes");
+        }
+        try (PinnedObject pinnedSignature = PinnedObject.create(signature);
+             PinnedObject pinnedCompact = PinnedObject.create(compact64)) {
+            return secp256k1EcdsaSignatureParseCompact(
+                ctx,
+                pinnedSignature.addressOfArrayElement(0),
+                pinnedCompact.addressOfArrayElement(0));
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for signature serialization.
+     *
+     * @param ctx context object
+     * @param signature 64-byte internal signature representation
+     * @return 64-byte compact signature
+     */
+    public static byte[] ecdsaSignatureSerializeCompact(PointerBase ctx, byte[] signature) {
+        if (signature.length != SECP256K1_ECDSA_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException("Signature must be " + SECP256K1_ECDSA_SIGNATURE_SIZE + " bytes");
+        }
+
+        byte[] compact = new byte[64];
+        try (PinnedObject pinnedSignature = PinnedObject.create(signature);
+             PinnedObject pinnedCompact = PinnedObject.create(compact)) {
+            secp256k1EcdsaSignatureSerializeCompact(
+                ctx,
+                pinnedCompact.addressOfArrayElement(0),
+                pinnedSignature.addressOfArrayElement(0));
+        }
+        return compact;
+    }
+
+    /**
+     * Serialize an ECDSA signature in compact format (64 bytes).
+     *
+     * @param ctx a secp256k1 context object
+     * @param output64 pointer to a 64-byte array (output)
+     * @param sig pointer to 64-byte signature buffer
+     */
+    @CFunction(value = "secp256k1_ecdsa_signature_serialize_compact")
+    static native void secp256k1EcdsaSignatureSerializeCompact(
+        PointerBase ctx,
+        CCharPointer output64,
+        CCharPointer sig);
+
+    /**
+     * Java-friendly wrapper for signature normalization.
+     *
+     * @param ctx context object
+     * @param normalized 64-byte array to receive normalized signature
+     * @param signature 64-byte internal signature representation
+     * @return 1 if signature was not normalized, 0 if it already was
+     */
+    public static int ecdsaSignatureNormalize(PointerBase ctx, byte[] normalized, byte[] signature) {
+        if (normalized.length != SECP256K1_ECDSA_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException("Normalized buffer must be " + SECP256K1_ECDSA_SIGNATURE_SIZE + " bytes");
+        }
+        if (signature.length != SECP256K1_ECDSA_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException("Signature must be " + SECP256K1_ECDSA_SIGNATURE_SIZE + " bytes");
+        }
+        try (PinnedObject pinnedNormalized = PinnedObject.create(normalized);
+             PinnedObject pinnedSignature = PinnedObject.create(signature)) {
+            return secp256k1EcdsaSignatureNormalize(
+                ctx,
+                pinnedNormalized.addressOfArrayElement(0),
+                pinnedSignature.addressOfArrayElement(0));
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for recoverable signature parsing.
+     *
+     * @param ctx context object
+     * @param recoverableSignature 65-byte array to receive parsed signature
+     * @param compact64 64-byte compact signature to parse
+     * @param recoveryId recovery ID (0-3)
+     * @return 1 if valid, 0 otherwise
+     */
+    public static int ecdsaRecoverableSignatureParseCompact(
+            PointerBase ctx,
+            byte[] recoverableSignature,
+            byte[] compact64,
+            int recoveryId) {
+        if (recoverableSignature.length != SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException(
+                "Recoverable signature buffer must be " + SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE + " bytes");
+        }
+        if (compact64.length != 64) {
+            throw new IllegalArgumentException("Compact signature must be 64 bytes");
+        }
+        try (PinnedObject pinnedRecSig = PinnedObject.create(recoverableSignature);
+             PinnedObject pinnedCompact = PinnedObject.create(compact64)) {
+            return secp256k1EcdsaRecoverableSignatureParseCompact(
+                ctx,
+                pinnedRecSig.addressOfArrayElement(0),
+                pinnedCompact.addressOfArrayElement(0),
+                recoveryId);
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for recoverable signature serialization.
+     *
+     * @param ctx context object
+     * @param compact64 64-byte array to receive compact signature (output)
+     * @param recoveryId single-element array to receive recovery ID (output)
+     * @param recoverableSignature 65-byte internal recoverable signature representation
+     */
+    public static void ecdsaRecoverableSignatureSerializeCompact(
+            PointerBase ctx,
+            byte[] compact64,
+            int[] recoveryId,
+            byte[] recoverableSignature) {
+        if (compact64.length != 64) {
+            throw new IllegalArgumentException("Compact signature buffer must be 64 bytes");
+        }
+        if (recoveryId.length != 1) {
+            throw new IllegalArgumentException("Recovery ID array must have length 1");
+        }
+        if (recoverableSignature.length != SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException(
+                "Recoverable signature must be " + SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE + " bytes");
+        }
+        try (PinnedObject pinnedCompact = PinnedObject.create(compact64);
+             PinnedObject pinnedRecId = PinnedObject.create(recoveryId);
+             PinnedObject pinnedRecSig = PinnedObject.create(recoverableSignature)) {
+            secp256k1EcdsaRecoverableSignatureSerializeCompact(
+                ctx,
+                pinnedCompact.addressOfArrayElement(0),
+                (CIntPointer) pinnedRecId.addressOfArrayElement(0),
+                pinnedRecSig.addressOfArrayElement(0));
+        }
+    }
+
+    /**
+     * Convert a recoverable ECDSA signature to a regular ECDSA signature.
+     *
+     * @param ctx a secp256k1 context object
+     * @param sig pointer to 64-byte signature buffer (output)
+     * @param recoverableSig pointer to 65-byte recoverable signature buffer
+     */
+    @CFunction(value = "secp256k1_ecdsa_recoverable_signature_convert")
+    static native void secp256k1EcdsaRecoverableSignatureConvert(
+        PointerBase ctx,
+        CCharPointer sig,
+        CCharPointer recoverableSig);
+
+    /**
+     * Java-friendly wrapper for converting recoverable signature to regular signature.
+     *
+     * @param ctx context object
+     * @param signature 64-byte array to receive regular signature (output)
+     * @param recoverableSignature 65-byte internal recoverable signature representation
+     */
+    public static void ecdsaRecoverableSignatureConvert(
+            PointerBase ctx,
+            byte[] signature,
+            byte[] recoverableSignature) {
+        if (signature.length != SECP256K1_ECDSA_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException("Signature buffer must be " + SECP256K1_ECDSA_SIGNATURE_SIZE + " bytes");
+        }
+        if (recoverableSignature.length != SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException(
+                "Recoverable signature must be " + SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE + " bytes");
+        }
+        try (PinnedObject pinnedSig = PinnedObject.create(signature);
+             PinnedObject pinnedRecSig = PinnedObject.create(recoverableSignature)) {
+            secp256k1EcdsaRecoverableSignatureConvert(
+                ctx,
+                pinnedSig.addressOfArrayElement(0),
+                pinnedRecSig.addressOfArrayElement(0));
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for public key recovery from recoverable signature.
+     *
+     * @param ctx context object
+     * @param recoverableSignature 65-byte internal recoverable signature representation
+     * @param message 32-byte message hash
+     * @return 64-byte recovered public key, or null if recovery failed
+     */
+    public static byte[] ecdsaRecover(PointerBase ctx, byte[] recoverableSignature, byte[] message) {
+        if (recoverableSignature.length != SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE) {
+            throw new IllegalArgumentException(
+                "Recoverable signature must be " + SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE + " bytes");
+        }
+        if (message.length != 32) {
+            throw new IllegalArgumentException("Message must be 32 bytes");
+        }
+
+        byte[] pubkey = new byte[SECP256K1_PUBKEY_SIZE];
+        try (PinnedObject pinnedPubkey = PinnedObject.create(pubkey);
+             PinnedObject pinnedRecSig = PinnedObject.create(recoverableSignature);
+             PinnedObject pinnedMessage = PinnedObject.create(message)) {
+
+            int recoverResult = secp256k1EcdsaRecover(
+                ctx,
+                pinnedPubkey.addressOfArrayElement(0),
+                pinnedRecSig.addressOfArrayElement(0),
+                pinnedMessage.addressOfArrayElement(0));
+
+            return recoverResult == 1 ? pubkey : null;
         }
     }
 }
