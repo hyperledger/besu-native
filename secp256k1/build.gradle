@@ -19,10 +19,28 @@ plugins {
   id 'com.jfrog.artifactory' version '5.2.3'
 }
 
+// Configure source sets - separate GraalVM classes from main JAR
+sourceSets {
+  graal {
+    java {
+      srcDir 'src/main/java'
+      include '**/*Graal*.java'
+    }
+  }
+  main {
+    java {
+      exclude '**/*Graal*.java'
+    }
+  }
+}
+
 dependencies {
   implementation project(':common')
   implementation 'net.java.dev.jna:jna:5.12.1'
-  implementation 'org.graalvm.sdk:graal-sdk:24.0.2'
+
+  // GraalVM SDK only for graal source set
+  graalImplementation 'org.graalvm.sdk:graal-sdk:24.0.2'
+
   testImplementation 'com.google.guava:guava:31.1-jre'
   testImplementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'junit:junit:4.13.2'
@@ -171,10 +189,11 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
-task staticJar(type: Jar, dependsOn: prepareStaticResources) {
+task staticJar(type: Jar, dependsOn: [prepareStaticResources, graalClasses]) {
   archiveBaseName = 'besu-native-secp256k1'
   archiveClassifier = 'static'
   from 'build/resources-static'
+  from sourceSets.graal.output
   includeEmptyDirs = false
 }
 
