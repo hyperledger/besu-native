@@ -15,6 +15,7 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
+import org.graalvm.nativeimage.PinnedObject;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.nativeimage.c.type.CCharPointer;
@@ -63,19 +64,27 @@ public class LibGnarkGraal {
      * Java-friendly wrapper for computeMimcBn254
      */
     public static int computeMimcBn254(byte[] input, int inputLength, byte[] output) {
-        return GraalVMHelper.callWithByteArrays(
-            input, inputLength, output,
-            (inPtr, len, outPtr) -> computeMimcBn254Native(inPtr, len, outPtr)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output)) {
+            return computeMimcBn254Native(
+                pinnedInput.addressOfArrayElement(0),
+                inputLength,
+                pinnedOutput.addressOfArrayElement(0)
+            );
+        }
     }
 
     /**
      * Java-friendly wrapper for computeMimcBls12377
      */
     public static int computeMimcBls12377(byte[] input, int inputLength, byte[] output) {
-        return GraalVMHelper.callWithByteArrays(
-            input, inputLength, output,
-            (inPtr, len, outPtr) -> computeMimcBls12377Native(inPtr, len, outPtr)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output)) {
+            return computeMimcBls12377Native(
+                pinnedInput.addressOfArrayElement(0),
+                inputLength,
+                pinnedOutput.addressOfArrayElement(0)
+            );
+        }
     }
 }

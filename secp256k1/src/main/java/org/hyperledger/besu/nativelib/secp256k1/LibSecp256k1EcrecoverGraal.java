@@ -15,6 +15,7 @@
  */
 package org.hyperledger.besu.nativelib.secp256k1;
 
+import org.graalvm.nativeimage.PinnedObject;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.nativeimage.c.type.CCharPointer;
@@ -149,11 +150,16 @@ public class LibSecp256k1EcrecoverGraal {
         }
 
         // Call native function with pinned byte arrays
-        return GraalVMHelper.callEcrecover(
-            messageHash, signature, recoveryId, outputBuffer,
-            (hashPtr, sigPtr, recId, outPtr) ->
-                secp256k1EcrecoverNative(hashPtr, sigPtr, recId, outPtr)
-        );
+        try (PinnedObject pinnedHash = PinnedObject.create(messageHash);
+             PinnedObject pinnedSig = PinnedObject.create(signature);
+             PinnedObject pinnedOutput = PinnedObject.create(outputBuffer)) {
+            return secp256k1EcrecoverNative(
+                pinnedHash.addressOfArrayElement(0),
+                pinnedSig.addressOfArrayElement(0),
+                recoveryId,
+                pinnedOutput.addressOfArrayElement(0)
+            );
+        }
     }
 
     /**

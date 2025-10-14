@@ -15,6 +15,7 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
+import org.graalvm.nativeimage.PinnedObject;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.nativeimage.c.type.CCharPointer;
@@ -152,11 +153,20 @@ public class LibGnarkEIP196Graal {
             int inputSize,
             int[] outputSize,
             int[] errorSize) {
-        return GraalVMHelper.callWithByteArraysAndRefs(
-            input, output, error, inputSize, outputSize, errorSize,
-            (inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr) ->
-                eip196altbn128G1AddNative(inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error);
+             PinnedObject pinnedOutputSize = PinnedObject.create(outputSize);
+             PinnedObject pinnedErrorSize = PinnedObject.create(errorSize)) {
+            return eip196altbn128G1AddNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize,
+                pinnedOutputSize.addressOfArrayElement(0),
+                pinnedErrorSize.addressOfArrayElement(0)
+            );
+        }
     }
 
     /**
@@ -177,11 +187,20 @@ public class LibGnarkEIP196Graal {
             int inputSize,
             int[] outputSize,
             int[] errorSize) {
-        return GraalVMHelper.callWithByteArraysAndRefs(
-            input, output, error, inputSize, outputSize, errorSize,
-            (inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr) ->
-                eip196altbn128G1MulNative(inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error);
+             PinnedObject pinnedOutputSize = PinnedObject.create(outputSize);
+             PinnedObject pinnedErrorSize = PinnedObject.create(errorSize)) {
+            return eip196altbn128G1MulNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize,
+                pinnedOutputSize.addressOfArrayElement(0),
+                pinnedErrorSize.addressOfArrayElement(0)
+            );
+        }
     }
 
     /**
@@ -202,10 +221,19 @@ public class LibGnarkEIP196Graal {
             int inputSize,
             int[] outputSize,
             int[] errorSize) {
-        return GraalVMHelper.callWithByteArraysAndRefs(
-            input, output, error, inputSize, outputSize, errorSize,
-            (inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr) ->
-                eip196altbn128PairingNative(inPtr, outPtr, errPtr, inSize, outSizePtr, errSizePtr)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error);
+             PinnedObject pinnedOutputSize = PinnedObject.create(outputSize);
+             PinnedObject pinnedErrorSize = PinnedObject.create(errorSize)) {
+            return eip196altbn128PairingNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize,
+                pinnedOutputSize.addressOfArrayElement(0),
+                pinnedErrorSize.addressOfArrayElement(0)
+            );
+        }
     }
 }

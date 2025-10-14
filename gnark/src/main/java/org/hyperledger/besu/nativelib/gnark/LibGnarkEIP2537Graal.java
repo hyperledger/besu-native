@@ -15,6 +15,7 @@
  */
 package org.hyperledger.besu.nativelib.gnark;
 
+import org.graalvm.nativeimage.PinnedObject;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.nativeimage.c.type.CCharPointer;
@@ -266,11 +267,16 @@ public class LibGnarkEIP2537Graal {
             int inputSize,
             int outputLength,
             int errorLength) {
-        return GraalVMHelper.callWithByteArraysAndSizes(
-            input, output, error, inputSize, outputLength, errorLength,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen) ->
-                eip2537blsG1AddNative(inPtr, outPtr, errPtr, inSize, outLen, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsG1AddNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength
+            );
+        }
     }
 
     /**
@@ -293,11 +299,16 @@ public class LibGnarkEIP2537Graal {
             int outputLength,
             int errorLength,
             int nbTasks) {
-        return GraalVMHelper.callWithByteArraysSizesAndTasks(
-            input, output, error, inputSize, outputLength, errorLength, nbTasks,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen, tasks) ->
-                eip2537blsG1MultiExpNative(inPtr, outPtr, errPtr, inSize, outLen, errLen, tasks)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsG1MultiExpNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength, nbTasks
+            );
+        }
     }
 
     /**
@@ -318,11 +329,16 @@ public class LibGnarkEIP2537Graal {
             int inputSize,
             int outputLength,
             int errorLength) {
-        return GraalVMHelper.callWithByteArraysAndSizes(
-            input, output, error, inputSize, outputLength, errorLength,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen) ->
-                eip2537blsG2AddNative(inPtr, outPtr, errPtr, inSize, outLen, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsG2AddNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength
+            );
+        }
     }
 
     /**
@@ -345,11 +361,16 @@ public class LibGnarkEIP2537Graal {
             int outputLength,
             int errorLength,
             int nbTasks) {
-        return GraalVMHelper.callWithByteArraysSizesAndTasks(
-            input, output, error, inputSize, outputLength, errorLength, nbTasks,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen, tasks) ->
-                eip2537blsG2MultiExpNative(inPtr, outPtr, errPtr, inSize, outLen, errLen, tasks)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsG2MultiExpNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength, nbTasks
+            );
+        }
     }
 
     /**
@@ -370,11 +391,16 @@ public class LibGnarkEIP2537Graal {
             int inputSize,
             int outputLength,
             int errorLength) {
-        return GraalVMHelper.callWithByteArraysAndSizes(
-            input, output, error, inputSize, outputLength, errorLength,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen) ->
-                eip2537blsPairingNative(inPtr, outPtr, errPtr, inSize, outLen, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsPairingNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength
+            );
+        }
     }
 
     /**
@@ -395,11 +421,16 @@ public class LibGnarkEIP2537Graal {
             int inputSize,
             int outputLength,
             int errorLength) {
-        return GraalVMHelper.callWithByteArraysAndSizes(
-            input, output, error, inputSize, outputLength, errorLength,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen) ->
-                eip2537blsMapFpToG1Native(inPtr, outPtr, errPtr, inSize, outLen, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsMapFpToG1Native(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength
+            );
+        }
     }
 
     /**
@@ -420,11 +451,16 @@ public class LibGnarkEIP2537Graal {
             int inputSize,
             int outputLength,
             int errorLength) {
-        return GraalVMHelper.callWithByteArraysAndSizes(
-            input, output, error, inputSize, outputLength, errorLength,
-            (inPtr, outPtr, errPtr, inSize, outLen, errLen) ->
-                eip2537blsMapFp2ToG2Native(inPtr, outPtr, errPtr, inSize, outLen, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedOutput = PinnedObject.create(output);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537blsMapFp2ToG2Native(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, outputLength, errorLength
+            );
+        }
     }
 
     /**
@@ -441,11 +477,14 @@ public class LibGnarkEIP2537Graal {
             byte[] error,
             int inputSize,
             int errorLength) {
-        return GraalVMHelper.callBooleanWithByteArrays(
-            input, error, inputSize, errorLength,
-            (inPtr, errPtr, inSize, errLen) ->
-                eip2537G1IsOnCurveNative(inPtr, errPtr, inSize, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537G1IsOnCurveNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, errorLength
+            );
+        }
     }
 
     /**
@@ -462,11 +501,14 @@ public class LibGnarkEIP2537Graal {
             byte[] error,
             int inputSize,
             int errorLength) {
-        return GraalVMHelper.callBooleanWithByteArrays(
-            input, error, inputSize, errorLength,
-            (inPtr, errPtr, inSize, errLen) ->
-                eip2537G2IsOnCurveNative(inPtr, errPtr, inSize, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537G2IsOnCurveNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, errorLength
+            );
+        }
     }
 
     /**
@@ -483,11 +525,14 @@ public class LibGnarkEIP2537Graal {
             byte[] error,
             int inputSize,
             int errorLength) {
-        return GraalVMHelper.callBooleanWithByteArrays(
-            input, error, inputSize, errorLength,
-            (inPtr, errPtr, inSize, errLen) ->
-                eip2537G1IsInSubGroupNative(inPtr, errPtr, inSize, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537G1IsInSubGroupNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, errorLength
+            );
+        }
     }
 
     /**
@@ -504,11 +549,14 @@ public class LibGnarkEIP2537Graal {
             byte[] error,
             int inputSize,
             int errorLength) {
-        return GraalVMHelper.callBooleanWithByteArrays(
-            input, error, inputSize, errorLength,
-            (inPtr, errPtr, inSize, errLen) ->
-                eip2537G2IsInSubGroupNative(inPtr, errPtr, inSize, errLen)
-        );
+        try (PinnedObject pinnedInput = PinnedObject.create(input);
+             PinnedObject pinnedError = PinnedObject.create(error)) {
+            return eip2537G2IsInSubGroupNative(
+                pinnedInput.addressOfArrayElement(0),
+                pinnedError.addressOfArrayElement(0),
+                inputSize, errorLength
+            );
+        }
     }
 
     /**
