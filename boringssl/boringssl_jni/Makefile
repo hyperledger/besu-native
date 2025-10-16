@@ -48,9 +48,12 @@ $(BUILD_DIR):
 $(BUILD_LIB): $(BUILD_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-# Static library
+# Static library - properly merge libcrypto.a object files instead of nesting
 $(BUILD_STATIC_LIB): $(BUILD_OBJS)
-	ar rcs $@ $^ $(LIBS)
+	@mkdir -p $(BUILD_DIR)/merge_tmp
+	@cd $(BUILD_DIR)/merge_tmp && ar x ../../$(BSSL_BUILD_DIR)/libcrypto.a
+	ar rcs $@ $^ $(BUILD_DIR)/merge_tmp/*.o
+	@rm -rf $(BUILD_DIR)/merge_tmp
 
 $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
