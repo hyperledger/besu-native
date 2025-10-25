@@ -21,6 +21,7 @@ import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.word.PointerBase;
+import org.graalvm.word.WordFactory;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -242,7 +243,47 @@ public class LibSecp256k1Graal {
         CCharPointer msg32,
         CCharPointer pubkey);
 
+    /**
+     * Create an ECDSA signature.
+     *
+     * @param ctx a secp256k1 context object, initialized for signing
+     * @param sig pointer to 64-byte signature buffer (output)
+     * @param msg32 the 32-byte message hash being signed
+     * @param seckey pointer to a 32-byte secret key
+     * @param noncefp pointer to a nonce generation function (can be null for default)
+     * @param ndata pointer to arbitrary data for nonce generation function (can be null)
+     * @return 1 if signature created, 0 if nonce generation failed or secret key invalid
+     */
+    @CFunction(value = "secp256k1_ecdsa_sign")
+    static native int secp256k1EcdsaSign(
+        PointerBase ctx,
+        CCharPointer sig,
+        CCharPointer msg32,
+        CCharPointer seckey,
+        PointerBase noncefp,
+        PointerBase ndata);
+
     // ============ Recoverable Signature Operations ============
+
+    /**
+     * Create a recoverable ECDSA signature.
+     *
+     * @param ctx a secp256k1 context object, initialized for signing
+     * @param sig pointer to 65-byte recoverable signature buffer (output)
+     * @param msg32 the 32-byte message hash being signed
+     * @param seckey pointer to a 32-byte secret key
+     * @param noncefp pointer to a nonce generation function (can be null for default)
+     * @param ndata pointer to arbitrary data for nonce generation function (can be null)
+     * @return 1 if signature created, 0 if nonce generation failed or secret key invalid
+     */
+    @CFunction(value = "secp256k1_ecdsa_sign_recoverable")
+    static native int secp256k1EcdsaSignRecoverable(
+        PointerBase ctx,
+        CCharPointer sig,
+        CCharPointer msg32,
+        CCharPointer seckey,
+        PointerBase noncefp,
+        PointerBase ndata);
 
     /**
      * Parse a compact ECDSA signature (64 bytes + recovery id).
@@ -636,6 +677,61 @@ public class LibSecp256k1Graal {
                 pinnedCompact.addressOfArrayElement(0),
                 (CIntPointer) pinnedRecId.addressOfArrayElement(0),
                 pinnedRecSig.addressOfArrayElement(0));
+        }
+    }
+
+    /**
+     * Java-friendly wrapper for creating a recoverable ECDSA signature.
+     * Uses the default nonce generation function (RFC 6979).
+     *
+     * @param ctx context object (must be initialized with SECP256K1_CONTEXT_SIGN)
+     * @param seckey 32-byte private key
+     * @param message 32-byte message hash
+     * @return 65-byte signature (64 bytes compact signature + 1 byte recovery id), or null if signing failed
+     */
+    public static byte[] ecdsaSignRecoverable(PointerBase ctx, byte[] seckey, byte[] message) {
+        if (seckey.length != 32) {
+            throw new IllegalArgumentException("Secret key must be 32 bytes");
+        }
+        if (message.length != 32) {
+            throw new IllegalArgumentException("Message must be 32 bytes");
+        }
+
+        byte[] recSig = new byte[SECP256K1_ECDSA_RECOVERABLE_SIGNATURE_SIZE];
+        try (PinnedObject pinnedRecSig = PinnedObject.create(recSig);
+             PinnedObject pinnedMessage = PinnedObject.create(message);
+             PinnedObject pinnedSeckey = PinnedObject.create(seckey)) {
+
+            int result = secp256k1EcdsaSignRecoverable(
+                ctx,
+                pinnedRecSig.addressOfArrayElement(0),
+                pinnedMessage.addressOfArrayElement(0),
+                pinnedSeckey.addressOfArrayElement(0),
+                WordFactory.nullPointer(),  // use default nonce function
+                WordFactory.nullPointer()); // no extra nonce data
+
+            if (result != 1) {
+                return null;
+            }
+
+            // Serialize to compact format with recovery id
+            byte[] compact64 = new byte[64];
+            int[] recid = new int[1];
+            try (PinnedObject pinnedCompact = PinnedObject.create(compact64);
+                 PinnedObject pinnedRecid = PinnedObject.create(recid)) {
+
+                secp256k1EcdsaRecoverableSignatureSerializeCompact(
+                    ctx,
+                    pinnedCompact.addressOfArrayElement(0),
+                    (CIntPointer) pinnedRecid.addressOfArrayElement(0),
+                    pinnedRecSig.addressOfArrayElement(0));
+
+                // Return 65 bytes: 64-byte compact + 1-byte recid
+                byte[] result65 = new byte[65];
+                System.arraycopy(compact64, 0, result65, 0, 64);
+                result65[64] = (byte) recid[0];
+                return result65;
+            }
         }
     }
 
