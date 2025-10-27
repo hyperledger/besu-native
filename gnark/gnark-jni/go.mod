@@ -1,8 +1,8 @@
 module github.com/hyperledger/besu-native
 
-go 1.23.0
+go 1.25.0
 
-toolchain go1.23.4
+toolchain go1.25.3
 
 require github.com/consensys/gnark-crypto v0.19.0
 
