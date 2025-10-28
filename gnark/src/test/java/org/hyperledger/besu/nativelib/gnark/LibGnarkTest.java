@@ -74,5 +74,30 @@ public class LibGnarkTest {
         assertThat(Bytes.wrap(output)).isEqualTo(Bytes.fromHexString("0x12900ae41a010e54e3b1ed95efa39071d357ff642aeedd30a2c4e13250409662"));
     }
 
+    @Test
+    public void testHashZeroKoalabear() {
+        byte[] output = new byte[Bytes32.SIZE];
+        LibGnark.computePoseidon2Koalabear(Bytes32.ZERO.toArrayUnsafe(), Bytes32.SIZE, output);
+        assertThat(Bytes.wrap(output)).isEqualTo(Bytes.fromHexString("0x225471e76dca970375f18cc4222539bf1893f40b2c28b7d62119af207704c426"));
+    }
+
+    @Test
+    public void testHashOneKoalabear() {
+        byte[] output = new byte[Bytes32.SIZE];
+        LibGnark.computePoseidon2Koalabear(Bytes32.leftPad(Bytes.of(1)).toArrayUnsafe(), Bytes32.SIZE, output);
+        assertThat(Bytes.wrap(output)).isEqualTo(Bytes.fromHexString("0x55c8f679114a34760e97b1b707c95e0250bcb1c851d0341a226324d957047cc1"));
+    }
+
+    @Test
+    public void testLongStringKoalabear() {
+        MutableBytes input = MutableBytes.of(new byte[Bytes32.SIZE*16]);
+        for (int i = 0; i < 16; i++) {
+            input.set(Bytes32.SIZE*(i+1)-1,(byte) i);
+        }
+        byte[] output = new byte[Bytes32.SIZE];
+        LibGnark.computePoseidon2Koalabear(input.toArrayUnsafe(), input.size(), output);
+        assertThat(Bytes.wrap(output)).isEqualTo(Bytes.fromHexString("0x5289c51f652faf00651f03ac563afb080cbcb3797897ecb13d68f7c027b7e029"));
+    }
+
 
 }
