@@ -39,7 +39,6 @@ const (
 	errCodePointInSubgroupCheckFailedEIP196
 	errCodePointOnCurveCheckFailedEIP196
 	errCodePairingCheckErrorEIP196
-	errCodePairingResultFailed // hack - it is not an error, but we use it to indicate that the pairing check result is 0
 )
 
 const (
@@ -181,7 +180,9 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int)
 	inputLen := int(cInputLen)
 
 	if inputLen == 0 {
-		// pairing succeeded
+		// Empty input means pairing succeeded with result 1
+		output := (*[32]byte)(unsafe.Pointer(javaOutputBuf))
+		output[31] = 0x01
 		return errCodeSuccess
 	}
 
@@ -215,11 +216,15 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int)
 		// we have constructed them to be of equal length, so it is a sanity check
 		return errCodePairingCheckErrorEIP196
 	}
+
+	// Write result to output buffer
+	output := (*[32]byte)(unsafe.Pointer(javaOutputBuf))
 	if isOne {
-		return errCodeSuccess
-	} else {
-		return errCodePairingResultFailed
+		output[31] = 0x01
 	}
+	// else: output is already zero-initialized
+
+	return errCodeSuccess
 }
 
 func g1AffineEncode(point *bn254.G1Affine, output *C.char) error {
