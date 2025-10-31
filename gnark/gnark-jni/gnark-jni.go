@@ -60,7 +60,7 @@ func computeMimcBls12377(input *C.char, inputLength C.int, output *C.char) C.int
 	return C.int(len(hash))
 }
 
-// export computePoseidon2Koalabear
+//export computePoseidon2Koalabear
 func computePoseidon2Koalabear(input *C.char, inputLength C.int, output *C.char) C.int {
 	inputSlice := C.GoBytes(unsafe.Pointer(input), inputLength)
 	outputSlice := (*[32]byte)(unsafe.Pointer(output))[:]
