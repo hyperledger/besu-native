@@ -70,7 +70,7 @@ public class AltBN128G1AddPrecompiledContractTest {
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
     if (errorLength.getValue() > 0) {
       assertThat(notes).isNotEmpty();
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
+      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes.replace("\"", ""));
       assertThat(outputLength.getValue()).isZero();
     } else {
       final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
