@@ -23,7 +23,7 @@ jobs:
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
-          wget https://go.dev/dl/go1.25.4.linux-arm64.tar.gz
+          wget https://go.dev/dl/go1.25.4.linux-amd64.tar.gz
           echo "9fa5ffeda4170de60f67f3aa0f824e426421ba724c21e133c1e35d6159ca1bec go1.25.4.linux-amd64.tar.gz" | sha256sum -c || exit 1
           tar -xzf go1.25.4.linux-amd64.tar.gz -C /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go 
           # rust dependencies
