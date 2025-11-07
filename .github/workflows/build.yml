@@ -23,9 +23,9 @@ jobs:
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
-          wget https://go.dev/dl/go1.24.1.linux-amd64.tar.gz
-          echo "cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073 go1.24.1.linux-amd64.tar.gz" | sha256sum -c || exit 1
-          tar -xzf go1.24.1.linux-amd64.tar.gz -C /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go 
+          wget https://go.dev/dl/go1.25.4.linux-arm64.tar.gz
+          echo "9fa5ffeda4170de60f67f3aa0f824e426421ba724c21e133c1e35d6159ca1bec go1.25.4.linux-amd64.tar.gz" | sha256sum -c || exit 1
+          tar -xzf go1.25.4.linux-amd64.tar.gz -C /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
@@ -163,7 +163,7 @@ jobs:
           # secp256k1 dependencies
           brew install autoconf automake libtool
           # gnark dependencies
-          brew install go@1.24 || true
+          brew install go@1.25 || true
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
@@ -234,7 +234,7 @@ jobs:
           # secp256k1, gnark dependencies
           brew install autoconf automake libtool
           # gnark dependencies
-          brew install go@1.24 || true 
+          brew install go@1.25 || true 
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
@@ -259,7 +259,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
       - name: Build
         run: |
           export HOMEBREW_BIN=${{ env.HOMEBREW_BIN }}
