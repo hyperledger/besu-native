@@ -4,13 +4,10 @@ go 1.25
 
 toolchain go1.25.4
 
-require github.com/consensys/gnark-crypto v0.17.0
+require github.com/consensys/gnark-crypto v0.19.1-0.20250919185810-d7ecdb060877
 
 require (
-	github.com/bits-and-blooms/bitset v1.20.0 // indirect
-	github.com/consensys/bavard v0.1.29 // indirect
-	github.com/mmcloughlin/addchain v0.4.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	rsc.io/tmplfunc v0.0.3 // indirect
+	github.com/bits-and-blooms/bitset v1.24.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 )
