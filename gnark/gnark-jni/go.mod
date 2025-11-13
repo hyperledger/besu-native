@@ -4,7 +4,7 @@ go 1.25
 
 toolchain go1.25.4
 
-require github.com/consensys/gnark-crypto v0.19.1-0.20250919185810-d7ecdb060877
+require github.com/consensys/gnark-crypto v0.19.2
 
 require (
 	github.com/bits-and-blooms/bitset v1.24.0 // indirect
