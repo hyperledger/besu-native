@@ -265,7 +265,8 @@ public class LibGnarkEIP196EdgeCaseTest {
   public void testOutputBufferInitializationPairingWritesResult() {
     // Test that output buffer is properly written by Go code (not just relying on Java initialization)
     byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    Arrays.fill(output, (byte) 0xFF); // Fill with garbage to ensure Go writes the result
+    final byte garbageByte = (byte) 0xFF;
+    Arrays.fill(output, garbageByte); // Fill with garbage to ensure Go writes the result
 
     // Valid pairing from test data
     Bytes g1Point = Bytes.concatenate(
@@ -292,8 +293,15 @@ public class LibGnarkEIP196EdgeCaseTest {
 
     assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS);
     // The key test: byte 31 should have been written by Go code (either 0x00 or 0x01, not 0xFF)
-    assertThat(output[31]).isNotEqualTo((byte) 0xFF);
+    assertThat(output[31]).isNotEqualTo(garbageByte);
     assertThat(output[31]).isIn((byte) 0x00, (byte) 0x01);
+    // All other bytes should remain 0xFF
+    for (int i = 0; i < 31; i++) {
+      assertThat(output[i]).isEqualTo(garbageByte);
+    }
+    for (int i = 32; i < LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES; i++) {
+      assertThat(output[i]).isEqualTo(garbageByte);
+    }
   }
 
   @Test
@@ -312,6 +320,9 @@ public class LibGnarkEIP196EdgeCaseTest {
     assertThat(output[31]).isEqualTo((byte) 0x01);
     // All other bytes should remain 0
     for (int i = 0; i < 31; i++) {
+      assertThat(output[i]).isEqualTo((byte) 0x00);
+    }
+    for (int i = 32; i < LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES; i++) {
       assertThat(output[i]).isEqualTo((byte) 0x00);
     }
   }
