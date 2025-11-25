@@ -41,7 +41,8 @@ public class LibGnarkEIP196 {
   public static final int EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED = 3;
   public static final int EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED = 4;
   public static final int EIP196_ERR_CODE_PAIRING_CHECK_ERROR = 5;
-
+  // only on java side
+  public static final int EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH = 6;
 
   static {
     boolean enabled;
@@ -63,6 +64,10 @@ public class LibGnarkEIP196 {
       byte[] i,
       int i_len,
       byte[] output) {
+
+    if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
+      return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+    }
 
     int ret = -1;
     switch(op) {

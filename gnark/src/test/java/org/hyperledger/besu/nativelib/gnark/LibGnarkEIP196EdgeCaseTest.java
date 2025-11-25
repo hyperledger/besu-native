@@ -24,6 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LibGnarkEIP196EdgeCaseTest {
 
+  private static final byte GARBAGE_BYTE = (byte) 0xFF;
+
   @Test
   public void testG1AddEmptyInput() {
     byte[] input = new byte[0];
@@ -265,8 +267,7 @@ public class LibGnarkEIP196EdgeCaseTest {
   public void testOutputBufferInitializationPairingWritesResult() {
     // Test that output buffer is properly written by Go code (not just relying on Java initialization)
     byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    final byte garbageByte = (byte) 0xFF;
-    Arrays.fill(output, garbageByte); // Fill with garbage to ensure Go writes the result
+    Arrays.fill(output, GARBAGE_BYTE); // Fill with garbage to ensure Go writes the result
 
     // Valid pairing from test data
     Bytes g1Point = Bytes.concatenate(
@@ -293,14 +294,14 @@ public class LibGnarkEIP196EdgeCaseTest {
 
     assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS);
     // The key test: byte 31 should have been written by Go code (either 0x00 or 0x01, not 0xFF)
-    assertThat(output[31]).isNotEqualTo(garbageByte);
+    assertThat(output[31]).isNotEqualTo(GARBAGE_BYTE);
     assertThat(output[31]).isIn((byte) 0x00, (byte) 0x01);
     // All other bytes should remain 0xFF
     for (int i = 0; i < 31; i++) {
-      assertThat(output[i]).isEqualTo(garbageByte);
+      assertThat(output[i]).isEqualTo(GARBAGE_BYTE);
     }
     for (int i = 32; i < LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES; i++) {
-      assertThat(output[i]).isEqualTo(garbageByte);
+      assertThat(output[i]).isEqualTo(GARBAGE_BYTE);
     }
   }
 
@@ -358,5 +359,68 @@ public class LibGnarkEIP196EdgeCaseTest {
         output);
 
     assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED);
+  }
+
+  @Test
+  public void testOutputBufferExactSize() {
+    byte[] input = Bytes.EMPTY.toArrayUnsafe();
+    byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+
+    int errorCode = LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_ADD_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output);
+
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS);
+  }
+
+  @Test
+  public void testOutputBufferOversizedIsAllowed() {
+    final int oversizedOutputLength = 128;
+    byte[] input = Bytes.fromHexString(
+        "0x1b43c36e6eb9566ae50c78f79802a80a963cf4317079c9e201361b1afbd64d2b" +
+            "2796ffa55aaf5946e40b8038cda20238c53f328d5e4150287564eb08ce1efa59" +
+            "0d4d3c9a95606d838edb0b494a64d5ad5933335cd7acf5ee9409492135b44fed" +
+            "2d02a128bfb4cb61db495d5389feba0c4943e8c8c936acf7231fc8edefb619b5"
+    ).toArrayUnsafe();
+
+    byte[] output = new byte[oversizedOutputLength]; // Oversized - should work fine
+    Arrays.fill(output, GARBAGE_BYTE); // Fill with garbage
+
+    int errorCode = LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_ADD_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output);
+
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS);
+    Bytes expectedResult = Bytes.fromHexString(
+        "0x29a99e2465491ddb57b131ea6d0469f4faaa4202bf870b3e82365b9c3a59cf82" +
+            "27d26a8780d9d0c30452f13d9673e2d9cae926a2158b62f8cf4804adaa112e98");
+    assertThat(Bytes.wrap(output, 0, 64)).isEqualTo(expectedResult);
+    // Bytes 64+ remain untouched
+    for (int i = 64; i < oversizedOutputLength; i++) {
+      assertThat(output[i]).isEqualTo(GARBAGE_BYTE);
+    }
+  }
+
+  @Test
+  public void testOutputBufferUndersizedReturnsError() {
+    int undersizedOutputLength = LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES - 1;
+    byte[] input = Bytes.EMPTY.toArrayUnsafe();
+    byte[] output = new byte[undersizedOutputLength];
+
+    final int errorCode = LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_ADD_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output);
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH);
+
+    // Output should remain all zeros
+    for (final byte b : output) {
+      assertThat(b).isEqualTo((byte) 0x00);
+    }
   }
 }
