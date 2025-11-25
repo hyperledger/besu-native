@@ -76,8 +76,6 @@ public class LibGnarkEIP196 {
         break;
       case EIP196_PAIR_OPERATION_RAW_VALUE:
         ret = eip196altbn128Pairing(i, output, i_len);
-        // Result is already written to output buffer by Go
-        // ret is only non-zero for actual errors
         break;
       default:
         throw new RuntimeException("Not Implemented EIP-196 operation " + op);

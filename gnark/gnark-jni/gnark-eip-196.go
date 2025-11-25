@@ -222,7 +222,7 @@ func eip196altbn128Pairing(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int)
 	if isOne {
 		output[31] = 0x01
 	}
-	// else: output is already zero-initialized
+	// else: output is already zero-initialized on Java side
 
 	return errCodeSuccess
 }

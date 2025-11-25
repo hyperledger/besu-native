@@ -306,8 +306,8 @@ public class LibGnarkEIP196EdgeCaseTest {
 
   @Test
   public void testPairingEmptyInputWritesOne() {
+    // Initialized with zeros
     byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    Arrays.fill(output, (byte) 0x00); // Start with zeros
 
     int errorCode = LibGnarkEIP196.eip196_perform_operation(
         LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,
