@@ -33,7 +33,6 @@ type errorCode = C.int
 // keep in sync with the Java code. We use constant value to avoid passing strings from Java to Go
 const (
 	errCodeSuccess errorCode = iota
-	errCodeMalformedPointEIP196
 	errCodeInvalidInputPairingLengthEIP196
 	errCodePointNotInFieldEIP196
 	errCodePointInSubgroupCheckFailedEIP196
@@ -110,7 +109,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int) e
 
 	// marshal the resulting point and encode directly to the output buffer
 	g1AffineEncode(p0, javaOutputBuf)
-	return 0
+	return errCodeSuccess
 
 }
 

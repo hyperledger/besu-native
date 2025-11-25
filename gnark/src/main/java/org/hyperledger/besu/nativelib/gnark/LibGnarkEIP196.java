@@ -30,19 +30,17 @@ public class LibGnarkEIP196 {
 
   // Keep in sync with the Go code. We use constant values to avoid passing strings from Java to Go
   // errCodeSuccess errorCode = iota
-  // errCodeMalformedPointEIP196
   // errCodeInvalidInputPairingLengthEIP196
   // errCodePointNotInFieldEIP196
   // errCodePointInSubgroupCheckFailedEIP196
   // errCodePointOnCurveCheckFailedEIP196
   // errCodePairingCheckErrorEIP196
   public static final int EIP196_ERR_CODE_SUCCESS = 0;
-  public static final int EIP196_ERR_CODE_MALFORMED_POINT = 1;
-  public static final int EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH = 2;
-  public static final int EIP196_ERR_CODE_POINT_NOT_IN_FIELD = 3;
-  public static final int EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED = 4;
-  public static final int EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED = 5;
-  public static final int EIP196_ERR_CODE_PAIRING_CHECK_ERROR = 6;
+  public static final int EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH = 1;
+  public static final int EIP196_ERR_CODE_POINT_NOT_IN_FIELD = 2;
+  public static final int EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED = 3;
+  public static final int EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED = 4;
+  public static final int EIP196_ERR_CODE_PAIRING_CHECK_ERROR = 5;
 
 
   static {

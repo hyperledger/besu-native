@@ -232,7 +232,6 @@ public class LibGnarkEIP196ErrorCodeTest {
     // Sanity check: ensure all error codes have unique values
     int[] errorCodes = {
         LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS,
-        LibGnarkEIP196.EIP196_ERR_CODE_MALFORMED_POINT,
         LibGnarkEIP196.EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH,
         LibGnarkEIP196.EIP196_ERR_CODE_POINT_NOT_IN_FIELD,
         LibGnarkEIP196.EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED,
@@ -249,11 +248,10 @@ public class LibGnarkEIP196ErrorCodeTest {
 
     // Check values are in expected range
     assertThat(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS).isEqualTo(0);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_MALFORMED_POINT).isEqualTo(1);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH).isEqualTo(2);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_NOT_IN_FIELD).isEqualTo(3);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED).isEqualTo(4);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED).isEqualTo(5);
-    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_PAIRING_CHECK_ERROR).isEqualTo(6);
+    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH).isEqualTo(1);
+    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_NOT_IN_FIELD).isEqualTo(2);
+    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED).isEqualTo(3);
+    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED).isEqualTo(4);
+    assertThat(LibGnarkEIP196.EIP196_ERR_CODE_PAIRING_CHECK_ERROR).isEqualTo(5);
   }
 }
