@@ -1,7 +1,13 @@
 # Changelog
 
 # Unreleased
+
+# 1.4.1
 * Add and export JNI functions for IsOnCurve and IsInSubgroup for both G1 and G2 points[#279](https://github.com/hyperledger/besu-native/pull/279)
+* Dereference o_len ptr correctly [#289](https://github.com/hyperledger/besu-native/pull/289)
+* Add the Poseidon2 hash function [#299](https://github.com/hyperledger/besu-native/pull/299)
+* Bump Go to 1.25.4 [#302](https://github.com/hyperledger/besu-native/pull/302)
+* Add tests for the poseidon2 wrapper [#300](https://github.com/hyperledger/besu-native/pull/300)
 
 # 1.4.0
 * perf: add boringssl for p256Verify precompile [#275](https://github.com/hyperledger/besu-native/pull/275)
