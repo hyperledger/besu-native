@@ -57,7 +57,14 @@ public class LibGnarkEIP196 {
   }
 
   /**
-   * Here as a compatibility shim for the pre-existing matter-labs implementation.
+   * SAFETY: This method validates output buffer size before calling native code.
+   * The native methods use JNA direct mapping without bounds checking.
+   *
+   * @param op Operation type (ADD=1, MUL=2, PAIR=3)
+   * @param i Input data
+   * @param i_len Length of valid input data
+   * @param output Output buffer - MUST be at least EIP196_PREALLOCATE_FOR_RESULT_BYTES (64 bytes)
+   * @return Error code: 0=success, 6=invalid output length, other codes from native operations
    */
   public static int eip196_perform_operation(
       byte op,
@@ -65,6 +72,7 @@ public class LibGnarkEIP196 {
       int i_len,
       byte[] output) {
 
+    // Prevents JVM crashes from buffer overflows in native code.
     if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
       return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
     }
@@ -87,17 +95,26 @@ public class LibGnarkEIP196 {
     return ret;
   }
 
-  public static native int eip196altbn128G1Add(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128G1Add(
       byte[] input,
       byte[] output,
       int inputSize);
 
-  public static native int eip196altbn128G1Mul(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128G1Mul(
       byte[] input,
       byte[] output,
       int inputSize);
 
-  public static native int eip196altbn128Pairing(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128Pairing(
       byte[] input,
       byte[] output,
       int inputSize);
