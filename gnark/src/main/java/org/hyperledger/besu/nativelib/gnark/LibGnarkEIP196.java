@@ -21,6 +21,7 @@ import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 public class LibGnarkEIP196 {
 
   public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 64;
+  public static final int EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES = 32;
   @SuppressWarnings("WeakerAccess")
   public static final byte EIP196_ADD_OPERATION_RAW_VALUE = 1;
   public static final byte EIP196_MUL_OPERATION_RAW_VALUE = 2;
@@ -57,7 +58,7 @@ public class LibGnarkEIP196 {
   }
 
   /**
-   * SAFETY: This method validates output buffer size before calling native code.
+   * SAFETY: This method validates output buffer size before calling native code to prevent JVM crashes from buffer overflows.
    * The native methods use JNA direct mapping without bounds checking.
    *
    * @param op Operation type (ADD=1, MUL=2, PAIR=3)
@@ -72,20 +73,24 @@ public class LibGnarkEIP196 {
       int i_len,
       byte[] output) {
 
-    // Prevents JVM crashes from buffer overflows in native code.
-    if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
-      return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
-    }
-
     int ret = -1;
     switch(op) {
       case EIP196_ADD_OPERATION_RAW_VALUE:
+        if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
         ret = eip196altbn128G1Add(i, output, i_len);
         break;
       case  EIP196_MUL_OPERATION_RAW_VALUE:
+        if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
         ret = eip196altbn128G1Mul(i, output, i_len);
         break;
       case EIP196_PAIR_OPERATION_RAW_VALUE:
+        if (output.length < EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
         ret = eip196altbn128Pairing(i, output, i_len);
         break;
       default:

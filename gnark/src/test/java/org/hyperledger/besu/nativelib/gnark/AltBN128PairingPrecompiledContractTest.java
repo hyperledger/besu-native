@@ -58,7 +58,7 @@ public class AltBN128PairingPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
+    final byte[] output = new byte[LibGnarkEIP196.EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES];
 
     int errorCode = LibGnarkEIP196.eip196_perform_operation(
         LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,

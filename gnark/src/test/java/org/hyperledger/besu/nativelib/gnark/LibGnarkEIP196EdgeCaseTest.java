@@ -406,13 +406,51 @@ public class LibGnarkEIP196EdgeCaseTest {
   }
 
   @Test
-  public void testOutputBufferUndersizedReturnsError() {
+  public void testAddOutputBufferUndersizedReturnsError() {
     int undersizedOutputLength = LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES - 1;
     byte[] input = Bytes.EMPTY.toArrayUnsafe();
     byte[] output = new byte[undersizedOutputLength];
 
     final int errorCode = LibGnarkEIP196.eip196_perform_operation(
         LibGnarkEIP196.EIP196_ADD_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output);
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH);
+
+    // Output should remain all zeros
+    for (final byte b : output) {
+      assertThat(b).isEqualTo((byte) 0x00);
+    }
+  }
+
+  @Test
+  public void testMulOutputBufferUndersizedReturnsError() {
+    int undersizedOutputLength = LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES - 1;
+    byte[] input = Bytes.EMPTY.toArrayUnsafe();
+    byte[] output = new byte[undersizedOutputLength];
+
+    final int errorCode = LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE,
+        input,
+        input.length,
+        output);
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH);
+
+    // Output should remain all zeros
+    for (final byte b : output) {
+      assertThat(b).isEqualTo((byte) 0x00);
+    }
+  }
+
+  @Test
+  public void testPairingOutputBufferUndersizedReturnsError() {
+    int undersizedOutputLength = LibGnarkEIP196.EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES - 1;
+    byte[] input = Bytes.EMPTY.toArrayUnsafe();
+    byte[] output = new byte[undersizedOutputLength];
+
+    final int errorCode = LibGnarkEIP196.eip196_perform_operation(
+        LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,
         input,
         input.length,
         output);
