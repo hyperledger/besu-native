@@ -154,7 +154,7 @@ jobs:
           path: boringssl/build/
 
   native-build-macos:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     env:
       SKIP_GRADLE: true
     steps:
