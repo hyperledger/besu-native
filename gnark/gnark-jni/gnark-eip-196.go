@@ -52,22 +52,6 @@ var bigIntPool = sync.Pool{
 		return new(big.Int)
 	},
 }
-var g1Pool = sync.Pool{
-	New: func() any {
-		return new(bn254.G1Affine)
-	},
-}
-var g2Pool = sync.Pool{
-	New: func() any {
-		return new(bn254.G2Affine)
-	},
-}
-
-var bytes64Pool = sync.Pool{
-	New: func() any {
-		return [64]byte{}
-	},
-}
 
 var EIP196ScalarTwo = big.NewInt(2)
 
@@ -82,33 +66,29 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int) e
 	input := (*[2 * EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
 	// generate p0 g1 affine
-	p0 := g1Pool.Get().(*bn254.G1Affine)
-	defer g1Pool.Put(p0)
-
-	if err := safeUnmarshalEIP196(p0, input, 0); err != errCodeSuccess {
+	var p0 bn254.G1Affine
+	if err := safeUnmarshalEIP196(&p0, input, 0); err != errCodeSuccess {
 		return err
 	}
 
 	if inputLen < 2*EIP196PreallocateForG1 {
 		// if incomplete input is all zero, return p0
 		if isAllZeroEIP196(input, 64, 64) {
-			g1AffineEncode(p0, javaOutputBuf)
+			g1AffineEncode(&p0, javaOutputBuf)
 			return errCodeSuccess
 		}
 	}
 	// generate p1 g1 affine
-	p1 := g1Pool.Get().(*bn254.G1Affine)
-	defer g1Pool.Put(p1)
-
-	if err := safeUnmarshalEIP196(p1, input, 64); err != errCodeSuccess {
+	var p1 bn254.G1Affine
+	if err := safeUnmarshalEIP196(&p1, input, 64); err != errCodeSuccess {
 		return err
 	}
 
 	// Use the Add method to combine points
-	p0.Add(p0, p1)
+	p0.Add(&p0, &p1)
 
 	// marshal the resulting point and encode directly to the output buffer
-	g1AffineEncode(p0, javaOutputBuf)
+	g1AffineEncode(&p0, javaOutputBuf)
 	return errCodeSuccess
 
 }
@@ -150,9 +130,8 @@ func eip196altbn128G1Mul(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int) e
 	scalarBytes := input[EIP196PreallocateForG1:]
 	if 96 > int(cInputLen) {
 		// if the input is truncated, copy the bytes to the high order portion of the scalar
-		bytes64 := bytes64Pool.Get().([64]byte)
-		defer bytes64Pool.Put(bytes64)
-		scalarBytes = bytes64[:32]
+		var bytes32 [32]byte
+		scalarBytes = bytes32[:]
 		copy(scalarBytes[:], input[64:int(cInputLen)])
 	}
 
@@ -246,9 +225,8 @@ func safeUnmarshalEIP196(g1 *bn254.G1Affine, input []byte, offset int) errorCode
 		return errCodeSuccess
 	} else if len(input)-offset < 64 {
 		// If we have some input, but it is incomplete, pad with zero
-		bytes64 := bytes64Pool.Get().([64]byte)
-		defer bytes64Pool.Put(bytes64)
-		pointBytes = bytes64[:64]
+		var bytes64 [64]byte
+		pointBytes = bytes64[:]
 		shortLen := len(input) - offset
 		copy(pointBytes, input[offset:len(input)])
 		for i := shortLen; i < 64; i++ {
