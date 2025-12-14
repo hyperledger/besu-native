@@ -1,6 +1,8 @@
 # Changelog
 
 # Unreleased
+* BREAKING: `LibGnarkEIP196.eip196altbn128G1Add`, `eip196altbn128G1Mul` and `eip196altbn128Pairing` native methods visibility now private, use `eip196_perform_operation` instead
+* perf: Optimize EIP-196 AltBn128 [#301](https://github.com/hyperledger/besu-native/pull/301)
 
 # 1.4.1
 * Add and export JNI functions for IsOnCurve and IsInSubgroup for both G1 and G2 points[#279](https://github.com/hyperledger/besu-native/pull/279)
