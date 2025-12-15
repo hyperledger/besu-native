@@ -1,5 +1,8 @@
 # Changelog
 
+# Unreleased
+* 
+
 # 1.4.2
 * BREAKING: `LibGnarkEIP196.eip196altbn128G1Add`, `eip196altbn128G1Mul` and `eip196altbn128Pairing` native methods visibility now private, use `eip196_perform_operation` instead
 * perf: Optimize EIP-196 AltBn128 [#301](https://github.com/hyperledger/besu-native/pull/301)
