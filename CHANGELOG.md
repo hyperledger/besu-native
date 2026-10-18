@@ -1,6 +1,7 @@
 # Changelog
 
 # 2.1.0-SNAPSHOT (Unreleased)
+* Fix `LibSecp256k1JNI` failing to load unless `LibSecp256k1` was loaded first
 
 
 # 2.0.0 - 2026-07-21
