@@ -127,4 +127,53 @@ public class LibSecp256k1JNI {
       return new ECRecoverResult(STATUS_FAIL, Optional.empty(), Optional.of("failed to recover"));
     }
   }
+
+  /**
+   * ECDH key agreement in a single native call, computed in constant time.
+   *
+   * <p>The shared point is returned unhashed so that callers can apply their protocol's key
+   * derivation, e.g. RLPx uses the x coordinate and discv5 the compressed point.
+   *
+   * @param publicKey    the 64-byte uncompressed public key (x || y, without the 0x04 prefix)
+   * @param privateKey   the 32-byte private key
+   * @param outputBuffer the output buffer for the 33-byte compressed shared point, whose x
+   *                     coordinate is bytes 1 to 32
+   * @return 0 if the agreement was successful, 1 otherwise
+   */
+  public static native int secp256k1_ecdh_jni(byte[] publicKey, byte[] privateKey,
+      byte[] outputBuffer);
+
+  /**
+   * Result wrapper for ECDH operations
+   */
+  public record ECDHResult(int status, Optional<byte[]> sharedPoint, Optional<String> error) {
+  }
+
+  /**
+   * Safe wrapper for the native ECDH operation.
+   *
+   * @param publicKey  the 64-byte uncompressed public key (x || y)
+   * @param privateKey the 32-byte private key, which must be non-zero and below the curve order
+   * @return ECDHResult containing the 33-byte compressed shared point on success
+   */
+  public static ECDHResult ecdh(byte[] publicKey, byte[] privateKey) {
+    if (publicKey == null || publicKey.length != 64) {
+      return new ECDHResult(STATUS_ERROR, Optional.empty(),
+          Optional.of("publicKey must be 64 bytes"));
+    }
+    if (privateKey == null || privateKey.length != 32) {
+      return new ECDHResult(STATUS_ERROR, Optional.empty(),
+          Optional.of("privateKey must be 32 bytes"));
+    }
+
+    byte[] outputBuffer = new byte[33];
+    int result = secp256k1_ecdh_jni(publicKey, privateKey, outputBuffer);
+
+    if (result == 0) {
+      return new ECDHResult(STATUS_SUCCESS, Optional.of(outputBuffer), Optional.empty());
+    } else {
+      return new ECDHResult(STATUS_FAIL, Optional.empty(),
+          Optional.of("invalid public key or private key"));
+    }
+  }
 }

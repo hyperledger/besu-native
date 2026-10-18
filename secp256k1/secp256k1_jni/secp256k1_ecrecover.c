@@ -15,6 +15,7 @@
  */
 #include "secp256k1_ecrecover.h"
 #include <secp256k1.h>
+#include <secp256k1_ecdh.h>
 #include <secp256k1_recovery.h>
 #include <string.h>
 
@@ -106,6 +107,47 @@ int secp256k1_ecrecover_jni(
         signature, 64,
         recovery_id,
         output_buffer, 65);
+}
+
+// ECDH hash function that returns the compressed shared point instead of hashing it, because
+// RLPx uses the x coordinate and discv5 uses the compressed point
+static int copy_compressed_point(
+    unsigned char *output, const unsigned char *x32, const unsigned char *y32, void *data) {
+    (void) data;
+    output[0] = (y32[31] & 1) ? 0x03 : 0x02;
+    memcpy(output + 1, x32, 32);
+    return 1;
+}
+
+int secp256k1_ecdh_jni(
+    const unsigned char public_key[64],
+    const unsigned char private_key[32],
+    unsigned char output_buffer[33]) {
+
+    ensure_context();
+    if (ctx == NULL) {
+        return 1;
+    }
+
+    if (public_key == NULL || private_key == NULL || output_buffer == NULL) {
+        return 1;
+    }
+
+    unsigned char serialized_public_key[65];
+    serialized_public_key[0] = 0x04;
+    memcpy(serialized_public_key + 1, public_key, 64);
+
+    secp256k1_pubkey pubkey;
+    if (secp256k1_ec_pubkey_parse(ctx, &pubkey, serialized_public_key, 65) != 1) {
+        return 1; // not a point on the curve
+    }
+
+    // fails for a zero or out-of-range private key
+    if (secp256k1_ecdh(ctx, output_buffer, &pubkey, private_key, copy_compressed_point, NULL) != 1) {
+        return 1;
+    }
+
+    return 0;
 }
 
 // Cleanup function (called when library is unloaded)

@@ -43,6 +43,23 @@ int secp256k1_ecrecover_jni(
     int recovery_id,
     unsigned char output_buffer[65]);
 
+/**
+ * ECDH key agreement, computed in constant time.
+ *
+ * Multiplies the public key by the private key and writes the resulting point, unhashed, in
+ * compressed form. The x coordinate is output_buffer[1..32].
+ *
+ * @param public_key the 64-byte uncompressed public key (x || y, without the 0x04 prefix)
+ * @param private_key the 32-byte private key
+ * @param output_buffer the output buffer for the 33-byte compressed shared point
+ * @return 0 if the agreement was successful, 1 if the public key is not on the curve or the
+ *         private key is zero or not below the curve order
+ */
+int secp256k1_ecdh_jni(
+    const unsigned char public_key[64],
+    const unsigned char private_key[32],
+    unsigned char output_buffer[33]);
+
 #ifdef __cplusplus
 }
 #endif

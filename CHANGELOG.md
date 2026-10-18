@@ -2,6 +2,7 @@
 
 # 2.1.0-SNAPSHOT (Unreleased)
 * Fix `LibSecp256k1JNI` failing to load unless `LibSecp256k1` was loaded first
+* Add a native secp256k1 ECDH key agreement to `LibSecp256k1JNI` and `LibSecp256k1EcrecoverGraal`
 
 
 # 2.0.0 - 2026-07-21

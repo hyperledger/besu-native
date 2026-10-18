@@ -26,7 +26,8 @@ import java.util.List;
 
 /**
  * GraalVM native-image compatible interface to secp256k1_ecrecover static library.
- * Provides ECRECOVER operation for Ethereum precompile (address 0x01).
+ * Provides ECRECOVER operation for Ethereum precompile (address 0x01) and the ECDH key
+ * agreement used by the devp2p handshakes.
  *
  * <p>This class uses GraalVM's @CFunction annotation to call native C functions
  * directly from statically linked libraries, avoiding the overhead of JNA.
@@ -34,7 +35,7 @@ import java.util.List;
  * <p>The native libraries required are:
  * <ul>
  *   <li>libsecp256k1.a - Core Bitcoin secp256k1 library</li>
- *   <li>libsecp256k1_ecrecover.a - JNI wrapper for ECRECOVER</li>
+ *   <li>libsecp256k1_ecrecover.a - JNI wrapper for ECRECOVER and ECDH</li>
  * </ul>
  */
 public class LibSecp256k1EcrecoverGraal {
@@ -47,6 +48,15 @@ public class LibSecp256k1EcrecoverGraal {
 
     /** Size of recovered public key in bytes (uncompressed format). */
     public static final int PUBLIC_KEY_SIZE = 65;
+
+    /** Size of the ECDH input public key in bytes (x || y, without the 0x04 prefix). */
+    public static final int ECDH_PUBLIC_KEY_SIZE = 64;
+
+    /** Size of the ECDH private key in bytes. */
+    public static final int ECDH_PRIVATE_KEY_SIZE = 32;
+
+    /** Size of the ECDH shared point in bytes (compressed format). */
+    public static final int ECDH_SHARED_POINT_SIZE = 33;
 
     /** Private constructor to prevent instantiation of utility class. */
     private LibSecp256k1EcrecoverGraal() {}
@@ -179,5 +189,61 @@ public class LibSecp256k1EcrecoverGraal {
         int result = secp256k1Ecrecover(messageHash, signature, recoveryId, output);
 
         return result == 0 ? output : null;
+    }
+
+    /**
+     * Native ECDH function wrapper.
+     *
+     * @param publicKey pointer to 64-byte uncompressed public key (x || y)
+     * @param privateKey pointer to 32-byte private key
+     * @param outputBuffer pointer to 33-byte output buffer for the compressed shared point
+     * @return 0 if the agreement was successful, 1 otherwise
+     */
+    @CFunction(value = "secp256k1_ecdh_jni")
+    public static native int secp256k1EcdhNative(
+            CCharPointer publicKey,
+            CCharPointer privateKey,
+            CCharPointer outputBuffer);
+
+    /**
+     * Java-friendly wrapper for the ECDH key agreement, computed in constant time.
+     *
+     * <p>The shared point is written unhashed in compressed format (33 bytes: 0x02 or 0x03 || x),
+     * so that callers can apply their protocol's key derivation.
+     *
+     * @param publicKey 64-byte uncompressed public key (x || y)
+     * @param privateKey 32-byte private key, non-zero and below the curve order
+     * @param outputBuffer 33-byte buffer to receive the compressed shared point
+     * @return 0 if the agreement was successful, 1 if the public key is not on the curve or the
+     *     private key is invalid
+     * @throws IllegalArgumentException if input sizes are incorrect
+     */
+    public static int secp256k1Ecdh(
+            byte[] publicKey,
+            byte[] privateKey,
+            byte[] outputBuffer) {
+
+        if (publicKey.length != ECDH_PUBLIC_KEY_SIZE) {
+            throw new IllegalArgumentException(
+                "Public key must be " + ECDH_PUBLIC_KEY_SIZE + " bytes, got " + publicKey.length);
+        }
+        if (privateKey.length != ECDH_PRIVATE_KEY_SIZE) {
+            throw new IllegalArgumentException(
+                "Private key must be " + ECDH_PRIVATE_KEY_SIZE + " bytes, got " + privateKey.length);
+        }
+        if (outputBuffer.length != ECDH_SHARED_POINT_SIZE) {
+            throw new IllegalArgumentException(
+                "Output buffer must be " + ECDH_SHARED_POINT_SIZE + " bytes, got " + outputBuffer.length);
+        }
+
+        try (PinnedObject pinnedPublicKey = PinnedObject.create(publicKey);
+             PinnedObject pinnedPrivateKey = PinnedObject.create(privateKey);
+             PinnedObject pinnedOutput = PinnedObject.create(outputBuffer)) {
+            return secp256k1EcdhNative(
+                pinnedPublicKey.addressOfArrayElement(0),
+                pinnedPrivateKey.addressOfArrayElement(0),
+                pinnedOutput.addressOfArrayElement(0)
+            );
+        }
     }
 }
