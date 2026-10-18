@@ -1,8 +1,8 @@
 # Changelog
 
 # 2.1.0-SNAPSHOT (Unreleased)
-* Fix `LibSecp256k1JNI` failing to load unless `LibSecp256k1` was loaded first
-* Add a native secp256k1 ECDH key agreement to `LibSecp256k1JNI` and `LibSecp256k1EcrecoverGraal`
+* Fix `LibSecp256k1JNI` failing to load unless `LibSecp256k1` was loaded first in https://github.com/besu-eth/besu-native/pull/324
+* Add a native secp256k1 ECDH key agreement to `LibSecp256k1JNI` and `LibSecp256k1EcrecoverGraal` in https://github.com/besu-eth/besu-native/pull/324
 
 
 # 2.0.0 - 2026-07-21
