@@ -37,10 +37,9 @@ public class LibSecp256k1JNI {
     boolean enabled;
     try {
       // libsecp256k1_ecrecover links against libsecp256k1, which the dynamic linker only finds
-      // once LibSecp256k1 has loaded it from the extracted resources
-      if (LibSecp256k1.CONTEXT == null) {
-        throw new IllegalStateException("secp256k1 native library is not available");
-      }
+      // once LibSecp256k1 has loaded it from the extracted resources. Only the class is
+      // initialized, because its context can be null although the library is loaded.
+      Class.forName(LibSecp256k1.class.getName(), true, LibSecp256k1.class.getClassLoader());
       BesuNativeLibraryLoader.registerJNA(LibSecp256k1JNI.class, "secp256k1_ecrecover");
       enabled = true;
     } catch (final Throwable t) {

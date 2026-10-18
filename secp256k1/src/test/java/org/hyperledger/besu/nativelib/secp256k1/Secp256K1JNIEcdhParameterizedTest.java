@@ -25,6 +25,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -94,6 +95,22 @@ public class Secp256K1JNIEcdhParameterizedTest {
       Assertions.assertThat(result.error())
           .as("Failed case should have an error: %s", notes)
           .hasValue(error);
+    }
+
+    if (expectedStatusInt == LibSecp256k1JNI.STATUS_FAIL) {
+      // the inputs have valid sizes, so the native function can be called directly with a buffer
+      // that must not keep any previous content or the peer's public key
+      byte[] outputBuffer = new byte[33];
+      Arrays.fill(outputBuffer, (byte) 0xff);
+      Assertions.assertThat(
+              LibSecp256k1JNI.secp256k1_ecdh_jni(
+                  Bytes.fromHexString(publicKey).toArrayUnsafe(),
+                  Bytes.fromHexString(privateKey).toArrayUnsafe(),
+                  outputBuffer))
+          .isEqualTo(1);
+      Assertions.assertThat(outputBuffer)
+          .as("Failed case should clear the output buffer: %s", notes)
+          .containsOnly((byte) 0);
     }
   }
 }
