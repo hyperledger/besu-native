@@ -116,7 +116,11 @@ int secp256k1_ecdh_jni(
     const unsigned char private_key[32],
     unsigned char output_buffer[33]) {
 
-    if (public_key == NULL || private_key == NULL || output_buffer == NULL) {
+    if (output_buffer == NULL) {
+        return 1;
+    }
+    if (public_key == NULL || private_key == NULL) {
+        memset(output_buffer, 0, 33);
         return 1;
     }
 
